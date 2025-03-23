@@ -9,12 +9,59 @@ import {
   IconButton,
   Box,
   Link,
-  Divider
+  Divider,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Alert
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+
+const countries = [
+  { code: 'SK', name: 'Slovensko' },
+  { code: 'CZ', name: 'Česko' },
+  { code: 'HU', name: 'Maďarsko' },
+  { code: 'PL', name: 'Poľsko' },
+  { code: 'AT', name: 'Rakúsko' },
+  { code: 'DE', name: 'Nemecko' },
+  { code: 'GB', name: 'Veľká Británia' },
+  { code: 'US', name: 'USA' },
+  { code: 'FR', name: 'Francúzsko' },
+  { code: 'IT', name: 'Taliansko' },
+  { code: 'ES', name: 'Španielsko' },
+  { code: 'PT', name: 'Portugalsko' },
+  { code: 'NL', name: 'Holandsko' },
+  { code: 'BE', name: 'Belgicko' },
+  { code: 'CH', name: 'Švajčiarsko' },
+  { code: 'SE', name: 'Švédsko' },
+  { code: 'NO', name: 'Nórsko' },
+  { code: 'DK', name: 'Dánsko' },
+  { code: 'FI', name: 'Fínsko' },
+  { code: 'IE', name: 'Írsko' }
+];
+
+function generateCompanyID(companyName: string): string {
+  // Vytvoríme základný identifikátor z názvu firmy
+  const base = companyName
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 4);
+  
+  // Pridáme náhodné číslo
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  
+  // Pridáme timestamp
+  const timestamp = Date.now().toString().slice(-4);
+  
+  return `${base}-${random}-${timestamp}`;
+}
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -28,14 +75,26 @@ function Register() {
     street: '',
     zipCode: '',
     city: '',
-    country: '',
+    country: 'SK',
     ico: '',
-    icDph: ''
+    icDph: '',
+    companyID: ''
   });
 
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (e: any) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -50,19 +109,134 @@ function Register() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert('Heslá sa nezhodujú!');
+      setError('Heslá sa nezhodujú!');
       return;
     }
-    // Tu bude logika pre registráciu
-    console.log('Registrácia:', formData);
+
+    setError('');
+    setLoading(true);
+
+    try {
+      // Vytvorenie používateľa v Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      // Generovanie companyID
+      const companyID = generateCompanyID(formData.companyName);
+
+      // Uloženie údajov o firme do Firestore
+      await setDoc(doc(db, 'companies', companyID), {
+        companyID,
+        companyName: formData.companyName,
+        street: formData.street,
+        zipCode: formData.zipCode,
+        city: formData.city,
+        country: formData.country,
+        ico: formData.ico,
+        icDph: formData.icDph,
+        createdAt: new Date().toISOString(),
+        owner: {
+          uid: userCredential.user.uid,
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone
+        }
+      });
+
+      // Aktualizácia profilu používateľa
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        companyID,
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      });
+
+      setRegistrationSuccess(true);
+    } catch (err: any) {
+      setError(err.message || 'Nepodarilo sa zaregistrovať. Skúste to znova.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
     navigate('/');
   };
+
+  if (registrationSuccess) {
+    return (
+      <Container maxWidth="sm">
+        <Paper elevation={3} sx={{ p: 4, mt: 8, position: 'relative' }}>
+          <IconButton
+            onClick={handleClose}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+          <Typography variant="h4" component="h1" gutterBottom align="center" color="success.main">
+            Registrácia úspešná!
+          </Typography>
+
+          <Alert severity="success" sx={{ mb: 3 }}>
+            Vaša firma bola úspešne zaregistrovaná.
+          </Alert>
+
+          <Typography variant="h6" gutterBottom>
+            Váš Company ID:
+          </Typography>
+          <Paper 
+            elevation={2} 
+            sx={{ 
+              p: 2, 
+              mb: 3, 
+              backgroundColor: 'primary.light',
+              color: 'white',
+              textAlign: 'center',
+              fontSize: '1.2rem',
+              fontWeight: 'bold'
+            }}
+          >
+            {formData.companyID}
+          </Paper>
+
+          <Typography variant="body1" gutterBottom color="warning.main">
+            Prosím, uložte si tento Company ID. Budete ho potrebovať pre:
+          </Typography>
+          <ul>
+            <li>Správu zamestnancov</li>
+            <li>Pridávanie nových členov tímu</li>
+            <li>Administráciu vašej firmy</li>
+          </ul>
+
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={handleClose}
+            sx={{ mt: 3 }}
+          >
+            Späť na hlavnú stránku
+          </Button>
+        </Paper>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="sm">
@@ -81,6 +255,12 @@ function Register() {
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Registrácia
         </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
@@ -240,14 +420,21 @@ function Register() {
             </Grid>
 
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Krajina"
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                required
-              />
+              <FormControl fullWidth required>
+                <InputLabel>Krajina</InputLabel>
+                <Select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleSelectChange}
+                  label="Krajina"
+                >
+                  {countries.map((country) => (
+                    <MenuItem key={country.code} value={country.code}>
+                      {country.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
 
             <Grid item xs={12} sm={6}>
@@ -279,8 +466,9 @@ function Register() {
                 color="primary"
                 type="submit"
                 size="large"
+                disabled={loading}
               >
-                Registrovať sa
+                {loading ? 'Registrácia...' : 'Registrovať sa'}
               </Button>
             </Grid>
 

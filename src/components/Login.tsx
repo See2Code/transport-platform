@@ -8,20 +8,34 @@ import {
   Box,
   Link,
   Grid,
-  IconButton
+  IconButton,
+  Alert
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Tu bude logika pre prihlásenie
-    console.log('Prihlásenie:', { email, password });
+    setError('');
+    setLoading(true);
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Nepodarilo sa prihlásiť. Skúste to znova.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -46,6 +60,12 @@ function Login() {
           Prihlásenie
         </Typography>
         
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -56,6 +76,7 @@ function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </Grid>
             
@@ -67,6 +88,7 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
             </Grid>
             
@@ -77,8 +99,9 @@ function Login() {
                 color="primary"
                 type="submit"
                 size="large"
+                disabled={loading}
               >
-                Prihlásiť sa
+                {loading ? 'Prihlasovanie...' : 'Prihlásiť sa'}
               </Button>
             </Grid>
             
