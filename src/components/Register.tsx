@@ -15,37 +15,28 @@ import {
   FormControl,
   InputLabel,
   Alert,
-  CircularProgress
+  CircularProgress,
+  SelectChangeEvent
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
-import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/style.css';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
-const countries = [
-  { code: 'SK', name: 'Slovensko' },
-  { code: 'CZ', name: 'Česko' },
-  { code: 'HU', name: 'Maďarsko' },
-  { code: 'PL', name: 'Poľsko' },
-  { code: 'AT', name: 'Rakúsko' },
-  { code: 'DE', name: 'Nemecko' },
-  { code: 'GB', name: 'Veľká Británia' },
-  { code: 'US', name: 'USA' },
-  { code: 'FR', name: 'Francúzsko' },
-  { code: 'IT', name: 'Taliansko' },
-  { code: 'ES', name: 'Španielsko' },
-  { code: 'PT', name: 'Portugalsko' },
-  { code: 'NL', name: 'Holandsko' },
-  { code: 'BE', name: 'Belgicko' },
-  { code: 'CH', name: 'Švajčiarsko' },
-  { code: 'SE', name: 'Švédsko' },
-  { code: 'NO', name: 'Nórsko' },
-  { code: 'DK', name: 'Dánsko' },
-  { code: 'FI', name: 'Fínsko' },
-  { code: 'IE', name: 'Írsko' }
+interface Country {
+  code: string;
+  name: string;
+  prefix: string;
+}
+
+const countries: Country[] = [
+  { code: 'sk', name: 'Slovensko', prefix: '+421' },
+  { code: 'cz', name: 'Česko', prefix: '+420' },
+  { code: 'hu', name: 'Maďarsko', prefix: '+36' },
+  { code: 'pl', name: 'Poľsko', prefix: '+48' },
+  { code: 'at', name: 'Rakúsko', prefix: '+43' },
+  { code: 'de', name: 'Nemecko', prefix: '+49' },
 ];
 
 function generateCompanyID(companyName: string): string {
@@ -70,7 +61,9 @@ function Register() {
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
+    phonePrefix: '+421',
+    phoneNumber: '',
+    countryCode: 'sk',
     password: '',
     confirmPassword: '',
     companyName: '',
@@ -94,7 +87,7 @@ function Register() {
     }));
   };
 
-  const handleSelectChange = (e: any) => {
+  const handleSelectChange = (e: SelectChangeEvent) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -102,11 +95,16 @@ function Register() {
     }));
   };
 
-  const handlePhoneChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      phone: value
-    }));
+  const handleCountryChange = (e: SelectChangeEvent) => {
+    const value = e.target.value;
+    const country = countries.find(c => c.code === value);
+    if (country) {
+      setFormData(prev => ({
+        ...prev,
+        countryCode: value,
+        phonePrefix: country.prefix
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,30 +124,28 @@ function Register() {
       setLoading(true);
       setError('');
 
-      // Vytvorenie používateľského účtu v Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
 
-      // Generovanie companyID
       const companyID = generateCompanyID(formData.companyName);
 
-      // Vytvorenie používateľského profilu v Firestore
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         uid: userCredential.user.uid,
         email: formData.email,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        phone: formData.phone,
+        phonePrefix: formData.phonePrefix,
+        phoneNumber: formData.phoneNumber,
+        countryCode: formData.countryCode,
         companyID,
         role: 'admin',
         createdAt: new Date().toISOString(),
         status: 'active'
       });
 
-      // Vytvorenie profilu firmy
       await setDoc(doc(db, 'companies', companyID), {
         companyName: formData.companyName,
         street: formData.street,
@@ -268,140 +264,137 @@ function Register() {
         )}
         
         <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Osobné údaje
-              </Typography>
-            </Grid>
-
+          <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
-                label="Meno"
                 name="firstName"
+                label="Meno"
                 value={formData.firstName}
                 onChange={handleChange}
+                fullWidth
                 required
               />
             </Grid>
-
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
-                label="Priezvisko"
                 name="lastName"
+                label="Priezvisko"
                 value={formData.lastName}
                 onChange={handleChange}
+                fullWidth
                 required
               />
             </Grid>
-
             <Grid item xs={12}>
               <TextField
-                fullWidth
+                name="email"
                 label="Email"
                 type="email"
-                name="email"
                 value={formData.email}
                 onChange={handleChange}
+                fullWidth
                 required
               />
             </Grid>
-
             <Grid item xs={12}>
-              <Box sx={{ position: 'relative' }}>
-                <PhoneInput
-                  country={'sk'}
-                  value={formData.phone}
-                  onChange={handlePhoneChange}
-                  inputStyle={{
-                    width: '100%',
-                    height: '56px',
-                    fontSize: '16px',
-                    paddingLeft: '48px',
-                    border: '1px solid rgba(0, 0, 0, 0.23)',
-                    borderRadius: '4px',
-                    backgroundColor: 'transparent'
-                  }}
-                  buttonStyle={{
-                    border: 'none',
-                    borderRight: '1px solid rgba(0, 0, 0, 0.23)',
-                    backgroundColor: 'transparent'
-                  }}
-                  containerStyle={{
-                    width: '100%'
-                  }}
-                  dropdownStyle={{
-                    width: '300px'
-                  }}
-                  searchStyle={{
-                    width: '100%',
-                    padding: '8px'
-                  }}
-                  placeholder="Telefónne číslo"
-                  enableSearch
-                  searchPlaceholder="Vyhľadať krajinu..."
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Select
+                  value={formData.countryCode}
+                  onChange={handleCountryChange}
+                  sx={{ width: '200px' }}
+                >
+                  {countries.map((country) => (
+                    <MenuItem key={country.code} value={country.code}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <img
+                          loading="lazy"
+                          width="20"
+                          src={`https://flagcdn.com/${country.code}.svg`}
+                          alt={country.name}
+                        />
+                        <span>{country.name}</span>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+                <TextField
+                  name="phoneNumber"
+                  label={`Mobil (${formData.phonePrefix})`}
+                  placeholder="910 XXX XXX"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  fullWidth
+                  required
                 />
               </Box>
             </Grid>
-
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Údaje o firme
-              </Typography>
-            </Grid>
-
             <Grid item xs={12}>
               <TextField
+                name="password"
+                label="Heslo"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
                 fullWidth
-                label="Názov firmy"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="confirmPassword"
+                label="Potvrdiť heslo"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }}>Údaje o firme</Divider>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
                 name="companyName"
+                label="Názov firmy"
                 value={formData.companyName}
                 onChange={handleChange}
+                fullWidth
                 required
               />
             </Grid>
-
             <Grid item xs={12}>
               <TextField
-                fullWidth
-                label="Ulica"
                 name="street"
+                label="Ulica"
                 value={formData.street}
                 onChange={handleChange}
+                fullWidth
                 required
               />
             </Grid>
-
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
-                label="PSČ"
                 name="zipCode"
+                label="PSČ"
                 value={formData.zipCode}
                 onChange={handleChange}
+                fullWidth
                 required
               />
             </Grid>
-
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
-                label="Mesto"
                 name="city"
+                label="Mesto"
                 value={formData.city}
                 onChange={handleChange}
+                fullWidth
                 required
               />
             </Grid>
-
             <Grid item xs={12}>
-              <FormControl fullWidth required>
+              <FormControl fullWidth>
                 <InputLabel>Krajina</InputLabel>
                 <Select
                   name="country"
@@ -410,92 +403,46 @@ function Register() {
                   label="Krajina"
                 >
                   {countries.map((country) => (
-                    <MenuItem key={country.code} value={country.code}>
+                    <MenuItem key={country.code} value={country.code.toUpperCase()}>
                       {country.name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
-                label="IČO"
                 name="ico"
+                label="IČO"
                 value={formData.ico}
                 onChange={handleChange}
-                required
+                fullWidth
               />
             </Grid>
-
             <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
-                label="IČ DPH"
                 name="icDph"
+                label="IČ DPH"
                 value={formData.icDph}
                 onChange={handleChange}
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Heslo
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
                 fullWidth
-                label="Heslo"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
               />
             </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Potvrďte heslo"
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </Grid>
-            
             <Grid item xs={12}>
               <Button
+                type="submit"
                 fullWidth
                 variant="contained"
-                color="primary"
-                type="submit"
                 size="large"
                 disabled={loading}
               >
-                {loading ? <CircularProgress size={20} /> : 'Zaregistrovať firmu'}
+                {loading ? <CircularProgress size={24} /> : 'Registrovať'}
               </Button>
             </Grid>
-
             <Grid item xs={12}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  Už máte účet?{' '}
-                  <Link href="/login" color="primary">
-                    Prihláste sa
-                  </Link>
-                </Typography>
-              </Box>
+              <Link href="/login" variant="body2" sx={{ display: 'block', textAlign: 'center' }}>
+                Máte už účet? Prihláste sa
+              </Link>
             </Grid>
           </Grid>
         </form>

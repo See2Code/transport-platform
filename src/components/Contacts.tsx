@@ -19,11 +19,12 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
-import { collection, addDoc, query, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { useAuth } from '../contexts/AuthContext';
 
 interface Country {
   code: string;
@@ -49,16 +50,16 @@ interface Contact {
   phoneNumber: string;
   countryCode: string;
   email: string;
-  userId: string;
 }
 
 const Contacts = () => {
-  const { currentUser } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [formData, setFormData] = useState<Omit<Contact, 'id' | 'userId'>>({
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [formData, setFormData] = useState<Omit<Contact, 'id'>>({
     firstName: '',
     lastName: '',
     company: '',
@@ -68,23 +69,24 @@ const Contacts = () => {
     email: '',
   });
 
-  const loadContacts = async () => {
-    if (!currentUser) return;
-    const q = query(collection(db, 'contacts'));
-    const querySnapshot = await getDocs(q);
-    const contactsList = querySnapshot.docs
-      .map(doc => ({ ...doc.data(), id: doc.id } as Contact))
-      .filter(contact => contact.userId === currentUser.uid);
-    setContacts(contactsList);
-  };
-
   useEffect(() => {
-    loadContacts();
-  }, [currentUser]);
+    const q = query(collection(db, 'contacts'));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const contactsList = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      })) as Contact[];
+      setContacts(contactsList);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setTouchedFields(prev => ({ ...prev, [name]: true }));
   };
 
   const handleCountryChange = (e: SelectChangeEvent) => {
@@ -100,32 +102,43 @@ const Contacts = () => {
   };
 
   const handleSubmit = async () => {
-    if (!currentUser) return;
     try {
       if (editingContact?.id) {
-        await updateDoc(doc(db, 'contacts', editingContact.id), {
-          ...formData,
-          userId: currentUser.uid,
+        await updateDoc(doc(db, 'contacts', editingContact.id), formData);
+        setSnackbar({
+          open: true,
+          message: 'Kontakt bol úspešne upravený',
+          severity: 'success'
         });
       } else {
-        await addDoc(collection(db, 'contacts'), {
-          ...formData,
-          userId: currentUser.uid,
+        await addDoc(collection(db, 'contacts'), formData);
+        setSnackbar({
+          open: true,
+          message: 'Nový kontakt bol úspešne pridaný',
+          severity: 'success'
         });
       }
-      await loadContacts();
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving contact:', error);
+      setSnackbar({
+        open: true,
+        message: 'Nastala chyba pri ukladaní kontaktu',
+        severity: 'error'
+      });
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'contacts', id));
-      await loadContacts();
     } catch (error) {
       console.error('Error deleting contact:', error);
+      setSnackbar({
+        open: true,
+        message: 'Nastala chyba pri mazaní kontaktu',
+        severity: 'error'
+      });
     }
   };
 
@@ -155,6 +168,7 @@ const Contacts = () => {
       countryCode: 'sk',
       email: '',
     });
+    setTouchedFields({});
   };
 
   const filteredContacts = contacts.filter(contact =>
@@ -195,7 +209,7 @@ const Contacts = () => {
               <TableCell>Meno</TableCell>
               <TableCell>Priezvisko</TableCell>
               <TableCell>Firma</TableCell>
-              <TableCell>Telefón</TableCell>
+              <TableCell>Mobil</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Akcie</TableCell>
             </TableRow>
@@ -206,7 +220,17 @@ const Contacts = () => {
                 <TableCell>{contact.firstName}</TableCell>
                 <TableCell>{contact.lastName}</TableCell>
                 <TableCell>{contact.company}</TableCell>
-                <TableCell>{contact.phonePrefix} {contact.phoneNumber}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <img
+                      loading="lazy"
+                      width="20"
+                      src={`https://flagcdn.com/${contact.countryCode}.svg`}
+                      alt=""
+                    />
+                    {contact.phonePrefix} {contact.phoneNumber}
+                  </Box>
+                </TableCell>
                 <TableCell>{contact.email}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => contact.id && handleEdit(contact)}>
@@ -231,14 +255,16 @@ const Contacts = () => {
         <DialogTitle>
           {editingContact ? 'Upraviť kontakt' : 'Pridať nový kontakt'}
         </DialogTitle>
-        <DialogContent sx={{ minWidth: '500px' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+        <DialogContent sx={{ minWidth: '500px', pt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
               name="firstName"
               label="Meno"
               value={formData.firstName}
               onChange={handleInputChange}
               fullWidth
+              required
+              error={touchedFields.firstName && !formData.firstName}
             />
             <TextField
               name="lastName"
@@ -246,6 +272,8 @@ const Contacts = () => {
               value={formData.lastName}
               onChange={handleInputChange}
               fullWidth
+              required
+              error={touchedFields.lastName && !formData.lastName}
             />
             <TextField
               name="company"
@@ -277,7 +305,7 @@ const Contacts = () => {
               </Select>
               <TextField
                 name="phoneNumber"
-                label="Mobil"
+                label={`Mobil (${formData.phonePrefix})`}
                 placeholder="910 XXX XXX"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
@@ -291,16 +319,36 @@ const Contacts = () => {
               value={formData.email}
               onChange={handleInputChange}
               fullWidth
+              required
+              error={touchedFields.email && !formData.email}
             />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Zrušiť</Button>
-          <Button onClick={handleSubmit} variant="contained">
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained"
+            disabled={!formData.firstName || !formData.lastName || !formData.email}
+          >
             {editingContact ? 'Uložiť zmeny' : 'Pridať kontakt'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

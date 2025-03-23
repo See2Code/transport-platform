@@ -43,6 +43,22 @@ import { useNavigate } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { SelectChangeEvent } from '@mui/material';
+
+interface Country {
+  code: string;
+  name: string;
+  prefix: string;
+}
+
+const countries: Country[] = [
+  { code: 'sk', name: 'Slovensko', prefix: '+421' },
+  { code: 'cz', name: 'Česko', prefix: '+420' },
+  { code: 'hu', name: 'Maďarsko', prefix: '+36' },
+  { code: 'pl', name: 'Poľsko', prefix: '+48' },
+  { code: 'at', name: 'Rakúsko', prefix: '+43' },
+  { code: 'de', name: 'Nemecko', prefix: '+49' },
+];
 
 interface TeamMember {
   id: string;
@@ -84,7 +100,9 @@ function Team() {
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('+421');
+  const [phonePrefix, setPhonePrefix] = useState('+421');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('sk');
   const [role, setRole] = useState('user');
 
   useEffect(() => {
@@ -191,7 +209,7 @@ function Team() {
   }, [navigate]);
 
   const handleInvite = async () => {
-    if (!email || !role || !companyID || !firstName || !lastName || !phone) {
+    if (!email || !role || !companyID || !firstName || !lastName || !phoneNumber) {
       setError('Prosím vyplňte všetky polia');
       return;
     }
@@ -206,7 +224,7 @@ function Team() {
         email,
         firstName,
         lastName,
-        phone: phone.startsWith('+') ? phone : `+${phone}`,
+        phone: `${phonePrefix}${phoneNumber}`,
         role,
         companyID,
         createdAt: new Date(),
@@ -219,7 +237,7 @@ function Team() {
         email,
         firstName,
         lastName,
-        phone: phone.startsWith('+') ? phone : `+${phone}`,
+        phone: `${phonePrefix}${phoneNumber}`,
         role,
         companyId: companyID,
         invitationId: invitationRef.id
@@ -230,7 +248,7 @@ function Team() {
       setEmail('');
       setFirstName('');
       setLastName('');
-      setPhone('+421');
+      setPhoneNumber('');
       setRole('user');
     } catch (err: any) {
       console.error('Chyba pri odosielaní pozvánky:', err);
@@ -245,18 +263,18 @@ function Team() {
     setFirstName(member.firstName);
     setLastName(member.lastName);
     setEmail(member.email);
-    setPhone(member.phone);
+    setPhoneNumber(member.phone.replace(phonePrefix, ''));
     setRole(member.role);
     setOpenEdit(true);
   };
 
   const handleUpdate = async () => {
-    if (!editingInvite || !firstName || !lastName || !email || !phone || !role) {
+    if (!editingInvite || !firstName || !lastName || !email || !phoneNumber || !role) {
       setError('Prosím vyplňte všetky polia');
       return;
     }
 
-    if (!phone.startsWith('+')) {
+    if (!phoneNumber.startsWith('+')) {
       setError('Telefónne číslo musí začínať predvoľbou krajiny (napr. +421)');
       return;
     }
@@ -272,7 +290,7 @@ function Team() {
           firstName,
           lastName,
           email,
-          phone,
+          phone: `${phonePrefix}${phoneNumber}`,
           role,
           updatedAt: new Date()
         });
@@ -282,7 +300,7 @@ function Team() {
           firstName,
           lastName,
           email,
-          phone,
+          phone: `${phonePrefix}${phoneNumber}`,
           role,
           updatedAt: new Date()
         });
@@ -294,7 +312,7 @@ function Team() {
       setEmail('');
       setFirstName('');
       setLastName('');
-      setPhone('+421');
+      setPhoneNumber('');
       setRole('user');
     } catch (err: any) {
       console.error('Chyba pri aktualizácii záznamu:', err);
@@ -349,6 +367,15 @@ function Team() {
       setError(err.message || 'Nastala chyba pri overovaní statusu.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCountryChange = (e: SelectChangeEvent) => {
+    const value = e.target.value;
+    const country = countries.find(c => c.code === value);
+    if (country) {
+      setCountryCode(value);
+      setPhonePrefix(country.prefix);
     }
   };
 
@@ -597,13 +624,35 @@ function Team() {
               />
             </Grid>
             <Grid item xs={12}>
-              <PhoneInput
-                country={'sk'}
-                value={phone}
-                onChange={setPhone}
-                inputStyle={{ width: '100%' }}
-                containerStyle={{ width: '100%' }}
-              />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Select
+                  value={countryCode}
+                  onChange={handleCountryChange}
+                  sx={{ width: '200px' }}
+                >
+                  {countries.map((country) => (
+                    <MenuItem key={country.code} value={country.code}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <img
+                          loading="lazy"
+                          width="20"
+                          src={`https://flagcdn.com/${country.code}.svg`}
+                          alt={country.name}
+                        />
+                        <span>{country.name}</span>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+                <TextField
+                  label={`Mobil (${phonePrefix})`}
+                  placeholder="910 XXX XXX"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Box>
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
@@ -672,13 +721,35 @@ function Team() {
               />
             </Grid>
             <Grid item xs={12}>
-              <PhoneInput
-                country={'sk'}
-                value={phone}
-                onChange={setPhone}
-                inputStyle={{ width: '100%' }}
-                containerStyle={{ width: '100%' }}
-              />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Select
+                  value={countryCode}
+                  onChange={handleCountryChange}
+                  sx={{ width: '200px' }}
+                >
+                  {countries.map((country) => (
+                    <MenuItem key={country.code} value={country.code}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <img
+                          loading="lazy"
+                          width="20"
+                          src={`https://flagcdn.com/${country.code}.svg`}
+                          alt={country.name}
+                        />
+                        <span>{country.name}</span>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+                <TextField
+                  label={`Mobil (${phonePrefix})`}
+                  placeholder="910 XXX XXX"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Box>
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
