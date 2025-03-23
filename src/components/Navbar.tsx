@@ -35,13 +35,50 @@ import { useAuth } from '../contexts/AuthContext';
 const drawerWidth = 240;
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  backdropFilter: 'none',
-  backgroundColor: '#1a1b2e',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+  backdropFilter: 'blur(10px)',
+  backgroundColor: 'rgba(35, 35, 66, 0.95)',
   color: '#ffffff',
   boxShadow: 'none',
-  borderRadius: 0,
+  margin: '16px',
+  borderRadius: '12px',
+  width: `calc(100% - ${drawerWidth}px - 32px)`,
+  '& .MuiToolbar-root': {
+    minHeight: '56px',
+  }
 }));
+
+const Logo = styled(Typography)(({ theme }) => ({
+  fontWeight: 'bold',
+  color: '#00b894',
+  fontSize: '1.5rem',
+  marginRight: theme.spacing(2),
+}));
+
+const LogoContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(2),
+}));
+
+const AesaLogo = styled('img')({
+  height: '32px',
+  width: 'auto',
+  marginRight: '8px',
+});
+
+const AesaLogoDrawer = styled('img')({
+  height: '40px',
+  width: 'auto',
+  marginBottom: '16px',
+});
+
+const DrawerHeader = styled('div')({
+  padding: '16px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  width: '100%',
+});
 
 const menuItems = [
   {
@@ -114,7 +151,9 @@ const Navbar = () => {
 
   const drawer = (
     <div>
-      <Toolbar />
+      <DrawerHeader>
+        <AesaLogoDrawer src="/AESA white.svg" alt="AESA Logo" />
+      </DrawerHeader>
       <Divider />
       <List>
         {menuItems.map((item) => (
@@ -137,7 +176,6 @@ const Navbar = () => {
       <StyledAppBar
         position="fixed"
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
         }}
       >
@@ -151,13 +189,34 @@ const Navbar = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, color: '#ffffff' }}>
+          <Logo variant="h6" noWrap>
+            CORE
+          </Logo>
+          <Typography 
+            variant="h6" 
+            noWrap 
+            component="div" 
+            sx={{ 
+              flexGrow: 1, 
+              color: '#ffffff',
+              opacity: 0.7,
+              fontWeight: 'normal'
+            }}
+          >
             Transport Platform
           </Typography>
           
           <IconButton
             onClick={handleNotificationsMenu}
-            sx={{ mr: 2, color: '#ffffff' }}
+            sx={{ 
+              mr: 2, 
+              color: '#ffffff',
+              opacity: 0.7,
+              '&:hover': {
+                opacity: 1,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
           >
             <NotificationsIcon />
           </IconButton>
