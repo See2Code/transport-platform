@@ -22,99 +22,157 @@ import { addDoc, collection } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
-const StyledContainer = styled('main')({
-  width: 'calc(100% + 48px)',
-  background: 'linear-gradient(135deg, rgba(0, 184, 148, 0.03) 0%, rgba(255, 165, 2, 0.03) 100%)',
-  borderRadius: '16px',
-  padding: '20px',
-  marginTop: '-8px',
-  marginLeft: '-24px',
-  display: 'flex',
-  flexDirection: 'column',
-  flex: 1,
+// Definícia farebnej palety
+const colors = {
+  primary: {
+    main: '#1a1a2e',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  secondary: {
+    main: '#ff6b6b',
+    light: '#ff8787',
+    dark: '#fa5252',
+  },
+  accent: {
+    main: '#00b894',
+    light: '#00d2a0',
+    dark: '#00a07a',
+  }
+};
+
+const StyledContainer = styled(Container)({
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(20px)',
+  borderRadius: '24px',
+  padding: '32px',
+  color: '#ffffff',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
+  width: '100%',
+  maxWidth: '100% !important',
+  margin: 0,
 });
 
 const FormSection = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '16px',
+  marginBottom: '32px',
+});
+
+const SectionTitle = styled(Typography)({
+  fontSize: '1.25rem',
+  fontWeight: 600,
+  marginBottom: '24px',
+  color: '#ffffff',
   position: 'relative',
-  '&:before': {
+  '&::after': {
     content: '""',
     position: 'absolute',
-    left: '-20px',
-    top: '0',
-    bottom: '0',
-    width: '3px',
-    background: 'linear-gradient(to bottom, #00b894, #ffa502)',
-    borderRadius: '4px',
-  }
-});
-
-const GradientButton = styled(Button)({
-  background: 'linear-gradient(135deg, #00b894 0%, #ffa502 100%)',
-  color: 'white',
-  padding: '12px 24px',
-  borderRadius: '12px',
-  fontWeight: 600,
-  fontSize: '15px',
-  textTransform: 'none',
-  '&:hover': {
-    background: 'linear-gradient(135deg, #00d2a0 0%, #ffb52f 100%)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 8px 15px rgba(0, 184, 148, 0.2)',
-  },
-  transition: 'all 0.3s ease-in-out',
-});
-
-const StyledTextField = styled(TextField)({
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    background: 'rgba(255, 255, 255, 0.03)',
-    '&:hover': {
-      background: 'rgba(255, 255, 255, 0.05)',
-    },
-    '&.Mui-focused': {
-      background: 'rgba(255, 255, 255, 0.07)',
-    }
-  }
-});
-
-const StyledDateTimePicker = styled(DateTimePicker)({
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    background: 'rgba(255, 255, 255, 0.03)',
-    '&:hover': {
-      background: 'rgba(255, 255, 255, 0.05)',
-    },
-    '&.Mui-focused': {
-      background: 'rgba(255, 255, 255, 0.07)',
-    }
-  }
-});
-
-const StyledFormControl = styled(FormControl)({
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    background: 'rgba(255, 255, 255, 0.03)',
-    '&:hover': {
-      background: 'rgba(255, 255, 255, 0.05)',
-    },
-    '&.Mui-focused': {
-      background: 'rgba(255, 255, 255, 0.07)',
-    }
+    bottom: '-8px',
+    left: 0,
+    width: '40px',
+    height: '3px',
+    backgroundColor: colors.accent.main,
+    borderRadius: '2px',
   }
 });
 
 const InputGroup = styled('div')({
   display: 'flex',
   gap: '16px',
-  '& .date-picker': {
-    flex: 2
-  },
-  '& .reminder-select': {
-    flex: 1
+  marginBottom: '24px',
+  '@media (max-width: 600px)': {
+    flexDirection: 'column',
   }
+});
+
+const StyledTextField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '12px',
+    transition: 'all 0.2s ease-in-out',
+    '& fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: colors.accent.main,
+    },
+  },
+  '& .MuiOutlinedInput-input': {
+    color: '#ffffff',
+  },
+  '& .MuiInputLabel-root': {
+    color: 'rgba(255, 255, 255, 0.7)',
+    '&.Mui-focused': {
+      color: colors.accent.main,
+    },
+  },
+  '& .MuiSelect-icon': {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  '& .MuiSelect-select': {
+    '&:focus': {
+      backgroundColor: 'transparent',
+    },
+  },
+  '& .MuiMenuItem-root': {
+    color: '#ffffff',
+  },
+});
+
+const StyledDateTimePicker = styled(DateTimePicker)({
+  width: '100%',
+  '& .MuiOutlinedInput-root': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '12px',
+    transition: 'all 0.2s ease-in-out',
+    '& fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: colors.accent.main,
+    },
+  },
+  '& .MuiOutlinedInput-input': {
+    color: '#ffffff',
+  },
+  '& .MuiInputLabel-root': {
+    color: 'rgba(255, 255, 255, 0.7)',
+    '&.Mui-focused': {
+      color: colors.accent.main,
+    },
+  },
+  '& .MuiIconButton-root': {
+    color: 'rgba(255, 255, 255, 0.7)',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+  },
+});
+
+const SubmitButton = styled(Button)({
+  backgroundColor: colors.accent.main,
+  color: '#ffffff',
+  padding: '12px 32px',
+  borderRadius: '12px',
+  fontSize: '1rem',
+  fontWeight: 600,
+  textTransform: 'none',
+  transition: 'all 0.2s ease-in-out',
+  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  '&:hover': {
+    backgroundColor: colors.accent.light,
+    transform: 'translateY(-2px)',
+    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+  },
 });
 
 interface TransportFormData {
@@ -187,16 +245,19 @@ function Transport() {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
       <StyledContainer>
-        <Typography variant="h4" sx={{ 
-          fontSize: '28px',
-          fontWeight: 700,
-          background: 'linear-gradient(135deg, #00b894 0%, #ffa502 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          mb: 3,
-        }}>
-          Nová preprava
-        </Typography>
+        <FormSection>
+          <SectionTitle variant="h2">
+            Nová preprava
+          </SectionTitle>
+          <StyledTextField
+            fullWidth
+            label="Číslo objednávky"
+            value={formData.orderNumber}
+            onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+            required
+            margin="normal"
+          />
+        </FormSection>
 
         {error && (
           <Alert 
@@ -229,114 +290,97 @@ function Transport() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <StyledTextField
-            fullWidth
-            label="Číslo objednávky"
-            value={formData.orderNumber}
-            onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-            required
-            sx={{ mb: 3 }}
-          />
-
           <FormSection>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#00b894',
-              }}
-            >
+            <SectionTitle variant="h2">
               Naloženie
-            </Typography>
-
+            </SectionTitle>
             <StyledTextField
               fullWidth
               label="Adresa naloženia"
               value={formData.loadingAddress}
               onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
               required
+              margin="normal"
             />
-
             <InputGroup>
               <StyledDateTimePicker
-                className="date-picker"
                 label="Dátum a čas naloženia"
                 value={formData.loadingDateTime}
                 onChange={(newValue: Date | null) => setFormData({ ...formData, loadingDateTime: newValue })}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    required: true,
+                  }
+                }}
               />
-
-              <StyledFormControl className="reminder-select">
-                <InputLabel>Pripomienka pred</InputLabel>
-                <Select
-                  value={formData.loadingReminder}
-                  onChange={(e) => setFormData({ ...formData, loadingReminder: Number(e.target.value) })}
-                  label="Pripomienka pred"
-                >
-                  {reminderOptions.map((hours) => (
-                    <MenuItem key={hours} value={hours}>
-                      {hours} {hours === 1 ? 'hodinu' : hours < 5 ? 'hodiny' : 'hodín'}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </StyledFormControl>
+              <StyledTextField
+                select
+                fullWidth
+                label="Pripomienka"
+                value={formData.loadingReminder.toString()}
+                onChange={(e) => setFormData({ ...formData, loadingReminder: Number(e.target.value) })}
+                variant="outlined"
+                SelectProps={{
+                  native: true,
+                }}
+              >
+                {reminderOptions.map((hours) => (
+                  <option key={hours} value={hours}>
+                    {hours} {hours === 1 ? 'hodinu' : hours < 5 ? 'hodiny' : 'hodín'}
+                  </option>
+                ))}
+              </StyledTextField>
             </InputGroup>
           </FormSection>
 
-          <FormSection sx={{ mt: 4 }}>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#ffa502',
-              }}
-            >
+          <FormSection>
+            <SectionTitle variant="h2">
               Vyloženie
-            </Typography>
-
+            </SectionTitle>
             <StyledTextField
               fullWidth
               label="Adresa vyloženia"
               value={formData.unloadingAddress}
               onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
               required
+              margin="normal"
             />
-
             <InputGroup>
               <StyledDateTimePicker
-                className="date-picker"
                 label="Dátum a čas vyloženia"
                 value={formData.unloadingDateTime}
                 onChange={(newValue: Date | null) => setFormData({ ...formData, unloadingDateTime: newValue })}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    required: true,
+                  }
+                }}
               />
-
-              <StyledFormControl className="reminder-select">
-                <InputLabel>Pripomienka pred</InputLabel>
-                <Select
-                  value={formData.unloadingReminder}
-                  onChange={(e) => setFormData({ ...formData, unloadingReminder: Number(e.target.value) })}
-                  label="Pripomienka pred"
-                >
-                  {reminderOptions.map((hours) => (
-                    <MenuItem key={hours} value={hours}>
-                      {hours} {hours === 1 ? 'hodinu' : hours < 5 ? 'hodiny' : 'hodín'}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </StyledFormControl>
+              <StyledTextField
+                select
+                fullWidth
+                label="Pripomienka"
+                value={formData.unloadingReminder.toString()}
+                onChange={(e) => setFormData({ ...formData, unloadingReminder: Number(e.target.value) })}
+                variant="outlined"
+                SelectProps={{
+                  native: true,
+                }}
+              >
+                {reminderOptions.map((hours) => (
+                  <option key={hours} value={hours}>
+                    {hours} {hours === 1 ? 'hodinu' : hours < 5 ? 'hodiny' : 'hodín'}
+                  </option>
+                ))}
+              </StyledTextField>
             </InputGroup>
           </FormSection>
 
-          <GradientButton
-            type="submit"
-            variant="contained"
-            fullWidth
-            size="large"
-            sx={{ mt: 4 }}
-          >
+          <SubmitButton variant="contained" fullWidth>
             Vytvoriť prepravu
-          </GradientButton>
+          </SubmitButton>
         </form>
       </StyledContainer>
     </LocalizationProvider>

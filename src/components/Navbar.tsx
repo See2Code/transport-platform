@@ -32,60 +32,97 @@ import { useAuth } from '../contexts/AuthContext';
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
 
+// Definícia farebnej palety
+const colors = {
+  primary: {
+    main: '#1a1a2e',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  secondary: {
+    main: '#ff6b6b',
+    light: '#ff8787',
+    dark: '#fa5252',
+  },
+  accent: {
+    main: '#00b894',
+    light: '#00d2a0',
+    dark: '#00a07a',
+  }
+};
+
 const Logo = styled(Typography)(({ theme }) => ({
-  fontWeight: 'bold',
-  color: '#00b894',
+  fontWeight: 800,
+  color: colors.accent.main,
   fontSize: '1.5rem',
   marginRight: theme.spacing(2),
+  letterSpacing: '-0.5px',
+  transition: 'color 0.2s ease-in-out',
+  '&:hover': {
+    color: colors.accent.light,
+  }
 }));
 
 const AesaLogoDrawer = styled('img')({
-  height: '28px',
+  height: '32px',
   width: 'auto',
   transition: 'all 0.3s ease-in-out',
+  filter: 'brightness(1.1)',
+  '&:hover': {
+    transform: 'scale(1.05)',
+  }
 });
 
 const AesaLogoMini = styled('img')({
-  height: '24px',
+  height: '28px',
   width: 'auto',
   transition: 'all 0.3s ease-in-out',
+  filter: 'brightness(1.1)',
+  '&:hover': {
+    transform: 'scale(1.05)',
+  }
 });
 
 const DrawerHeader = styled('div')({
-  padding: '24px',
+  padding: '28px 24px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-start',
   height: '88px',
+  borderBottom: `1px solid rgba(255, 255, 255, 0.06)`,
   '&.drawer-closed': {
     justifyContent: 'center',
-    padding: '24px 12px',
+    padding: '28px 12px',
   }
 });
 
 const ToggleButton = styled(IconButton)(({ theme }) => ({
   position: 'absolute',
-  right: '4px',
-  bottom: '16px',
-  backgroundColor: '#00b894',
+  right: '12px',
+  bottom: '24px',
+  backgroundColor: colors.accent.main,
   color: '#ffffff',
   zIndex: 1200,
-  padding: '4px',
-  borderRadius: '8px',
-  width: '32px',
-  height: '32px',
+  padding: '8px',
+  borderRadius: '12px',
+  width: '40px',
+  height: '40px',
+  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
   '&:hover': {
-    backgroundColor: '#00d2a0',
+    backgroundColor: colors.accent.light,
+    transform: 'translateY(-2px)',
+    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
   },
-  transition: 'all 0.3s ease-in-out',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '& .MuiSvgIcon-root': {
-    fontSize: '20px',
+    fontSize: '24px',
   }
 }));
 
 const ListItemIconStyled = styled(ListItemIcon)({
   minWidth: 48,
-  transition: 'margin-right 0.3s ease-in-out',
+  color: 'rgba(255, 255, 255, 0.7)',
+  transition: 'all 0.3s ease-in-out',
 });
 
 const menuItems = [
@@ -124,17 +161,19 @@ const menuItems = [
 const AppWrapper = styled('div')({
   display: 'flex',
   minHeight: '100vh',
-  backgroundColor: '#1a1a2e',
+  backgroundColor: colors.primary.main,
 });
 
 const SideNav = styled('nav')(({ theme }) => ({
   width: drawerWidth,
-  backgroundColor: 'rgba(35, 35, 66, 0.95)',
-  backdropFilter: 'blur(10px)',
-  borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-  transition: 'width 0.3s ease-in-out',
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(20px)',
+  borderRight: '1px solid rgba(255, 255, 255, 0.06)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'fixed',
   height: '100vh',
+  zIndex: 1200,
+  boxShadow: '4px 0 24px rgba(0, 0, 0, 0.15)',
   '&.drawer-closed': {
     width: miniDrawerWidth,
     '& .MuiListItemText-root': {
@@ -149,34 +188,41 @@ const SideNav = styled('nav')(({ theme }) => ({
   }
 }));
 
-const TopBar = styled('header')({
-  position: 'fixed',
-  top: '16px',
-  right: '16px',
-  left: `${drawerWidth + 16}px`,
-  height: '56px',
-  backgroundColor: 'rgba(35, 35, 66, 0.95)',
-  backdropFilter: 'blur(10px)',
-  borderRadius: '12px',
-  display: 'flex',
-  alignItems: 'center',
-  padding: '0 16px',
-  transition: 'left 0.3s ease-in-out',
+const MainWrapper = styled('div')({
+  flexGrow: 1,
+  marginLeft: drawerWidth,
+  minHeight: '100vh',
+  transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&.drawer-closed': {
-    left: `${miniDrawerWidth + 16}px`,
+    marginLeft: miniDrawerWidth,
   }
 });
 
-const MainContent = styled('main')({
-  marginLeft: drawerWidth,
-  marginTop: '88px',
-  padding: '24px',
-  width: `calc(100% - ${drawerWidth}px)`,
-  transition: 'margin-left 0.3s ease-in-out, width 0.3s ease-in-out',
-  '&.drawer-closed': {
-    marginLeft: miniDrawerWidth,
-    width: `calc(100% - ${miniDrawerWidth}px)`,
+const TopBar = styled('header')({
+  position: 'fixed',
+  top: '16px',
+  left: `calc(${drawerWidth}px + 16px)`,
+  right: '16px',
+  height: '64px',
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(20px)',
+  borderRadius: '16px',
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0 20px',
+  transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  boxShadow: '0 4px 24px rgba(0, 0, 0, 0.15)',
+  zIndex: 1100,
+  '.drawer-closed &': {
+    left: `calc(${miniDrawerWidth}px + 16px)`,
   }
+});
+
+const ContentWrapper = styled('div')({
+  padding: '96px 16px 16px 16px',
+  minHeight: '100vh',
+  backgroundColor: colors.primary.main,
+  position: 'relative',
 });
 
 const Navbar = () => {
@@ -239,6 +285,18 @@ const Navbar = () => {
                 minHeight: 48,
                 justifyContent: drawerOpen ? 'initial' : 'center',
                 px: 2.5,
+                borderRadius: '12px',
+                margin: '4px 8px',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  '& .MuiListItemIcon-root': {
+                    color: colors.accent.main,
+                  },
+                  '& .MuiListItemText-primary': {
+                    color: '#ffffff',
+                  }
+                }
               }}
             >
               <ListItemIconStyled
@@ -246,6 +304,7 @@ const Navbar = () => {
                   minWidth: 0,
                   mr: drawerOpen ? 3 : 'auto',
                   justifyContent: 'center',
+                  transition: 'all 0.2s ease-in-out',
                 }}
               >
                 {item.icon}
@@ -254,7 +313,12 @@ const Navbar = () => {
                 primary={item.text} 
                 sx={{ 
                   opacity: drawerOpen ? 1 : 0,
-                  transition: 'opacity 0.3s ease-in-out',
+                  transition: 'all 0.3s ease-in-out',
+                  '& .MuiTypography-root': {
+                    fontSize: '0.95rem',
+                    fontWeight: 500,
+                    color: 'rgba(255, 255, 255, 0.7)',
+                  }
                 }} 
               />
             </ListItemButton>
@@ -275,129 +339,156 @@ const Navbar = () => {
         {drawer}
       </SideNav>
 
-      <TopBar className={!drawerOpen ? 'drawer-closed' : ''}>
-        <Logo variant="h6" noWrap>
-          CORE
-        </Logo>
-        <Typography 
-          variant="h6" 
-          noWrap 
-          component="div" 
-          sx={{ 
-            flexGrow: 1, 
-            color: '#ffffff',
-            opacity: 0.7,
-            fontWeight: 'normal'
-          }}
-        >
-          Transport Platform
-        </Typography>
-        
-        <IconButton
-          onClick={handleNotificationsMenu}
-          sx={{ 
-            mr: 2, 
-            color: '#ffffff',
-            opacity: 0.7,
-            '&:hover': {
-              opacity: 1,
-              backgroundColor: 'rgba(255, 255, 255, 0.1)'
-            }
-          }}
-        >
-          <NotificationsIcon />
-        </IconButton>
-
-        <IconButton
-          onClick={handleMenu}
-          sx={{ 
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            }
-          }}
-        >
-          <Avatar 
+      <MainWrapper className={!drawerOpen ? 'drawer-closed' : ''}>
+        <TopBar>
+          <Logo variant="h6" noWrap>
+            CORE
+          </Logo>
+          <Typography 
+            variant="h6" 
+            noWrap 
+            component="div" 
             sx={{ 
-              width: 35, 
-              height: 35,
-              backgroundColor: 'transparent',
+              flexGrow: 1, 
               color: '#ffffff',
+              opacity: 0.7,
+              fontWeight: 'normal'
+            }}
+          >
+            Transport Platform
+          </Typography>
+          
+          <IconButton
+            onClick={handleNotificationsMenu}
+            sx={{ 
+              mr: 2, 
+              color: '#ffffff',
+              opacity: 0.7,
+              padding: '8px',
+              transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                transform: 'scale(1.1)',
+                opacity: 1,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                transform: 'translateY(-2px)',
               }
             }}
           >
-            <AccountIcon />
-          </Avatar>
-        </IconButton>
-      </TopBar>
+            <NotificationsIcon />
+          </IconButton>
 
-      <MainContent className={!drawerOpen ? 'drawer-closed' : ''}>
-        {/* Page content goes here */}
-      </MainContent>
+          <IconButton
+            onClick={handleMenu}
+            sx={{ 
+              padding: '8px',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                transform: 'translateY(-2px)',
+              }
+            }}
+          >
+            <Avatar 
+              sx={{ 
+                width: 38,
+                height: 38,
+                backgroundColor: 'transparent',
+                color: '#ffffff',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.1)',
+                }
+              }}
+            >
+              <AccountIcon />
+            </Avatar>
+          </IconButton>
+        </TopBar>
 
-      <Menu
-        anchorEl={notificationsAnchorEl}
-        open={Boolean(notificationsAnchorEl)}
-        onClose={handleNotificationsClose}
-        PaperProps={{
-          sx: {
-            mt: 1.5,
-            minWidth: 250,
-            backgroundColor: '#1a1b2e',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-            color: '#ffffff',
-            borderRadius: '8px',
-          }
-        }}
-      >
-        <MenuItem onClick={handleNotificationsClose}>
-          <Typography variant="body2">Žiadne nové notifikácie</Typography>
-        </MenuItem>
-      </Menu>
+        <ContentWrapper>
+          {/* Page content goes here */}
+        </ContentWrapper>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-        PaperProps={{
-          sx: {
-            mt: 1.5,
-            minWidth: 200,
-            backgroundColor: '#1a1b2e',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-            color: '#ffffff',
-            borderRadius: '8px',
-          }
-        }}
-      >
-        {userData && (
-          <MenuItem disabled>
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-              {userData.firstName} {userData.lastName}
-            </Typography>
+        <Menu
+          anchorEl={notificationsAnchorEl}
+          open={Boolean(notificationsAnchorEl)}
+          onClose={handleNotificationsClose}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              minWidth: 250,
+              backgroundColor: colors.primary.light,
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.24)',
+              color: '#ffffff',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              '& .MuiMenuItem-root': {
+                padding: '12px 20px',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                }
+              }
+            }
+          }}
+        >
+          <MenuItem onClick={handleNotificationsClose}>
+            <Typography variant="body2">Žiadne nové notifikácie</Typography>
           </MenuItem>
-        )}
-        <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
-          <ListItemIcon>
-            <AccountIcon fontSize="small" sx={{ color: '#ffffff' }} />
-          </ListItemIcon>
-          <Typography variant="body2">Profil</Typography>
-        </MenuItem>
-        <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
-          <ListItemIcon>
-            <SettingsIcon fontSize="small" sx={{ color: '#ffffff' }} />
-          </ListItemIcon>
-          <Typography variant="body2">Nastavenia</Typography>
-        </MenuItem>
-        <Divider sx={{ my: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-        <MenuItem onClick={handleLogout}>
-          <ListItemIcon>
-            <LogoutIcon fontSize="small" sx={{ color: '#ffffff' }} />
-          </ListItemIcon>
-          <Typography variant="body2">Odhlásiť sa</Typography>
-        </MenuItem>
-      </Menu>
+        </Menu>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              minWidth: 200,
+              backgroundColor: colors.primary.light,
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.24)',
+              color: '#ffffff',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              '& .MuiMenuItem-root': {
+                padding: '12px 20px',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                }
+              }
+            }
+          }}
+        >
+          {userData && (
+            <MenuItem disabled>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                {userData.firstName} {userData.lastName}
+              </Typography>
+            </MenuItem>
+          )}
+          <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
+            <ListItemIcon>
+              <AccountIcon fontSize="small" sx={{ color: '#ffffff' }} />
+            </ListItemIcon>
+            <Typography variant="body2">Profil</Typography>
+          </MenuItem>
+          <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
+            <ListItemIcon>
+              <SettingsIcon fontSize="small" sx={{ color: '#ffffff' }} />
+            </ListItemIcon>
+            <Typography variant="body2">Nastavenia</Typography>
+          </MenuItem>
+          <Divider sx={{ my: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+          <MenuItem onClick={handleLogout}>
+            <ListItemIcon>
+              <LogoutIcon fontSize="small" sx={{ color: '#ffffff' }} />
+            </ListItemIcon>
+            <Typography variant="body2">Odhlásiť sa</Typography>
+          </MenuItem>
+        </Menu>
+      </MainWrapper>
     </AppWrapper>
   );
 };
