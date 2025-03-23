@@ -17,6 +17,7 @@ import AcceptInvitation from './components/AcceptInvitation';
 import Transport from './components/Transport';
 import PrivateRoute from './components/PrivateRoute';
 import Contacts from './components/Contacts';
+import TrackedTransports from './components/TrackedTransports';
 
 const theme = createTheme({
   palette: {
@@ -90,6 +91,13 @@ function App() {
                 <PrivateRoute>
                   <Dashboard>
                     <Transport />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/tracked-transports" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <TrackedTransports />
                   </Dashboard>
                 </PrivateRoute>
               } />

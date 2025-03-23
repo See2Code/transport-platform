@@ -50,9 +50,14 @@ const menuItems = [
     path: '/dashboard'
   },
   {
-    text: 'Transporty',
+    text: 'Sledovať prepravu',
     icon: <LocalShippingIcon />,
     path: '/transport'
+  },
+  {
+    text: 'Sledované prepravy',
+    icon: <LocalShippingIcon />,
+    path: '/tracked-transports'
   },
   {
     text: 'Tím',
