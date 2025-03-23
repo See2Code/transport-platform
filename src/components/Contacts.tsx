@@ -27,7 +27,8 @@ interface Contact {
   firstName: string;
   lastName: string;
   company: string;
-  phone: string;
+  phonePrefix: string;
+  phoneNumber: string;
   email: string;
   userId: string;
 }
@@ -42,7 +43,8 @@ const Contacts = () => {
     firstName: '',
     lastName: '',
     company: '',
-    phone: '',
+    phonePrefix: '+421',
+    phoneNumber: '',
     email: '',
   });
 
@@ -101,7 +103,8 @@ const Contacts = () => {
       firstName: contact.firstName,
       lastName: contact.lastName,
       company: contact.company,
-      phone: contact.phone,
+      phonePrefix: contact.phonePrefix || '+421',
+      phoneNumber: contact.phoneNumber || '',
       email: contact.email,
     });
     setOpenDialog(true);
@@ -114,7 +117,8 @@ const Contacts = () => {
       firstName: '',
       lastName: '',
       company: '',
-      phone: '',
+      phonePrefix: '+421',
+      phoneNumber: '',
       email: '',
     });
   };
@@ -168,7 +172,7 @@ const Contacts = () => {
                 <TableCell>{contact.firstName}</TableCell>
                 <TableCell>{contact.lastName}</TableCell>
                 <TableCell>{contact.company}</TableCell>
-                <TableCell>{contact.phone}</TableCell>
+                <TableCell>{contact.phonePrefix} {contact.phoneNumber}</TableCell>
                 <TableCell>{contact.email}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => contact.id && handleEdit(contact)}>
@@ -184,11 +188,16 @@ const Contacts = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
           {editingContact ? 'Upraviť kontakt' : 'Pridať nový kontakt'}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ minWidth: '500px' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
               name="firstName"
@@ -211,13 +220,22 @@ const Contacts = () => {
               onChange={handleInputChange}
               fullWidth
             />
-            <TextField
-              name="phone"
-              label="Telefón"
-              value={formData.phone}
-              onChange={handleInputChange}
-              fullWidth
-            />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                name="phonePrefix"
+                label="Predvoľba"
+                value={formData.phonePrefix}
+                onChange={handleInputChange}
+                sx={{ width: '120px' }}
+              />
+              <TextField
+                name="phoneNumber"
+                label="Mobil"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Box>
             <TextField
               name="email"
               label="Email"
