@@ -15,7 +15,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 function RegisterUser() {
@@ -76,6 +76,11 @@ function RegisterUser() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!invitation) {
+      setError('Chýbajúce údaje pozvánky');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Heslá sa nezhodujú');
       return;
@@ -90,22 +95,8 @@ function RegisterUser() {
       setLoading(true);
       setError('');
 
-      // Vytvorenie používateľského účtu
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        invitation.email,
-        formData.password
-      );
-
-      // Aktualizácia pozvánky
-      await updateDoc(doc(db, 'invitations', searchParams.get('invitationId')!), {
-        status: 'accepted',
-        userId: userCredential.user.uid
-      });
-
-      // Vytvorenie používateľského profilu
-      await updateDoc(doc(db, 'users', userCredential.user.uid), {
-        uid: userCredential.user.uid,
+      // Vytvorenie používateľského profilu v Firestore
+      const userData = {
         email: invitation.email,
         firstName: invitation.firstName,
         lastName: invitation.lastName,
@@ -113,10 +104,27 @@ function RegisterUser() {
         companyID: invitation.companyID,
         role: invitation.role,
         createdAt: new Date().toISOString(),
-        status: invitation.role === 'admin' ? 'active' : 'pending'
+        status: 'active'
+      };
+
+      // Generujeme nové ID pre používateľa
+      const userRef = doc(collection(db, 'users'));
+      await setDoc(userRef, {
+        ...userData,
+        uid: userRef.id
+      });
+
+      // Aktualizácia pozvánky
+      await updateDoc(doc(db, 'invitations', searchParams.get('invitationId')!), {
+        status: 'accepted',
+        userId: userRef.id,
+        acceptedAt: new Date().toISOString()
       });
 
       setRegistrationSuccess(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err: any) {
       console.error('Chyba pri registrácii:', err);
       setError(err.message || 'Nastala chyba pri registrácii');
@@ -216,7 +224,7 @@ function RegisterUser() {
                     <TextField
                       fullWidth
                       label="Názov firmy"
-                      value={company.name}
+                      value={company?.companyName || ''}
                       disabled
                     />
                   </Grid>
@@ -224,7 +232,7 @@ function RegisterUser() {
                     <TextField
                       fullWidth
                       label="Ulica"
-                      value={company.street}
+                      value={company?.street || ''}
                       disabled
                     />
                   </Grid>
@@ -232,7 +240,7 @@ function RegisterUser() {
                     <TextField
                       fullWidth
                       label="PSČ"
-                      value={company.zipCode}
+                      value={company?.zipCode || ''}
                       disabled
                     />
                   </Grid>
@@ -240,7 +248,7 @@ function RegisterUser() {
                     <TextField
                       fullWidth
                       label="Mesto"
-                      value={company.city}
+                      value={company?.city || ''}
                       disabled
                     />
                   </Grid>
@@ -248,7 +256,7 @@ function RegisterUser() {
                     <TextField
                       fullWidth
                       label="IČO"
-                      value={company.ico}
+                      value={company?.ico || ''}
                       disabled
                     />
                   </Grid>
@@ -256,7 +264,7 @@ function RegisterUser() {
                     <TextField
                       fullWidth
                       label="IČ DPH"
-                      value={company.icDph}
+                      value={company?.icDph || ''}
                       disabled
                     />
                   </Grid>
