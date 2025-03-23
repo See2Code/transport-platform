@@ -33,7 +33,8 @@ import {
   Mail as MailIcon, 
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { collection, query, where, getDocs, addDoc, doc, getDoc, onSnapshot, deleteDoc, updateDoc } from 'firebase/firestore';
 import { auth, db, functions } from '../firebase';
@@ -97,6 +98,14 @@ function Team() {
             setCompanyID(userData.companyID);
             setIsAdmin(userData.role === 'admin');
 
+            // Ak je užívateľ admin, aktualizujeme jeho status na 'active'
+            if (userData.role === 'admin' && userData.status !== 'active') {
+              await updateDoc(doc(db, 'users', user.uid), {
+                status: 'active',
+                updatedAt: new Date()
+              });
+            }
+
             // Načítanie členov tímu
             const membersQuery = query(
               collection(db, 'users'),
@@ -121,7 +130,7 @@ function Team() {
                   email: data.email,
                   phone: data.phone,
                   role: data.role,
-                  status: data.status || 'pending',
+                  status: data.role === 'admin' ? 'active' : (data.status || 'pending'),
                   createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date()
                 });
               });
@@ -314,6 +323,26 @@ function Team() {
     }
   };
 
+  const handleVerifyStatus = async (member: TeamMember) => {
+    try {
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      await updateDoc(doc(db, 'users', member.id), {
+        status: 'active',
+        updatedAt: new Date()
+      });
+
+      setSuccess('Status člena tímu bol úspešne overený.');
+    } catch (err: any) {
+      console.error('Chyba pri overovaní statusu:', err);
+      setError(err.message || 'Nastala chyba pri overovaní statusu.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -326,38 +355,53 @@ function Team() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Tooltip title="Späť na Dashboard">
+            <IconButton 
+              onClick={() => navigate('/dashboard')}
+              size="large"
+              sx={{ 
+                backgroundColor: 'primary.main',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                }
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+          </Tooltip>
+          <Typography variant="h4" component="h1">
+            Tím
+          </Typography>
+        </Box>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenInvite(true)}
+          >
+            Pozvať nového člena
+          </Button>
+        )}
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {success}
+        </Alert>
+      )}
+
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Typography variant="h5">
-                Tím
-              </Typography>
-              {isAdmin && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<AddIcon />}
-                  onClick={() => setOpenInvite(true)}
-                  aria-label="Pozvať nového člena do tímu"
-                >
-                  Pozvať nového člena do tímu
-                </Button>
-              )}
-            </Box>
-
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            {success && (
-              <Alert severity="success" sx={{ mb: 2 }}>
-                {success}
-              </Alert>
-            )}
-
             <Typography variant="h6" gutterBottom>
               Členovia tímu
             </Typography>
@@ -405,6 +449,18 @@ function Team() {
                               <EditIcon />
                             </IconButton>
                           </Tooltip>
+                          {member.status === 'pending' && (
+                            <Tooltip title="Overiť status člena tímu">
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleVerifyStatus(member)}
+                                disabled={member.role === 'admin' || loading}
+                                aria-label="Overiť status člena tímu"
+                              >
+                                <CheckCircleIcon color="success" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           <Tooltip title="Vymazať člena z tímu">
                             <IconButton 
                               size="small" 

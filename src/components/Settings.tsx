@@ -9,12 +9,19 @@ import {
   Box,
   Divider,
   Alert,
-  CircularProgress
+  CircularProgress,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import { 
+  ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+  Save as SaveIcon
+} from '@mui/icons-material';
 
 interface CompanyData {
   id: string;
@@ -164,6 +171,29 @@ function Settings() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Tooltip title="Späť na Dashboard">
+            <IconButton 
+              onClick={() => navigate('/dashboard')}
+              size="large"
+              sx={{ 
+                backgroundColor: 'primary.main',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                }
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+          </Tooltip>
+          <Typography variant="h4" component="h1">
+            Nastavenia
+          </Typography>
+        </Box>
+      </Box>
+
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
