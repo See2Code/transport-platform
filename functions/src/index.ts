@@ -134,4 +134,101 @@ export const sendInvitationEmail = functions.https.onCall(async (data, context) 
     console.error('Chyba pri odosielaní emailu:', error);
     throw new functions.https.HttpsError('internal', 'Nepodarilo sa odoslať email s pozvánkou: ' + (error.message || 'Neznáma chyba'));
   }
-}); 
+});
+
+export const checkTransportReminders = functions.pubsub
+  .schedule('every 5 minutes')
+  .onRun(async (context) => {
+    const now = admin.firestore.Timestamp.now();
+    const db = admin.firestore();
+
+    try {
+      // Získame všetky aktívne transporty
+      const transportsSnapshot = await db.collection('transports')
+        .where('status', '==', 'active')
+        .get();
+
+      for (const doc of transportsSnapshot.docs) {
+        const transport = doc.data();
+        const userId = transport.userId;
+
+        // Získame informácie o užívateľovi
+        const userDoc = await db.collection('users').doc(userId).get();
+        const user = userDoc.data();
+
+        if (!user || !user.email) continue;
+
+        const loadingTime = transport.loadingDateTime.toDate();
+        const unloadingTime = transport.unloadingDateTime.toDate();
+        const currentTime = now.toDate();
+
+        // Kontrola pripomienky pre naloženie
+        if (!transport.loadingReminderSent) {
+          const loadingReminderTime = new Date(loadingTime.getTime() - (transport.loadingReminder * 60 * 60 * 1000));
+          
+          if (currentTime >= loadingReminderTime) {
+            // Pošleme email
+            await transporter.sendMail({
+              from: functions.config().email.user,
+              to: user.email,
+              subject: 'Pripomienka naloženia - Transport',
+              html: `
+                <h2>Pripomienka naloženia</h2>
+                <p>Dobrý deň,</p>
+                <p>pripomíname Vám, že o ${transport.loadingReminder} ${transport.loadingReminder === 1 ? 'hodinu' : transport.loadingReminder < 5 ? 'hodiny' : 'hodín'} 
+                máte naplánované naloženie tovaru:</p>
+                <ul>
+                  <li><strong>Číslo objednávky:</strong> ${transport.orderNumber}</li>
+                  <li><strong>Adresa naloženia:</strong> ${transport.loadingAddress}</li>
+                  <li><strong>Dátum a čas:</strong> ${loadingTime.toLocaleString('sk-SK')}</li>
+                </ul>
+                <p>S pozdravom,<br>Váš CORE tím</p>
+              `
+            });
+
+            // Aktualizujeme záznam
+            await doc.ref.update({
+              loadingReminderSent: true
+            });
+          }
+        }
+
+        // Kontrola pripomienky pre vyloženie
+        if (!transport.unloadingReminderSent) {
+          const unloadingReminderTime = new Date(unloadingTime.getTime() - (transport.unloadingReminder * 60 * 60 * 1000));
+          
+          if (currentTime >= unloadingReminderTime) {
+            // Pošleme email
+            await transporter.sendMail({
+              from: functions.config().email.user,
+              to: user.email,
+              subject: 'Pripomienka vyloženia - Transport',
+              html: `
+                <h2>Pripomienka vyloženia</h2>
+                <p>Dobrý deň,</p>
+                <p>pripomíname Vám, že o ${transport.unloadingReminder} ${transport.unloadingReminder === 1 ? 'hodinu' : transport.unloadingReminder < 5 ? 'hodiny' : 'hodín'} 
+                máte naplánované vyloženie tovaru:</p>
+                <ul>
+                  <li><strong>Číslo objednávky:</strong> ${transport.orderNumber}</li>
+                  <li><strong>Adresa vyloženia:</strong> ${transport.unloadingAddress}</li>
+                  <li><strong>Dátum a čas:</strong> ${unloadingTime.toLocaleString('sk-SK')}</li>
+                </ul>
+                <p>S pozdravom,<br>Váš CORE tím</p>
+              `
+            });
+
+            // Aktualizujeme záznam
+            await doc.ref.update({
+              unloadingReminderSent: true
+            });
+          }
+        }
+      }
+
+      console.log('Transport reminders check completed successfully');
+      return null;
+    } catch (error) {
+      console.error('Error checking transport reminders:', error);
+      return null;
+    }
+  }); 

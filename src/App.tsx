@@ -2,6 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { sk } from 'date-fns/locale';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -10,6 +13,8 @@ import Dashboard from './components/Dashboard';
 import Team from './components/Team';
 import Settings from './components/Settings';
 import AcceptInvitation from './components/AcceptInvitation';
+import Transport from './components/Transport';
+import PrivateRoute from './components/PrivateRoute';
 
 const theme = createTheme({
   palette: {
@@ -65,20 +70,45 @@ const theme = createTheme({
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/register-user" element={<RegisterUser />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+        <CssBaseline />
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/register-user" element={<RegisterUser />} />
+            <Route path="/dashboard" element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            } />
+            <Route path="/transport" element={
+              <PrivateRoute>
+                <Dashboard>
+                  <Transport />
+                </Dashboard>
+              </PrivateRoute>
+            } />
+            <Route path="/team" element={
+              <PrivateRoute>
+                <Dashboard>
+                  <Team />
+                </Dashboard>
+              </PrivateRoute>
+            } />
+            <Route path="/settings" element={
+              <PrivateRoute>
+                <Dashboard>
+                  <Settings />
+                </Dashboard>
+              </PrivateRoute>
+            } />
+            <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </LocalizationProvider>
     </ThemeProvider>
   );
 }
