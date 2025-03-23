@@ -92,9 +92,18 @@ function Team() {
       if (user) {
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
-          const userData = userDoc.data();
           
-          if (userData) {
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            console.log('CompanyID používateľa v Team:', userData.companyID);
+            
+            if (!userData.companyID) {
+              console.error('Používateľ nemá nastavené companyID v Team komponente');
+              setError('Používateľ nemá priradené ID firmy.');
+              setLoading(false);
+              return;
+            }
+            
             setCompanyID(userData.companyID);
             setIsAdmin(userData.role === 'admin');
 
@@ -121,9 +130,11 @@ function Team() {
 
             // Real-time sledovanie členov tímu
             const unsubscribeMembers = onSnapshot(membersQuery, (snapshot) => {
+              console.log('Načítané členy tímu:', snapshot.docs.map(doc => doc.data()));
               const membersMap = new Map<string, TeamMember>();
               snapshot.forEach((doc) => {
                 const data = doc.data();
+                console.log('Spracovávam člena:', data.email);
                 // Použijeme email ako kľúč pre odstránenie duplicít
                 membersMap.set(data.email, {
                   id: doc.id,
@@ -136,6 +147,7 @@ function Team() {
                   createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date()
                 });
               });
+              console.log('Finálny zoznam členov po odstránení duplicít:', Array.from(membersMap.values()));
               setTeamMembers(Array.from(membersMap.values()));
             });
 

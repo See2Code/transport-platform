@@ -86,6 +86,7 @@ function Login() {
             lastName: '',
             phone: '',
             role: 'user',
+            companyID: '', // Prázdne companyID pre používateľa bez pozvánky
             createdAt: new Date().toISOString(),
             status: 'pending'
           };

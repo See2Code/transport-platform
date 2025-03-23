@@ -74,9 +74,17 @@ function Settings() {
           
           if (userDoc.exists()) {
             const userData = userDoc.data() as UserData;
+            console.log('CompanyID používateľa:', userData.companyID);
             setUserData(userData);
             
             // Kontrola či je používateľ admin
+            if (!userData.companyID) {
+              console.error('Používateľ nemá nastavené companyID');
+              setError('Používateľ nemá priradené ID firmy.');
+              setLoading(false);
+              return;
+            }
+            
             const companyDoc = await getDoc(doc(db, 'companies', userData.companyID));
             console.log('Dokument firmy:', companyDoc.exists() ? companyDoc.data() : 'neexistuje');
             
@@ -218,6 +226,16 @@ function Settings() {
                 </Typography>
                 <form onSubmit={handleCompanyUpdate}>
                   <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Company ID"
+                        value={userData?.companyID || ''}
+                        disabled
+                        helperText="Jedinečný identifikátor vašej firmy"
+                        sx={{ mb: 2 }}
+                      />
+                    </Grid>
                     <Grid item xs={12}>
                       <TextField
                         fullWidth
