@@ -193,7 +193,7 @@ function Team() {
         lastName,
         phone,
         role,
-        companyID,
+        companyId: companyID,
         invitationId: invitationRef.id
       });
 
