@@ -50,6 +50,7 @@ interface Contact {
   phoneNumber: string;
   countryCode: string;
   email: string;
+  createdAt: any; // Firebase Timestamp
 }
 
 const Contacts = () => {
@@ -67,6 +68,7 @@ const Contacts = () => {
     phoneNumber: '',
     countryCode: 'sk',
     email: '',
+    createdAt: new Date()
   });
 
   useEffect(() => {
@@ -103,15 +105,20 @@ const Contacts = () => {
 
   const handleSubmit = async () => {
     try {
+      const contactData = {
+        ...formData,
+        createdAt: new Date()
+      };
+
       if (editingContact?.id) {
-        await updateDoc(doc(db, 'contacts', editingContact.id), formData);
+        await updateDoc(doc(db, 'contacts', editingContact.id), contactData);
         setSnackbar({
           open: true,
           message: 'Kontakt bol úspešne upravený',
           severity: 'success'
         });
       } else {
-        await addDoc(collection(db, 'contacts'), formData);
+        await addDoc(collection(db, 'contacts'), contactData);
         setSnackbar({
           open: true,
           message: 'Nový kontakt bol úspešne pridaný',
@@ -152,6 +159,7 @@ const Contacts = () => {
       phoneNumber: contact.phoneNumber || '',
       countryCode: contact.countryCode || 'sk',
       email: contact.email,
+      createdAt: contact.createdAt
     });
     setOpenDialog(true);
   };
@@ -167,6 +175,7 @@ const Contacts = () => {
       phoneNumber: '',
       countryCode: 'sk',
       email: '',
+      createdAt: new Date()
     });
     setTouchedFields({});
   };
@@ -211,6 +220,7 @@ const Contacts = () => {
               <TableCell>Firma</TableCell>
               <TableCell>Mobil</TableCell>
               <TableCell>Email</TableCell>
+              <TableCell>Vytvorené</TableCell>
               <TableCell>Akcie</TableCell>
             </TableRow>
           </TableHead>
@@ -232,6 +242,9 @@ const Contacts = () => {
                   </Box>
                 </TableCell>
                 <TableCell>{contact.email}</TableCell>
+                <TableCell>
+                  {contact.createdAt && contact.createdAt.toDate().toLocaleDateString('sk-SK')}
+                </TableCell>
                 <TableCell>
                   <IconButton onClick={() => contact.id && handleEdit(contact)}>
                     <EditIcon />

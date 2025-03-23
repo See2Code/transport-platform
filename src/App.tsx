@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { sk } from 'date-fns/locale';
+import { AuthProvider } from './contexts/AuthContext';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -73,49 +74,51 @@ function App() {
     <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
         <CssBaseline />
-        <Router>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/register-user" element={<RegisterUser />} />
-            <Route path="/dashboard" element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            } />
-            <Route path="/transport" element={
-              <PrivateRoute>
-                <Dashboard>
-                  <Transport />
-                </Dashboard>
-              </PrivateRoute>
-            } />
-            <Route path="/team" element={
-              <PrivateRoute>
-                <Dashboard>
-                  <Team />
-                </Dashboard>
-              </PrivateRoute>
-            } />
-            <Route path="/settings" element={
-              <PrivateRoute>
-                <Dashboard>
-                  <Settings />
-                </Dashboard>
-              </PrivateRoute>
-            } />
-            <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
-            <Route path="/contacts" element={
-              <PrivateRoute>
-                <Dashboard>
-                  <Contacts />
-                </Dashboard>
-              </PrivateRoute>
-            } />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/register-user" element={<RegisterUser />} />
+              <Route path="/dashboard" element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              } />
+              <Route path="/transport" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <Transport />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/team" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <Team />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/settings" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <Settings />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
+              <Route path="/contacts" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <Contacts />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Router>
+        </AuthProvider>
       </LocalizationProvider>
     </ThemeProvider>
   );
