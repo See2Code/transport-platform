@@ -7,7 +7,8 @@ import {
   Paper,
   Grid,
   ThemeProvider,
-  createTheme
+  createTheme,
+  CssBaseline
 } from '@mui/material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SpeedIcon from '@mui/icons-material/Speed';
@@ -20,10 +21,11 @@ import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import Team from './components/Team';
 import AcceptInvitation from './components/AcceptInvitation';
-import { useAuth } from './hooks/useAuth';
+import PrivateRoute from './components/PrivateRoute';
 
 const theme = createTheme({
   palette: {
+    mode: 'light',
     primary: {
       main: '#1976d2',
     },
@@ -32,20 +34,6 @@ const theme = createTheme({
     },
   },
 });
-
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-
-  return <>{children}</>;
-}
 
 function HomePage() {
   return (
@@ -125,6 +113,7 @@ function HomePage() {
 function App() {
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />

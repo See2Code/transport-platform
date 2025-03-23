@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -14,14 +14,15 @@ import {
   Select,
   FormControl,
   InputLabel,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 const countries = [
@@ -64,6 +65,8 @@ function generateCompanyID(companyName: string): string {
 }
 
 function Register() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -80,11 +83,41 @@ function Register() {
     icDph: '',
     companyID: ''
   });
-
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const navigate = useNavigate();
+  const [invitation, setInvitation] = useState<any>(null);
+
+  useEffect(() => {
+    const invitationId = searchParams.get('invitationId');
+    if (!invitationId) {
+      setError('Neplatná pozvánka');
+      return;
+    }
+
+    const fetchInvitation = async () => {
+      try {
+        const invitationDoc = await getDoc(doc(db, 'invitations', invitationId));
+        if (!invitationDoc.exists()) {
+          setError('Pozvánka nebola nájdená');
+          return;
+        }
+
+        const invitationData = invitationDoc.data();
+        if (invitationData.status !== 'pending') {
+          setError('Táto pozvánka už bola použitá');
+          return;
+        }
+
+        setInvitation(invitationData);
+      } catch (err) {
+        console.error('Chyba pri načítaní pozvánky:', err);
+        setError('Nepodarilo sa načítať pozvánku');
+      }
+    };
+
+    fetchInvitation();
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -111,60 +144,56 @@ function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!invitation) return;
+
     if (formData.password !== formData.confirmPassword) {
-      setError('Heslá sa nezhodujú!');
+      setError('Heslá sa nezhodujú');
       return;
     }
 
-    setError('');
-    setLoading(true);
+    if (formData.password.length < 6) {
+      setError('Heslo musí mať aspoň 6 znakov');
+      return;
+    }
 
     try {
-      // Vytvorenie používateľa v Firebase Auth
+      setLoading(true);
+      setError('');
+
+      // Vytvorenie používateľského účtu
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        formData.email,
+        invitation.email,
         formData.password
       );
 
       // Generovanie companyID
       const companyID = generateCompanyID(formData.companyName);
 
-      // Uloženie údajov o firme do Firestore
-      await setDoc(doc(db, 'companies', companyID), {
-        companyID,
-        companyName: formData.companyName,
-        street: formData.street,
-        zipCode: formData.zipCode,
-        city: formData.city,
-        country: formData.country,
-        ico: formData.ico,
-        icDph: formData.icDph,
-        createdAt: new Date().toISOString(),
-        owner: {
-          uid: userCredential.user.uid,
-          email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone
-        }
+      // Aktualizácia pozvánky
+      await updateDoc(doc(db, 'invitations', searchParams.get('invitationId')!), {
+        status: 'accepted',
+        userId: userCredential.user.uid
       });
 
-      // Aktualizácia profilu používateľa
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      // Vytvorenie používateľského profilu
+      await updateDoc(doc(db, 'users', userCredential.user.uid), {
         uid: userCredential.user.uid,
-        email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
+        email: invitation.email,
+        firstName: invitation.firstName,
+        lastName: invitation.lastName,
+        phone: invitation.phone,
         companyID,
-        role: 'admin',
-        createdAt: new Date().toISOString()
+        role: invitation.role,
+        createdAt: new Date().toISOString(),
+        // Ak je používateľ admin, nastavíme status na active
+        status: invitation.role === 'admin' ? 'active' : 'pending'
       });
 
       setRegistrationSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Nepodarilo sa zaregistrovať. Skúste to znova.');
+      console.error('Chyba pri registrácii:', err);
+      setError(err.message || 'Nastala chyba pri registrácii');
     } finally {
       setLoading(false);
     }
@@ -239,6 +268,18 @@ function Register() {
     );
   }
 
+  if (!invitation) {
+    return (
+      <Container maxWidth="sm">
+        <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+            <CircularProgress />
+          </Box>
+        </Paper>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="sm">
       <Paper elevation={3} sx={{ p: 4, mt: 8, position: 'relative' }}>
@@ -254,7 +295,14 @@ function Register() {
         </IconButton>
 
         <Typography variant="h4" component="h1" gutterBottom align="center">
-          Registrácia
+          Dokončenie registrácie
+        </Typography>
+
+        <Typography variant="body1" gutterBottom>
+          Vitajte {invitation.firstName} {invitation.lastName}!
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          Pre dokončenie registrácie si prosím nastavte heslo.
         </Typography>
 
         {error && (
@@ -469,7 +517,7 @@ function Register() {
                 size="large"
                 disabled={loading}
               >
-                {loading ? 'Registrácia...' : 'Registrovať sa'}
+                {loading ? <CircularProgress size={20} /> : 'Dokončiť registráciu'}
               </Button>
             </Grid>
 

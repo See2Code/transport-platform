@@ -15,6 +15,35 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Funkcia na vyčistenie databázy
+export const clearDatabase = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Musíte byť prihlásený.');
+  }
+
+  try {
+    const db = admin.firestore();
+    const collections = ['users', 'companies', 'invitations', 'vehicles', 'routes', 'settings'];
+    
+    for (const collectionName of collections) {
+      const collectionRef = db.collection(collectionName);
+      const snapshot = await collectionRef.get();
+      
+      const batch = db.batch();
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+    }
+
+    return { success: true, message: 'Databáza bola úspešne vyčistená.' };
+  } catch (error) {
+    console.error('Chyba pri čistení databázy:', error);
+    throw new functions.https.HttpsError('internal', 'Nepodarilo sa vyčistiť databázu.');
+  }
+});
+
 export const sendInvitationEmail = functions.https.onCall(async (data, context) => {
   console.log('Funkcia bola volaná s dátami:', data);
   

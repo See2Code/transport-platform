@@ -46,6 +46,7 @@ interface TeamMember {
   email: string;
   phone: string;
   role: string;
+  status: 'active' | 'pending';
 }
 
 interface Invitation {
@@ -57,6 +58,7 @@ interface Invitation {
   role: string;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: Date;
+  userId?: string;
 }
 
 function Team() {
@@ -83,7 +85,6 @@ function Team() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          // Získanie údajov o používateľovi
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           const userData = userDoc.data();
           
@@ -114,7 +115,8 @@ function Team() {
                   lastName: data.lastName,
                   email: data.email,
                   phone: data.phone,
-                  role: data.role
+                  role: data.role,
+                  status: data.status || 'pending'
                 });
               });
               setTeamMembers(members);
@@ -133,7 +135,8 @@ function Team() {
                   phone: data.phone,
                   role: data.role,
                   status: data.status,
-                  createdAt: data.createdAt instanceof Date ? data.createdAt : new Date(data.createdAt)
+                  createdAt: data.createdAt instanceof Date ? data.createdAt : new Date(data.createdAt),
+                  userId: data.userId
                 });
               });
               setInvitations(invites);
@@ -177,7 +180,7 @@ function Team() {
         lastName,
         phone,
         role,
-        companyID: companyID,
+        companyID,
         createdAt: new Date(),
         status: 'pending'
       });
@@ -189,9 +192,9 @@ function Team() {
         firstName,
         lastName,
         phone,
-        invitationId: invitationRef.id,
-        companyID: companyID,
-        role
+        role,
+        companyID,
+        invitationId: invitationRef.id
       });
 
       setSuccess('Pozvánka bola úspešne odoslaná.');
@@ -262,14 +265,16 @@ function Team() {
   };
 
   const handleDelete = async () => {
-    if (!inviteToDelete) return;
+    if (!inviteToDelete || !auth.currentUser) return;
 
     try {
       setLoading(true);
       setError('');
       setSuccess('');
 
+      // Vymazanie pozvánky
       await deleteDoc(doc(db, 'invitations', inviteToDelete.id));
+      
       setSuccess('Pozvánka bola úspešne odstránená.');
       setDeleteConfirmOpen(false);
       setInviteToDelete(null);
@@ -281,12 +286,17 @@ function Team() {
     }
   };
 
-  const getStatusChip = (status: string) => {
+  const getStatusChip = (status: string, role: string) => {
+    // Admin je vždy aktívny
+    if (role === 'admin') {
+      return <Chip label="Aktívny" color="success" />;
+    }
+
     switch (status) {
       case 'pending':
         return <Chip label="Čaká na registráciu" color="warning" />;
-      case 'accepted':
-        return <Chip label="Registrovaný" color="success" />;
+      case 'active':
+        return <Chip label="Aktívny" color="success" />;
       case 'rejected':
         return <Chip label="Zamietnutá" color="error" />;
       default:
@@ -351,10 +361,23 @@ function Team() {
                     {member.role === 'admin' ? 'Administrátor' : 'Klasický používateľ'}
                   </TableCell>
                   <TableCell>
-                    <Chip label="Aktívny" color="success" />
+                    {getStatusChip(member.status, member.role)}
                   </TableCell>
                   <TableCell align="right">
-                    {/* Akcie pre aktívnych členov */}
+                    {isAdmin && member.id !== auth.currentUser?.uid && (
+                      <Tooltip title="Odstrániť">
+                        <IconButton 
+                          onClick={() => {
+                            setInviteToDelete({ ...member, id: member.id } as Invitation);
+                            setDeleteConfirmOpen(true);
+                          }}
+                          color="error"
+                          size="small"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -371,18 +394,9 @@ function Team() {
                     {invite.role === 'admin' ? 'Administrátor' : 'Klasický používateľ'}
                   </TableCell>
                   <TableCell>
-                    {getStatusChip(invite.status)}
+                    {getStatusChip(invite.status, invite.role)}
                   </TableCell>
                   <TableCell align="right">
-                    <Tooltip title="Upraviť">
-                      <IconButton 
-                        onClick={() => handleEdit(invite)}
-                        color="primary"
-                        size="small"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
                     <Tooltip title="Odstrániť">
                       <IconButton 
                         onClick={() => {
@@ -575,10 +589,10 @@ function Team() {
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
-          <DialogTitle>Odstrániť pozvánku</DialogTitle>
+          <DialogTitle>Odstrániť {inviteToDelete?.userId ? 'člena tímu' : 'pozvánku'}</DialogTitle>
           <DialogContent>
             <Typography>
-              Naozaj chcete odstrániť pozvánku pre {inviteToDelete?.firstName} {inviteToDelete?.lastName}?
+              Naozaj chcete odstrániť {inviteToDelete?.userId ? 'člena tímu' : 'pozvánku'} pre {inviteToDelete?.firstName} {inviteToDelete?.lastName}?
               Táto akcia je nezvratná.
             </Typography>
           </DialogContent>
