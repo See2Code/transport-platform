@@ -1,0 +1,104 @@
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+import * as nodemailer from 'nodemailer';
+
+admin.initializeApp();
+
+// Konfigurácia emailového transportu pre SMTP server Websupport
+const transporter = nodemailer.createTransport({
+  host: 'smtp.m1.websupport.sk',
+  port: 465,
+  secure: true, // SSL/TLS
+  auth: {
+    user: process.env.EMAIL_USER || 'noreply@aesa.sk',
+    pass: process.env.EMAIL_PASS || 'r.{jo$_;OJX8V>eKbo|!'
+  }
+});
+
+export const sendInvitationEmail = functions.https.onCall(async (data, context) => {
+  console.log('Funkcia bola volaná s dátami:', data);
+  
+  if (!context.auth) {
+    console.error('Používateľ nie je prihlásený');
+    throw new functions.https.HttpsError('unauthenticated', 'Musíte byť prihlásený.');
+  }
+
+  const { email, firstName, lastName, phone, invitationId, companyId, role } = data;
+  
+  if (!email || !firstName || !lastName || !phone || !invitationId || !companyId || !role) {
+    console.error('Chýbajúce povinné údaje:', { email, firstName, lastName, phone, invitationId, companyId, role });
+    throw new functions.https.HttpsError('invalid-argument', 'Chýbajú povinné údaje');
+  }
+
+  if (!phone.startsWith('+')) {
+    console.error('Neplatné telefónne číslo:', phone);
+    throw new functions.https.HttpsError('invalid-argument', 'Telefónne číslo musí začínať predvoľbou krajiny (napr. +421)');
+  }
+
+  try {
+    console.log('Získavam údaje o firme pre ID:', companyId);
+    // Získanie informácií o firme
+    const companyDoc = await admin.firestore().collection('companies').doc(companyId).get();
+    
+    if (!companyDoc.exists) {
+      console.error('Firma nebola nájdená:', companyId);
+      throw new functions.https.HttpsError('not-found', 'Firma nebola nájdená');
+    }
+    
+    const companyData = companyDoc.data();
+    console.log('Údaje o firme:', companyData);
+
+    // Získanie informácií o odosielateľovi
+    console.log('Získavam údaje o odosielateľovi:', context.auth.uid);
+    const senderDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
+    
+    if (!senderDoc.exists) {
+      console.error('Odosielateľ nebol nájdený:', context.auth.uid);
+      throw new functions.https.HttpsError('not-found', 'Odosielateľ nebol nájdený');
+    }
+    
+    const senderData = senderDoc.data();
+    console.log('Údaje o odosielateľovi:', senderData);
+
+    // Vytvorenie odkazu na registráciu
+    const appUrl = process.env.APP_URL || 'https://core-app-423c7.web.app';
+    const registrationLink = `${appUrl}/register?invitationId=${invitationId}`;
+    console.log('Registračný odkaz:', registrationLink);
+
+    // Vytvorenie emailu
+    const mailOptions = {
+      from: 'noreply@aesa.sk',
+      to: email,
+      subject: `Pozvánka do tímu ${companyData?.name || 'vašej firmy'}`,
+      html: `
+        <h2>Pozvánka do tímu</h2>
+        <p>Dobrý deň ${firstName} ${lastName},</p>
+        <p>${senderData?.firstName || 'Administrátor'} ${senderData?.lastName || ''} vás pozval do tímu ${companyData?.name || 'vašej firmy'}.</p>
+        <p>Vaše údaje:</p>
+        <ul>
+          <li>Meno: ${firstName} ${lastName}</li>
+          <li>Email: ${email}</li>
+          <li>Telefón: ${phone}</li>
+          <li>Rola: ${role === 'admin' ? 'Administrátor' : 'Klasický používateľ'}</li>
+        </ul>
+        <p>Pre pripojenie sa k tímu kliknite na nasledujúci odkaz:</p>
+        <a href="${registrationLink}">${registrationLink}</a>
+        <p>Ak ste tento email nežiadali, môžete ho ignorovať.</p>
+      `
+    };
+
+    console.log('Odosielam email s nasledujúcimi nastaveniami:', {
+      to: email,
+      subject: mailOptions.subject
+    });
+
+    // Odoslanie emailu
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email bol úspešne odoslaný:', info);
+
+    return { success: true, messageId: info.messageId };
+  } catch (error: any) {
+    console.error('Chyba pri odosielaní emailu:', error);
+    throw new functions.https.HttpsError('internal', 'Nepodarilo sa odoslať email s pozvánkou: ' + (error.message || 'Neznáma chyba'));
+  }
+}); 

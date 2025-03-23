@@ -22,12 +22,15 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  CircularProgress
 } from '@mui/material';
-import { Add as AddIcon, Mail as MailIcon } from '@mui/icons-material';
+import { Add as AddIcon, Mail as MailIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 interface TeamMember {
   uid: string;
@@ -54,16 +57,17 @@ function Team() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [companyID, setCompanyID] = useState('');
   const [openInvite, setOpenInvite] = useState(false);
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('+421');
+  const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
-  const [inviteForm, setInviteForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    role: 'user'
-  });
+  const navigate = useNavigate();
+  const functions = getFunctions();
+  const sendInvitationEmail = httpsCallable(functions, 'sendInvitationEmail');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -114,35 +118,57 @@ function Team() {
     return () => unsubscribe();
   }, []);
 
-  const handleInviteSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+  const handleInvite = async () => {
+    if (!email || !role || !companyID || !firstName || !lastName || !phone) {
+      setError('Prosím vyplňte všetky polia');
+      return;
+    }
+
+    if (!phone.startsWith('+')) {
+      setError('Telefónne číslo musí začínať predvoľbou krajiny (napr. +421)');
+      return;
+    }
 
     try {
-      // Vytvorenie pozvánky v kolekcii invitations
-      await addDoc(collection(db, 'invitations'), {
-        ...inviteForm,
-        companyID,
-        status: 'pending',
-        createdAt: new Date().toISOString()
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      // Vytvorenie pozvánky v Firestore
+      const invitationRef = await addDoc(collection(db, 'invitations'), {
+        email,
+        firstName,
+        lastName,
+        phone,
+        role,
+        companyId: companyID,
+        createdAt: new Date(),
+        status: 'pending'
       });
 
-      // Tu by sme mali poslať email s pozvánkou
-      // TODO: Implementovať odosielanie emailov
+      // Volanie Cloud Function na odoslanie emailu
+      await sendInvitationEmail({
+        email,
+        firstName,
+        lastName,
+        phone,
+        invitationId: invitationRef.id,
+        companyId: companyID,
+        role
+      });
 
       setSuccess('Pozvánka bola úspešne odoslaná.');
       setOpenInvite(false);
-      setInviteForm({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        role: 'user'
-      });
-    } catch (err) {
-      console.error('Chyba pri pozývaní člena:', err);
-      setError('Nepodarilo sa odoslať pozvánku.');
+      setEmail('');
+      setFirstName('');
+      setLastName('');
+      setPhone('+421');
+      setRole('user');
+    } catch (err: any) {
+      console.error('Chyba pri odosielaní pozvánky:', err);
+      setError(err.message || 'Nastala chyba pri odosielaní pozvánky.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -157,20 +183,29 @@ function Team() {
   return (
     <Container maxWidth="lg">
       <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" gutterBottom>
-            Tím
-          </Typography>
-          {isAdmin && (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={() => setOpenInvite(true)}
-            >
-              Pozvať člena
-            </Button>
-          )}
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <IconButton 
+            onClick={() => navigate('/dashboard')} 
+            sx={{ mr: 2 }}
+            aria-label="späť na dashboard"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h4">
+              Tím
+            </Typography>
+            {isAdmin && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={() => setOpenInvite(true)}
+              >
+                Pozvať člena
+              </Button>
+            )}
+          </Box>
         </Box>
 
         {error && (
@@ -219,62 +254,79 @@ function Team() {
           </Table>
         </TableContainer>
 
-        <Dialog open={openInvite} onClose={() => setOpenInvite(false)} maxWidth="sm" fullWidth>
+        <Dialog open={openInvite} onClose={() => setOpenInvite(false)}>
           <DialogTitle>Pozvať nového člena</DialogTitle>
-          <form onSubmit={handleInviteSubmit}>
-            <DialogContent>
-              <TextField
-                fullWidth
-                label="Meno"
-                value={inviteForm.firstName}
-                onChange={(e) => setInviteForm(prev => ({ ...prev, firstName: e.target.value }))}
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Meno"
+              type="text"
+              fullWidth
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              disabled={loading}
+              required
+            />
+            <TextField
+              margin="dense"
+              label="Priezvisko"
+              type="text"
+              fullWidth
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              disabled={loading}
+              required
+            />
+            <TextField
+              margin="dense"
+              label="Email"
+              type="email"
+              fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              required
+            />
+            <TextField
+              margin="dense"
+              label="Telefón (s predvoľbou krajiny)"
+              type="tel"
+              fullWidth
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              disabled={loading}
+              required
+              placeholder="+421"
+              helperText="Zadajte číslo s predvoľbou krajiny (napr. +421901234567)"
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Rola</InputLabel>
+              <Select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                label="Rola"
+                disabled={loading}
                 required
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Priezvisko"
-                value={inviteForm.lastName}
-                onChange={(e) => setInviteForm(prev => ({ ...prev, lastName: e.target.value }))}
-                required
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={inviteForm.email}
-                onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
-                required
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Telefón"
-                value={inviteForm.phone}
-                onChange={(e) => setInviteForm(prev => ({ ...prev, phone: e.target.value }))}
-                required
-                margin="normal"
-              />
-              <FormControl fullWidth margin="normal" required>
-                <InputLabel>Rola</InputLabel>
-                <Select
-                  value={inviteForm.role}
-                  onChange={(e) => setInviteForm(prev => ({ ...prev, role: e.target.value }))}
-                  label="Rola"
-                >
-                  <MenuItem value="classic">Classic - môže vidieť všetko</MenuItem>
-                  <MenuItem value="admin">Admin - môže upravovať firmu</MenuItem>
-                </Select>
-              </FormControl>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setOpenInvite(false)}>Zrušiť</Button>
-              <Button type="submit" variant="contained" color="primary">
-                Odoslať pozvánku
-              </Button>
-            </DialogActions>
-          </form>
+              >
+                <MenuItem value="user">Klasický používateľ</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenInvite(false)} disabled={loading}>
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleInvite} 
+              variant="contained" 
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={20} /> : null}
+            >
+              {loading ? 'Odosielanie...' : 'Pozvať'}
+            </Button>
+          </DialogActions>
         </Dialog>
       </Paper>
     </Container>
