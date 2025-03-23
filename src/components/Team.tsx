@@ -115,15 +115,17 @@ function Team() {
             // Načítanie pozvánok
             const invitationsQuery = query(
               collection(db, 'invitations'),
-              where('companyID', '==', userData.companyID)
+              where('companyID', '==', userData.companyID),
+              where('status', '==', 'pending')
             );
 
             // Real-time sledovanie členov tímu
             const unsubscribeMembers = onSnapshot(membersQuery, (snapshot) => {
-              const members: TeamMember[] = [];
+              const membersMap = new Map<string, TeamMember>();
               snapshot.forEach((doc) => {
                 const data = doc.data();
-                members.push({
+                // Použijeme email ako kľúč pre odstránenie duplicít
+                membersMap.set(data.email, {
                   id: doc.id,
                   firstName: data.firstName,
                   lastName: data.lastName,
@@ -134,7 +136,7 @@ function Team() {
                   createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date()
                 });
               });
-              setTeamMembers(members);
+              setTeamMembers(Array.from(membersMap.values()));
             });
 
             // Real-time sledovanie pozvánok
