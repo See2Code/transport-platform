@@ -24,6 +24,10 @@ import {
   Select,
   MenuItem,
   Grid,
+  Card,
+  IconButton,
+  Chip,
+  Tooltip,
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -33,6 +37,12 @@ import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import AddIcon from '@mui/icons-material/Add';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -68,6 +78,7 @@ interface Transport {
     firstName: string;
     lastName: string;
   };
+  isDelayed: boolean;
 }
 
 interface TransportFormData {
@@ -79,6 +90,151 @@ interface TransportFormData {
   unloadingDateTime: Date | null;
   unloadingReminder: number;
 }
+
+// Importujeme farebnú paletu z Navbar
+const colors = {
+  primary: {
+    main: '#1a1a2e',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  secondary: {
+    main: '#ff6b6b',
+    light: '#ff8787',
+    dark: '#fa5252',
+  },
+  accent: {
+    main: '#00b894',
+    light: '#00d2a0',
+    dark: '#00a07a',
+  }
+};
+
+const PageWrapper = styled('div')({
+  padding: '24px',
+});
+
+const PageHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '32px',
+});
+
+const PageTitle = styled(Typography)({
+  fontSize: '1.75rem',
+  fontWeight: 700,
+  color: '#ffffff',
+  position: 'relative',
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '-8px',
+    left: 0,
+    width: '60px',
+    height: '4px',
+    backgroundColor: colors.accent.main,
+    borderRadius: '2px',
+  }
+});
+
+const AddButton = styled(Button)({
+  backgroundColor: colors.accent.main,
+  color: '#ffffff',
+  padding: '8px 24px',
+  borderRadius: '12px',
+  fontSize: '0.95rem',
+  fontWeight: 600,
+  textTransform: 'none',
+  transition: 'all 0.2s ease-in-out',
+  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  '&:hover': {
+    backgroundColor: colors.accent.light,
+    transform: 'translateY(-2px)',
+    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+  }
+});
+
+const TransportCard = styled(Card)({
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(20px)',
+  borderRadius: '16px',
+  padding: '24px',
+  color: '#ffffff',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
+  marginBottom: '16px',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+  }
+});
+
+const TransportInfo = styled(Box)({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+  gap: '24px',
+  marginBottom: '16px',
+});
+
+const InfoSection = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+});
+
+const InfoLabel = styled(Typography)({
+  fontSize: '0.85rem',
+  color: 'rgba(255, 255, 255, 0.5)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+});
+
+const InfoValue = styled(Typography)({
+  fontSize: '1rem',
+  color: '#ffffff',
+});
+
+const LocationInfo = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  marginBottom: '8px',
+  color: 'rgba(255, 255, 255, 0.7)',
+});
+
+const TimeInfo = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  color: 'rgba(255, 255, 255, 0.7)',
+  fontSize: '0.9rem',
+});
+
+const CardHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '24px',
+});
+
+const OrderNumber = styled(Typography)({
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  color: colors.accent.main,
+});
+
+const StatusChip = styled(Chip)({
+  backgroundColor: 'rgba(0, 184, 148, 0.2)',
+  color: colors.accent.main,
+  fontWeight: 500,
+  borderRadius: '8px',
+  '&.delayed': {
+    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+    color: colors.secondary.main,
+  }
+});
 
 function TrackedTransports() {
   const [transports, setTransports] = useState<Transport[]>([]);
@@ -143,6 +299,7 @@ function TrackedTransports() {
           firstName: userData?.firstName || '',
           lastName: userData?.lastName || '',
         },
+        isDelayed: false,
       };
 
       await addDoc(collection(db, 'transports'), transportData);
@@ -174,6 +331,7 @@ function TrackedTransports() {
         loadingDateTime: doc.data().loadingDateTime.toDate(),
         unloadingDateTime: doc.data().unloadingDateTime.toDate(),
         createdAt: doc.data().createdAt.toDate(),
+        isDelayed: doc.data().isDelayed,
       })) as Transport[];
 
       setTransports(transportsData);
@@ -188,6 +346,14 @@ function TrackedTransports() {
     fetchTransports();
   }, []);
 
+  const handleDelete = (id: string) => {
+    console.log('Delete transport:', id);
+  };
+
+  const handleMoreOptions = (id: string) => {
+    console.log('More options for transport:', id);
+  };
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -199,217 +365,122 @@ function TrackedTransports() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <StyledPaper>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Typography variant="h4" sx={{ 
-            background: 'linear-gradient(135deg, #00b894 0%, #ffa502 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontWeight: 'bold',
-          }}>
-            Sledované prepravy
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={handleOpenDialog}
-            sx={{
-              background: 'linear-gradient(135deg, #00b894 0%, #00d2a0 100%)',
-              color: 'white',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #00a884 0%, #00c290 100%)',
-                transform: 'translateY(-2px)',
-                boxShadow: '0 8px 15px rgba(0, 0, 0, 0.2)',
-              },
-              transition: 'all 0.3s ease-in-out',
-            }}
-          >
-            Pridať sledovanie
-          </Button>
+    <PageWrapper>
+      <PageHeader>
+        <PageTitle>Sledované prepravy</PageTitle>
+        <AddButton
+          variant="contained"
+          onClick={handleOpenDialog}
+          startIcon={<AddIcon />}
+        >
+          Pridať sledovanie
+        </AddButton>
+      </PageHeader>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          {success}
+        </Alert>
+      )}
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
         </Box>
+      ) : transports.length === 0 ? (
+        <Alert severity="info">
+          Zatiaľ nemáte žiadne sledované prepravy
+        </Alert>
+      ) : (
+        <div>
+          {transports.map((transport) => (
+            <TransportCard key={transport.id}>
+              <CardHeader>
+                <OrderNumber>{transport.orderNumber}</OrderNumber>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <StatusChip
+                    icon={<LocalShippingIcon />}
+                    label={transport.status === 'active' ? 'Aktívna' : 'Ukončená'}
+                    className={transport.status !== 'active' ? 'delayed' : ''}
+                  />
+                  <Tooltip title="Vymazať">
+                    <IconButton onClick={() => handleDelete(transport.id)} size="small">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </CardHeader>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+              <TransportInfo>
+                <InfoSection>
+                  <Box>
+                    <InfoLabel>Naloženie</InfoLabel>
+                    <LocationInfo>
+                      <LocationOnIcon sx={{ color: colors.accent.main }} />
+                      <InfoValue>{transport.loadingAddress}</InfoValue>
+                    </LocationInfo>
+                    <TimeInfo>
+                      <AccessTimeIcon fontSize="small" />
+                      <InfoValue>
+                        {format(transport.loadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
+                      </InfoValue>
+                    </TimeInfo>
+                  </Box>
+                  <Box>
+                    <InfoLabel>Pripomienka</InfoLabel>
+                    <InfoValue>
+                      {transport.loadingReminder} {transport.loadingReminder === 1 ? 'hodinu' : transport.loadingReminder < 5 ? 'hodiny' : 'hodín'} pred
+                    </InfoValue>
+                  </Box>
+                </InfoSection>
 
-        {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {success}
-          </Alert>
-        )}
+                <InfoSection>
+                  <Box>
+                    <InfoLabel>Vyloženie</InfoLabel>
+                    <LocationInfo>
+                      <LocationOnIcon sx={{ color: colors.secondary.main }} />
+                      <InfoValue>{transport.unloadingAddress}</InfoValue>
+                    </LocationInfo>
+                    <TimeInfo>
+                      <AccessTimeIcon fontSize="small" />
+                      <InfoValue>
+                        {format(transport.unloadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
+                      </InfoValue>
+                    </TimeInfo>
+                  </Box>
+                  <Box>
+                    <InfoLabel>Pripomienka</InfoLabel>
+                    <InfoValue>
+                      {transport.unloadingReminder} {transport.unloadingReminder === 1 ? 'hodinu' : transport.unloadingReminder < 5 ? 'hodiny' : 'hodín'} pred
+                    </InfoValue>
+                  </Box>
+                </InfoSection>
 
-        {transports.length === 0 ? (
-          <Alert severity="info" sx={{ mb: 3 }}>
-            Zatiaľ nemáte žiadne sledované prepravy
-          </Alert>
-        ) : (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Dátum vytvorenia
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Číslo objednávky
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Miesto naloženia
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Dátum a čas naloženia
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Pripomienka naloženia
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Miesto vyloženia
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Dátum a čas vyloženia
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Pripomienka vyloženia
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Vytvoril
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#00b894',
-                      borderBottom: '2px solid rgba(0, 184, 148, 0.2)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Status
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {transports.map((transport) => (
-                  <TableRow 
-                    key={transport.id}
-                    sx={{
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 184, 148, 0.05)',
-                      },
-                      transition: 'background-color 0.2s ease',
-                    }}
-                  >
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      {format(transport.createdAt, 'dd.MM.yyyy HH:mm', { locale: sk })}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      {transport.orderNumber}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      {transport.loadingAddress}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      {format(transport.loadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      {transport.loadingReminder} {transport.loadingReminder === 1 ? 'hodinu' : transport.loadingReminder < 5 ? 'hodiny' : 'hodín'}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      {transport.unloadingAddress}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      {format(transport.unloadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      {transport.unloadingReminder} {transport.unloadingReminder === 1 ? 'hodinu' : transport.unloadingReminder < 5 ? 'hodiny' : 'hodín'}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <InfoSection>
+                  <Box>
+                    <InfoLabel>Vytvoril</InfoLabel>
+                    <InfoValue>
                       {transport.createdBy?.firstName} {transport.createdBy?.lastName}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      <Typography
-                        sx={{
-                          color: transport.status === 'active' ? '#00b894' : '#ff6b6b',
-                          fontWeight: 'bold',
-                          display: 'inline-block',
-                          padding: '4px 12px',
-                          borderRadius: '4px',
-                          backgroundColor: transport.status === 'active' ? 'rgba(0, 184, 148, 0.1)' : 'rgba(255, 107, 107, 0.1)',
-                        }}
-                      >
-                        {transport.status === 'active' ? 'Aktívna' : 'Ukončená'}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </StyledPaper>
+                    </InfoValue>
+                  </Box>
+                  <Box>
+                    <InfoLabel>Dátum vytvorenia</InfoLabel>
+                    <InfoValue>
+                      {format(transport.createdAt, 'dd.MM.yyyy HH:mm', { locale: sk })}
+                    </InfoValue>
+                  </Box>
+                </InfoSection>
+              </TransportInfo>
+            </TransportCard>
+          ))}
+        </div>
+      )}
 
       <Dialog 
         open={openDialog} 
@@ -544,7 +615,7 @@ function TrackedTransports() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageWrapper>
   );
 }
 

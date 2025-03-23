@@ -28,6 +28,8 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -134,7 +136,8 @@ const menuItems = [
   {
     text: 'Sledovať prepravu',
     icon: <LocalShippingIcon />,
-    path: '/transport'
+    path: '/transport',
+    hidden: true
   },
   {
     text: 'Sledované prepravy',
@@ -174,6 +177,7 @@ const SideNav = styled('nav')(({ theme }) => ({
   height: '100vh',
   zIndex: 1200,
   boxShadow: '4px 0 24px rgba(0, 0, 0, 0.15)',
+  overflowX: 'hidden',
   '&.drawer-closed': {
     width: miniDrawerWidth,
     '& .MuiListItemText-root': {
@@ -210,11 +214,19 @@ const TopBar = styled('header')({
   display: 'flex',
   alignItems: 'center',
   padding: '0 20px',
-  transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   boxShadow: '0 4px 24px rgba(0, 0, 0, 0.15)',
   zIndex: 1100,
   '.drawer-closed &': {
     left: `calc(${miniDrawerWidth}px + 16px)`,
+  },
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    inset: 0,
+    borderRadius: '16px',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
+    pointerEvents: 'none'
   }
 });
 
@@ -223,6 +235,7 @@ const ContentWrapper = styled('div')({
   minHeight: '100vh',
   backgroundColor: colors.primary.main,
   position: 'relative',
+  overflowX: 'hidden'
 });
 
 const Navbar = () => {
@@ -278,51 +291,84 @@ const Navbar = () => {
       <Divider />
       <List>
         {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton 
-              onClick={() => navigate(item.path)}
-              sx={{
-                minHeight: 48,
-                justifyContent: drawerOpen ? 'initial' : 'center',
-                px: 2.5,
-                borderRadius: '12px',
-                margin: '4px 8px',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  '& .MuiListItemIcon-root': {
-                    color: colors.accent.main,
-                  },
-                  '& .MuiListItemText-primary': {
-                    color: '#ffffff',
-                  }
-                }
-              }}
-            >
-              <ListItemIconStyled
+          !item.hidden && (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton 
+                onClick={() => navigate(item.path)}
                 sx={{
-                  minWidth: 0,
-                  mr: drawerOpen ? 3 : 'auto',
-                  justifyContent: 'center',
+                  minHeight: 48,
+                  justifyContent: drawerOpen ? 'initial' : 'center',
+                  px: 2.5,
+                  borderRadius: '12px',
+                  margin: '4px 8px',
                   transition: 'all 0.2s ease-in-out',
+                  position: 'relative',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    '& .MuiListItemIcon-root': {
+                      color: colors.accent.main,
+                      transform: 'scale(1.1)',
+                    },
+                    '& .MuiListItemText-primary': {
+                      color: '#ffffff',
+                    }
+                  },
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    left: '-8px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '3px',
+                    height: '0%',
+                    backgroundColor: colors.accent.main,
+                    borderRadius: '4px',
+                    transition: 'height 0.2s ease-in-out',
+                  },
+                  '&:hover::before': {
+                    height: '50%',
+                  },
+                  '&.active': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    '&::before': {
+                      height: '70%',
+                    },
+                    '& .MuiListItemIcon-root': {
+                      color: colors.accent.main,
+                    },
+                    '& .MuiListItemText-primary': {
+                      color: '#ffffff',
+                      fontWeight: 600,
+                    }
+                  }
                 }}
               >
-                {item.icon}
-              </ListItemIconStyled>
-              <ListItemText 
-                primary={item.text} 
-                sx={{ 
-                  opacity: drawerOpen ? 1 : 0,
-                  transition: 'all 0.3s ease-in-out',
-                  '& .MuiTypography-root': {
-                    fontSize: '0.95rem',
-                    fontWeight: 500,
-                    color: 'rgba(255, 255, 255, 0.7)',
-                  }
-                }} 
-              />
-            </ListItemButton>
-          </ListItem>
+                <ListItemIconStyled
+                  sx={{
+                    minWidth: 0,
+                    mr: drawerOpen ? 3 : 'auto',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s ease-in-out',
+                  }}
+                >
+                  {item.icon}
+                </ListItemIconStyled>
+                <ListItemText 
+                  primary={item.text} 
+                  sx={{ 
+                    opacity: drawerOpen ? 1 : 0,
+                    transition: 'all 0.3s ease-in-out',
+                    '& .MuiTypography-root': {
+                      fontSize: '0.95rem',
+                      fontWeight: 500,
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      transition: 'all 0.2s ease-in-out',
+                    }
+                  }} 
+                />
+              </ListItemButton>
+            </ListItem>
+          )
         ))}
       </List>
       <ToggleButton onClick={toggleDrawer}>
