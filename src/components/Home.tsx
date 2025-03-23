@@ -1,87 +1,199 @@
 import React from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Button, 
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
   Paper,
-  Grid
+  useTheme,
+  styled,
 } from '@mui/material';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import SpeedIcon from '@mui/icons-material/Speed';
-import SecurityIcon from '@mui/icons-material/Security';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
+// Styled komponenty
+const GradientButton = styled(Button)(({ theme }) => ({
+  padding: '15px 40px',
+  fontSize: '1.1rem',
+  width: '100%',
+  maxWidth: '300px',
+  marginBottom: '20px',
+  borderRadius: '12px',
+  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-3px)',
+    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)',
+  },
+}));
+
+const GreenGradientButton = styled(GradientButton)({
+  background: 'linear-gradient(135deg, #00b894 0%, #00d2a0 100%)',
+  color: 'white',
+});
+
+const OrangeGradientButton = styled(GradientButton)({
+  background: 'linear-gradient(135deg, #ff6b6b 0%, #ffa502 100%)',
+  color: 'white',
+});
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  borderRadius: '20px',
+  background: 'rgba(35, 35, 66, 0.7)',
+  backdropFilter: 'blur(10px)',
+  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+  animation: 'fadeIn 0.6s ease-out',
+  '@keyframes fadeIn': {
+    from: {
+      opacity: 0,
+      transform: 'translateY(20px)',
+    },
+    to: {
+      opacity: 1,
+      transform: 'translateY(0)',
+    },
+  },
+}));
+
+const AnimatedBox = styled(Box)({
+  animation: 'fadeIn 0.6s ease-out',
+  '@keyframes fadeIn': {
+    from: {
+      opacity: 0,
+      transform: 'translateY(20px)',
+    },
+    to: {
+      opacity: 1,
+      transform: 'translateY(0)',
+    },
+  },
+});
 
 function Home() {
+  const navigate = useNavigate();
+  const theme = useTheme();
+
   return (
     <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h2" component="h1" gutterBottom align="center" color="primary">
-          Dopravná Platforma
-        </Typography>
-        
-        <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <LocalShippingIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" gutterBottom>
-                  Spoľahlivá Doprava
-                </Typography>
-                <Typography variant="body1">
-                  Zabezpečujeme kvalitnú a spoľahlivú dopravu pre vaše potreby
-                </Typography>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <SpeedIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" gutterBottom>
-                  Rýchle Doručenie
-                </Typography>
-                <Typography variant="body1">
-                  Garantujeme rýchle a presné doručenie vašich zásielok
-                </Typography>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <SecurityIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" gutterBottom>
-                  Bezpečnosť
-                </Typography>
-                <Typography variant="body1">
-                  Vaše zásielky sú v bezpečných rukách našich profesionálov
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Paper>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          py: 4
+        }}
+      >
+        <StyledPaper elevation={3}>
+          <AnimatedBox
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              mb: 6
+            }}
+          >
+            <Typography
+              variant="h2"
+              component="h1"
+              sx={{
+                mb: 2,
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #00b894 0%, #ffa502 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              CORE
+            </Typography>
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 4,
+                color: 'text.secondary',
+                maxWidth: '600px'
+              }}
+            >
+              Komplexné riešenie pre správu vašej dopravnej spoločnosti
+            </Typography>
+          </AnimatedBox>
 
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
-          <Button 
-            component={Link}
-            to="/login"
-            variant="contained" 
-            size="large" 
-            color="primary"
-            sx={{ minWidth: 200 }}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2
+            }}
           >
-            Prihlásiť sa
-          </Button>
-          <Button 
-            component={Link}
-            to="/register"
-            variant="outlined" 
-            size="large" 
-            color="primary"
-            sx={{ minWidth: 200 }}
-          >
-            Registrovať sa
-          </Button>
-        </Box>
+            <GreenGradientButton
+              onClick={() => navigate('/login')}
+              variant="contained"
+            >
+              Prihlásiť sa
+            </GreenGradientButton>
+
+            <OrangeGradientButton
+              onClick={() => navigate('/register')}
+              variant="contained"
+            >
+              Registrovať firmu
+            </OrangeGradientButton>
+          </Box>
+
+          <Box sx={{ mt: 6, textAlign: 'center' }}>
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+                mb: 2
+              }}
+            >
+              Výhody nášho systému:
+            </Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 3,
+                textAlign: 'left'
+              }}
+            >
+              {[
+                'Správa vozového parku',
+                'Evidencia vodičov',
+                'Plánovanie trás',
+                'Sledovanie nákladov',
+                'Tímová spolupráca',
+                'Automatické reporty',
+                'Jednoduchá fakturácia',
+                'Mobilná aplikácia'
+              ].map((feature, index) => (
+                <Typography
+                  key={index}
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:before': {
+                      content: '""',
+                      display: 'inline-block',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: index % 2 === 0 ? '#00b894' : '#ff6b6b',
+                      marginRight: '10px'
+                    }
+                  }}
+                >
+                  {feature}
+                </Typography>
+              ))}
+            </Box>
+          </Box>
+        </StyledPaper>
       </Box>
     </Container>
   );

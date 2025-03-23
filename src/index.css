@@ -1,0 +1,153 @@
+/* CSS Reset a základné štýly */
+:root {
+  /* Hlavné farby */
+  --dark-purple: #1a1a2e;
+  --dark-purple-light: #232342;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  
+  /* Gradienty pre tlačidlá */
+  --gradient-green: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
+  --gradient-orange: linear-gradient(135deg, #ff6b6b 0%, #ffa502 100%);
+  
+  /* Tiene */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* Prechody */
+  --transition-fast: 0.2s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--dark-purple);
+  color: var(--text-primary);
+}
+
+/* Základné komponenty */
+.MuiPaper-root {
+  background-color: var(--dark-purple-light) !important;
+  color: var(--text-primary) !important;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.MuiPaper-root:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Tlačidlá */
+.MuiButton-root {
+  text-transform: none !important;
+  border-radius: 8px !important;
+  padding: 10px 24px !important;
+  transition: all var(--transition-normal) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.MuiButton-containedPrimary {
+  background: var(--gradient-green) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.MuiButton-containedSecondary {
+  background: var(--gradient-orange) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.MuiButton-root:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Input polia */
+.MuiTextField-root {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: all var(--transition-normal);
+}
+
+.MuiTextField-root:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.MuiInputBase-root {
+  color: var(--text-primary) !important;
+}
+
+.MuiInputLabel-root {
+  color: var(--text-secondary) !important;
+}
+
+/* Tabuľky */
+.MuiTableCell-root {
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.MuiTableHead-root .MuiTableCell-root {
+  background-color: var(--dark-purple) !important;
+  font-weight: 600 !important;
+}
+
+/* Dialógy */
+.MuiDialog-paper {
+  background-color: var(--dark-purple-light) !important;
+  color: var(--text-primary) !important;
+  border-radius: 12px !important;
+}
+
+/* Animácie */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-normal);
+}
+
+/* Karty a kontajnery */
+.container {
+  animation: fadeIn var(--transition-normal);
+  padding: 24px;
+}
+
+/* Alert komponenty */
+.MuiAlert-root {
+  border-radius: 8px !important;
+  animation: fadeIn var(--transition-normal);
+}
+
+.MuiAlert-standardSuccess {
+  background: var(--gradient-green) !important;
+  color: white !important;
+}
+
+.MuiAlert-standardError {
+  background: var(--gradient-orange) !important;
+  color: white !important;
+}
+
+/* Ikony */
+.MuiSvgIcon-root {
+  transition: transform var(--transition-fast);
+}
+
+.MuiSvgIcon-root:hover {
+  transform: scale(1.1);
+} 
