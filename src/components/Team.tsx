@@ -23,17 +23,24 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
-import { Add as AddIcon, Mail as MailIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { 
+  Add as AddIcon, 
+  Mail as MailIcon, 
+  ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
+} from '@mui/icons-material';
+import { collection, query, where, getDocs, addDoc, doc, getDoc, onSnapshot, deleteDoc, updateDoc } from 'firebase/firestore';
+import { auth, db, functions } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
 
 interface TeamMember {
-  uid: string;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -42,20 +49,18 @@ interface TeamMember {
 }
 
 interface Invitation {
-  email: string;
+  id: string;
   firstName: string;
   lastName: string;
+  email: string;
   phone: string;
-  companyID: string;
   role: string;
-  status: 'pending' | 'accepted' | 'expired';
-  createdAt: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: Date;
 }
 
 function Team() {
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [companyID, setCompanyID] = useState('');
+  const navigate = useNavigate();
   const [openInvite, setOpenInvite] = useState(false);
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -64,10 +69,15 @@ function Team() {
   const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const functions = getFunctions();
-  const sendInvitationEmail = httpsCallable(functions, 'sendInvitationEmail');
+  const [loading, setLoading] = useState(false);
+  const [companyID, setCompanyID] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editingInvite, setEditingInvite] = useState<Invitation | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [inviteToDelete, setInviteToDelete] = useState<Invitation | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -75,12 +85,10 @@ function Team() {
         try {
           // Získanie údajov o používateľovi
           const userDoc = await getDoc(doc(db, 'users', user.uid));
+          const userData = userDoc.data();
           
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
+          if (userData) {
             setCompanyID(userData.companyID);
-            
-            // Kontrola či je používateľ admin
             setIsAdmin(userData.role === 'admin');
 
             // Načítanie členov tímu
@@ -88,29 +96,57 @@ function Team() {
               collection(db, 'users'),
               where('companyID', '==', userData.companyID)
             );
-            const membersSnapshot = await getDocs(membersQuery);
             
-            // Zoradenie členov - najprv admini, potom ostatní
-            const membersData = membersSnapshot.docs
-              .map(doc => ({ ...doc.data(), uid: doc.id } as TeamMember))
-              .sort((a, b) => {
-                // Admini budú prví
-                if (a.role === 'admin' && b.role !== 'admin') return -1;
-                if (a.role !== 'admin' && b.role === 'admin') return 1;
-                // Aktuálny používateľ bude prvý v svojej skupine
-                if (a.uid === user.uid) return -1;
-                if (b.uid === user.uid) return 1;
-                // Ostatní podľa mena
-                return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
+            // Načítanie pozvánok
+            const invitationsQuery = query(
+              collection(db, 'invitations'),
+              where('companyID', '==', userData.companyID)
+            );
+
+            // Real-time sledovanie členov tímu
+            const unsubscribeMembers = onSnapshot(membersQuery, (snapshot) => {
+              const members: TeamMember[] = [];
+              snapshot.forEach((doc) => {
+                const data = doc.data();
+                members.push({
+                  id: doc.id,
+                  firstName: data.firstName,
+                  lastName: data.lastName,
+                  email: data.email,
+                  phone: data.phone,
+                  role: data.role
+                });
               });
-            
-            setMembers(membersData);
+              setTeamMembers(members);
+            });
+
+            // Real-time sledovanie pozvánok
+            const unsubscribeInvitations = onSnapshot(invitationsQuery, (snapshot) => {
+              const invites: Invitation[] = [];
+              snapshot.forEach((doc) => {
+                const data = doc.data();
+                invites.push({
+                  id: doc.id,
+                  firstName: data.firstName,
+                  lastName: data.lastName,
+                  email: data.email,
+                  phone: data.phone,
+                  role: data.role,
+                  status: data.status,
+                  createdAt: data.createdAt instanceof Date ? data.createdAt : new Date(data.createdAt)
+                });
+              });
+              setInvitations(invites);
+            });
+
+            return () => {
+              unsubscribeMembers();
+              unsubscribeInvitations();
+            };
           }
         } catch (err) {
           console.error('Chyba pri načítaní údajov:', err);
-          setError('Nepodarilo sa načítať údaje tímu.');
-        } finally {
-          setLoading(false);
+          setError('Nepodarilo sa načítať údaje o tíme.');
         }
       }
     });
@@ -141,19 +177,20 @@ function Team() {
         lastName,
         phone,
         role,
-        companyId: companyID,
+        companyID: companyID,
         createdAt: new Date(),
         status: 'pending'
       });
 
       // Volanie Cloud Function na odoslanie emailu
+      const sendInvitationEmail = httpsCallable(functions, 'sendInvitationEmail');
       await sendInvitationEmail({
         email,
         firstName,
         lastName,
         phone,
         invitationId: invitationRef.id,
-        companyId: companyID,
+        companyID: companyID,
         role
       });
 
@@ -172,13 +209,90 @@ function Team() {
     }
   };
 
-  if (loading) {
-    return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <Typography>Načítavam...</Typography>
-      </Container>
-    );
-  }
+  const handleEdit = (invite: Invitation) => {
+    setEditingInvite(invite);
+    setFirstName(invite.firstName);
+    setLastName(invite.lastName);
+    setEmail(invite.email);
+    setPhone(invite.phone);
+    setRole(invite.role);
+    setOpenEdit(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingInvite || !firstName || !lastName || !email || !phone || !role) {
+      setError('Prosím vyplňte všetky polia');
+      return;
+    }
+
+    if (!phone.startsWith('+')) {
+      setError('Telefónne číslo musí začínať predvoľbou krajiny (napr. +421)');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      // Aktualizácia pozvánky v Firestore
+      await updateDoc(doc(db, 'invitations', editingInvite.id), {
+        firstName,
+        lastName,
+        email,
+        phone,
+        role,
+        updatedAt: new Date()
+      });
+
+      setSuccess('Pozvánka bola úspešne aktualizovaná.');
+      setOpenEdit(false);
+      setEditingInvite(null);
+      setEmail('');
+      setFirstName('');
+      setLastName('');
+      setPhone('+421');
+      setRole('user');
+    } catch (err: any) {
+      console.error('Chyba pri aktualizácii pozvánky:', err);
+      setError(err.message || 'Nastala chyba pri aktualizácii pozvánky.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!inviteToDelete) return;
+
+    try {
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      await deleteDoc(doc(db, 'invitations', inviteToDelete.id));
+      setSuccess('Pozvánka bola úspešne odstránená.');
+      setDeleteConfirmOpen(false);
+      setInviteToDelete(null);
+    } catch (err: any) {
+      console.error('Chyba pri odstránení pozvánky:', err);
+      setError(err.message || 'Nastala chyba pri odstránení pozvánky.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusChip = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Chip label="Čaká na registráciu" color="warning" />;
+      case 'accepted':
+        return <Chip label="Registrovaný" color="success" />;
+      case 'rejected':
+        return <Chip label="Zamietnutá" color="error" />;
+      default:
+        return <Chip label="Neznámy stav" />;
+    }
+  };
 
   return (
     <Container maxWidth="lg">
@@ -209,14 +323,8 @@ function Team() {
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 3 }}>
             {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {success}
           </Alert>
         )}
 
@@ -228,25 +336,65 @@ function Team() {
                 <TableCell>Email</TableCell>
                 <TableCell>Telefón</TableCell>
                 <TableCell>Rola</TableCell>
+                <TableCell>Stav</TableCell>
+                <TableCell align="right">Akcie</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {members.map((member) => (
-                <TableRow key={member.uid}>
-                  <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
+              {/* Aktívni členovia */}
+              {teamMembers.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell>{member.firstName} {member.lastName}</TableCell>
                   <TableCell>{member.email}</TableCell>
                   <TableCell>{member.phone}</TableCell>
                   <TableCell>
-                    <Chip 
-                      label={
-                        member.role === 'admin' 
-                          ? 'Administrátor' 
-                          : member.role === 'classic' 
-                            ? 'Classic' 
-                            : 'Používateľ'
-                      } 
-                      color={member.role === 'admin' ? 'primary' : 'default'}
-                    />
+                    {member.role === 'admin' ? 'Administrátor' : 'Klasický používateľ'}
+                  </TableCell>
+                  <TableCell>
+                    <Chip label="Aktívny" color="success" />
+                  </TableCell>
+                  <TableCell align="right">
+                    {/* Akcie pre aktívnych členov */}
+                  </TableCell>
+                </TableRow>
+              ))}
+              
+              {/* Pozvané osoby */}
+              {invitations
+                .filter(invite => invite.status === 'pending')
+                .map((invite) => (
+                <TableRow key={invite.id}>
+                  <TableCell>{invite.firstName} {invite.lastName}</TableCell>
+                  <TableCell>{invite.email}</TableCell>
+                  <TableCell>{invite.phone}</TableCell>
+                  <TableCell>
+                    {invite.role === 'admin' ? 'Administrátor' : 'Klasický používateľ'}
+                  </TableCell>
+                  <TableCell>
+                    {getStatusChip(invite.status)}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Tooltip title="Upraviť">
+                      <IconButton 
+                        onClick={() => handleEdit(invite)}
+                        color="primary"
+                        size="small"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Odstrániť">
+                      <IconButton 
+                        onClick={() => {
+                          setInviteToDelete(invite);
+                          setDeleteConfirmOpen(true);
+                        }}
+                        color="error"
+                        size="small"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}
@@ -313,6 +461,16 @@ function Team() {
                 <MenuItem value="admin">Admin</MenuItem>
               </Select>
             </FormControl>
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {success && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                {success}
+              </Alert>
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenInvite(false)} disabled={loading}>
@@ -325,6 +483,117 @@ function Team() {
               startIcon={loading ? <CircularProgress size={20} /> : null}
             >
               {loading ? 'Odosielanie...' : 'Pozvať'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={openEdit} onClose={() => setOpenEdit(false)}>
+          <DialogTitle>Upraviť pozvánku</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Meno"
+              type="text"
+              fullWidth
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              disabled={loading}
+              required
+            />
+            <TextField
+              margin="dense"
+              label="Priezvisko"
+              type="text"
+              fullWidth
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              disabled={loading}
+              required
+            />
+            <TextField
+              margin="dense"
+              label="Email"
+              type="email"
+              fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              required
+            />
+            <TextField
+              margin="dense"
+              label="Telefón (s predvoľbou krajiny)"
+              type="tel"
+              fullWidth
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              disabled={loading}
+              required
+              placeholder="+421"
+              helperText="Zadajte číslo s predvoľbou krajiny (napr. +421901234567)"
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Rola</InputLabel>
+              <Select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                label="Rola"
+                disabled={loading}
+                required
+              >
+                <MenuItem value="user">Klasický používateľ</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+              </Select>
+            </FormControl>
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {success && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                {success}
+              </Alert>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenEdit(false)} disabled={loading}>
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleUpdate} 
+              variant="contained" 
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={20} /> : null}
+            >
+              {loading ? 'Ukladanie...' : 'Uložiť zmeny'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+          <DialogTitle>Odstrániť pozvánku</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Naozaj chcete odstrániť pozvánku pre {inviteToDelete?.firstName} {inviteToDelete?.lastName}?
+              Táto akcia je nezvratná.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteConfirmOpen(false)} disabled={loading}>
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleDelete} 
+              variant="contained" 
+              color="error"
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={20} /> : null}
+            >
+              {loading ? 'Odoberanie...' : 'Odstrániť'}
             </Button>
           </DialogActions>
         </Dialog>

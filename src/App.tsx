@@ -20,6 +20,7 @@ import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import Team from './components/Team';
 import AcceptInvitation from './components/AcceptInvitation';
+import { useAuth } from './hooks/useAuth';
 
 const theme = createTheme({
   palette: {
@@ -31,6 +32,20 @@ const theme = createTheme({
     },
   },
 });
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  return <>{children}</>;
+}
 
 function HomePage() {
   return (
@@ -116,9 +131,30 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/team" element={<Team />} />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/team"
+            element={
+              <PrivateRoute>
+                <Team />
+              </PrivateRoute>
+            }
+          />
           <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

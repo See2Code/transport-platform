@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -21,12 +22,15 @@ console.log('Firebase konfigurácia:', {
 const app = initializeApp(firebaseConfig);
 
 // Get Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const functions = getFunctions(app);
 
 // Nastavenie regiónu pre Firestore
 if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_FIREBASE_EMULATOR === 'true') {
   connectFirestoreEmulator(db, 'localhost', 8080);
 }
+
+export { auth, db, functions };
 
 export default app; 
