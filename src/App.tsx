@@ -18,6 +18,7 @@ import Transport from './components/Transport';
 import PrivateRoute from './components/PrivateRoute';
 import Contacts from './components/Contacts';
 import TrackedTransports from './components/TrackedTransports';
+import BusinessCases from './components/BusinessCases';
 
 const theme = createTheme({
   palette: {
@@ -120,6 +121,13 @@ function App() {
                 <PrivateRoute>
                   <Dashboard>
                     <Contacts />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/business-cases" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <BusinessCases />
                   </Dashboard>
                 </PrivateRoute>
               } />

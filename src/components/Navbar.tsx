@@ -31,6 +31,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { MenuProps } from '@mui/material/Menu';
+import BusinessIcon from '@mui/icons-material/Business';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -209,6 +210,11 @@ const Navbar = () => {
       text: 'Kontakty',
       icon: <ContactsIcon />,
       path: '/contacts'
+    },
+    {
+      text: 'Obchodné prípady',
+      icon: <BusinessIcon />,
+      path: '/business-cases'
     },
     {
       text: 'Nastavenia',
