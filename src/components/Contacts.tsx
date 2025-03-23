@@ -25,6 +25,7 @@ import {
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Country {
   code: string;
@@ -51,9 +52,14 @@ interface Contact {
   countryCode: string;
   email: string;
   createdAt: any; // Firebase Timestamp
+  createdBy: {
+    firstName: string;
+    lastName: string;
+  };
 }
 
 const Contacts = () => {
+  const { userData } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
@@ -68,7 +74,11 @@ const Contacts = () => {
     phoneNumber: '',
     countryCode: 'sk',
     email: '',
-    createdAt: new Date()
+    createdAt: new Date(),
+    createdBy: {
+      firstName: userData?.firstName || '',
+      lastName: userData?.lastName || ''
+    }
   });
 
   useEffect(() => {
@@ -84,6 +94,18 @@ const Contacts = () => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (userData && !editingContact) {
+      setFormData(prev => ({
+        ...prev,
+        createdBy: {
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || ''
+        }
+      }));
+    }
+  }, [userData, editingContact]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -105,9 +127,22 @@ const Contacts = () => {
 
   const handleSubmit = async () => {
     try {
+      if (!userData) {
+        setSnackbar({
+          open: true,
+          message: 'Nie ste prihlásený',
+          severity: 'error'
+        });
+        return;
+      }
+
       const contactData = {
         ...formData,
-        createdAt: new Date()
+        createdAt: new Date(),
+        createdBy: {
+          firstName: userData.firstName,
+          lastName: userData.lastName
+        }
       };
 
       if (editingContact?.id) {
@@ -159,7 +194,11 @@ const Contacts = () => {
       phoneNumber: contact.phoneNumber || '',
       countryCode: contact.countryCode || 'sk',
       email: contact.email,
-      createdAt: contact.createdAt
+      createdAt: contact.createdAt,
+      createdBy: contact.createdBy || {
+        firstName: userData?.firstName || '',
+        lastName: userData?.lastName || ''
+      }
     });
     setOpenDialog(true);
   };
@@ -175,7 +214,11 @@ const Contacts = () => {
       phoneNumber: '',
       countryCode: 'sk',
       email: '',
-      createdAt: new Date()
+      createdAt: new Date(),
+      createdBy: {
+        firstName: userData?.firstName || '',
+        lastName: userData?.lastName || ''
+      }
     });
     setTouchedFields({});
   };
@@ -215,18 +258,31 @@ const Contacts = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Vytvorené</TableCell>
+              <TableCell>Vytvoril</TableCell>
               <TableCell>Meno</TableCell>
               <TableCell>Priezvisko</TableCell>
               <TableCell>Firma</TableCell>
               <TableCell>Mobil</TableCell>
               <TableCell>Email</TableCell>
-              <TableCell>Vytvorené</TableCell>
               <TableCell>Akcie</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredContacts.map((contact) => (
+            {filteredContacts
+              .sort((a, b) => {
+                const dateA = a.createdAt?.toDate() || new Date(0);
+                const dateB = b.createdAt?.toDate() || new Date(0);
+                return dateB.getTime() - dateA.getTime();
+              })
+              .map((contact) => (
               <TableRow key={contact.id}>
+                <TableCell>
+                  {contact.createdAt && contact.createdAt.toDate().toLocaleDateString('sk-SK')}
+                </TableCell>
+                <TableCell>
+                  {contact.createdBy?.firstName} {contact.createdBy?.lastName}
+                </TableCell>
                 <TableCell>{contact.firstName}</TableCell>
                 <TableCell>{contact.lastName}</TableCell>
                 <TableCell>{contact.company}</TableCell>
@@ -242,9 +298,6 @@ const Contacts = () => {
                   </Box>
                 </TableCell>
                 <TableCell>{contact.email}</TableCell>
-                <TableCell>
-                  {contact.createdAt && contact.createdAt.toDate().toLocaleDateString('sk-SK')}
-                </TableCell>
                 <TableCell>
                   <IconButton onClick={() => contact.id && handleEdit(contact)}>
                     <EditIcon />

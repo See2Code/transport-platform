@@ -30,6 +30,7 @@ import ContactsIcon from '@mui/icons-material/Contacts';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 const drawerWidth = 240;
 
@@ -72,6 +73,7 @@ const menuItems = [
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { userData } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState<null | HTMLElement>(null);
@@ -213,6 +215,13 @@ const Navbar = () => {
               }
             }}
           >
+            {userData && (
+              <MenuItem disabled>
+                <Typography variant="body2" sx={{ color: '#ffffff', fontWeight: 'bold' }}>
+                  {userData.firstName} {userData.lastName}
+                </Typography>
+              </MenuItem>
+            )}
             <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
               <ListItemIcon>
                 <AccountIcon fontSize="small" sx={{ color: '#ffffff' }} />
