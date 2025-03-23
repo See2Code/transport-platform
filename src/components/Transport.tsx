@@ -22,35 +22,99 @@ import { addDoc, collection } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: '20px',
-  background: 'rgba(35, 35, 66, 0.7)',
-  backdropFilter: 'blur(10px)',
-  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-  animation: 'fadeIn 0.6s ease-out',
-  '@keyframes fadeIn': {
-    from: {
-      opacity: 0,
-      transform: 'translateY(20px)',
-    },
-    to: {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
-  },
-}));
+const StyledContainer = styled('main')({
+  width: 'calc(100% + 48px)',
+  background: 'linear-gradient(135deg, rgba(0, 184, 148, 0.03) 0%, rgba(255, 165, 2, 0.03) 100%)',
+  borderRadius: '16px',
+  padding: '20px',
+  marginTop: '-8px',
+  marginLeft: '-24px',
+  display: 'flex',
+  flexDirection: 'column',
+  flex: 1,
+});
+
+const FormSection = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  position: 'relative',
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    left: '-20px',
+    top: '0',
+    bottom: '0',
+    width: '3px',
+    background: 'linear-gradient(to bottom, #00b894, #ffa502)',
+    borderRadius: '4px',
+  }
+});
 
 const GradientButton = styled(Button)({
-  background: 'linear-gradient(135deg, #00b894 0%, #00d2a0 100%)',
+  background: 'linear-gradient(135deg, #00b894 0%, #ffa502 100%)',
   color: 'white',
   padding: '12px 24px',
+  borderRadius: '12px',
+  fontWeight: 600,
+  fontSize: '15px',
+  textTransform: 'none',
   '&:hover': {
-    background: 'linear-gradient(135deg, #00a884 0%, #00c290 100%)',
+    background: 'linear-gradient(135deg, #00d2a0 0%, #ffb52f 100%)',
     transform: 'translateY(-2px)',
-    boxShadow: '0 8px 15px rgba(0, 0, 0, 0.2)',
+    boxShadow: '0 8px 15px rgba(0, 184, 148, 0.2)',
   },
   transition: 'all 0.3s ease-in-out',
+});
+
+const StyledTextField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    background: 'rgba(255, 255, 255, 0.03)',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 0.05)',
+    },
+    '&.Mui-focused': {
+      background: 'rgba(255, 255, 255, 0.07)',
+    }
+  }
+});
+
+const StyledDateTimePicker = styled(DateTimePicker)({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    background: 'rgba(255, 255, 255, 0.03)',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 0.05)',
+    },
+    '&.Mui-focused': {
+      background: 'rgba(255, 255, 255, 0.07)',
+    }
+  }
+});
+
+const StyledFormControl = styled(FormControl)({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    background: 'rgba(255, 255, 255, 0.03)',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 0.05)',
+    },
+    '&.Mui-focused': {
+      background: 'rgba(255, 255, 255, 0.07)',
+    }
+  }
+});
+
+const InputGroup = styled('div')({
+  display: 'flex',
+  gap: '16px',
+  '& .date-picker': {
+    flex: 2
+  },
+  '& .reminder-select': {
+    flex: 1
+  }
 });
 
 interface TransportFormData {
@@ -121,70 +185,88 @@ function Transport() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <StyledPaper>
-        <Typography variant="h4" gutterBottom sx={{ 
-          textAlign: 'center',
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+      <StyledContainer>
+        <Typography variant="h4" sx={{ 
+          fontSize: '28px',
+          fontWeight: 700,
           background: 'linear-gradient(135deg, #00b894 0%, #ffa502 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
-          fontWeight: 'bold',
-          mb: 4
+          mb: 3,
         }}>
           Nová preprava
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert 
+            severity="error" 
+            sx={{ 
+              mb: 3, 
+              borderRadius: '12px',
+              '& .MuiAlert-icon': {
+                color: '#ff6b6b'
+              }
+            }}
+          >
             {error}
           </Alert>
         )}
 
         {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
+          <Alert 
+            severity="success" 
+            sx={{ 
+              mb: 3, 
+              borderRadius: '12px',
+              '& .MuiAlert-icon': {
+                color: '#00b894'
+              }
+            }}
+          >
             {success}
           </Alert>
         )}
 
         <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Číslo objednávky"
-                value={formData.orderNumber}
-                onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                required
-              />
-            </Grid>
+          <StyledTextField
+            fullWidth
+            label="Číslo objednávky"
+            value={formData.orderNumber}
+            onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+            required
+            sx={{ mb: 3 }}
+          />
 
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                Naloženie
-              </Typography>
-            </Grid>
+          <FormSection>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontSize: '18px',
+                fontWeight: 600,
+                color: '#00b894',
+              }}
+            >
+              Naloženie
+            </Typography>
 
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Adresa naloženia"
-                value={formData.loadingAddress}
-                onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
-                required
-              />
-            </Grid>
+            <StyledTextField
+              fullWidth
+              label="Adresa naloženia"
+              value={formData.loadingAddress}
+              onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
+              required
+            />
 
-            <Grid item xs={12} sm={8}>
-              <DateTimePicker
+            <InputGroup>
+              <StyledDateTimePicker
+                className="date-picker"
                 label="Dátum a čas naloženia"
                 value={formData.loadingDateTime}
                 onChange={(newValue: Date | null) => setFormData({ ...formData, loadingDateTime: newValue })}
-                sx={{ width: '100%' }}
               />
-            </Grid>
 
-            <Grid item xs={12} sm={4}>
-              <FormControl fullWidth>
+              <StyledFormControl className="reminder-select">
                 <InputLabel>Pripomienka pred</InputLabel>
                 <Select
                   value={formData.loadingReminder}
@@ -197,36 +279,39 @@ function Transport() {
                     </MenuItem>
                   ))}
                 </Select>
-              </FormControl>
-            </Grid>
+              </StyledFormControl>
+            </InputGroup>
+          </FormSection>
 
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                Vyloženie
-              </Typography>
-            </Grid>
+          <FormSection sx={{ mt: 4 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontSize: '18px',
+                fontWeight: 600,
+                color: '#ffa502',
+              }}
+            >
+              Vyloženie
+            </Typography>
 
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Adresa vyloženia"
-                value={formData.unloadingAddress}
-                onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
-                required
-              />
-            </Grid>
+            <StyledTextField
+              fullWidth
+              label="Adresa vyloženia"
+              value={formData.unloadingAddress}
+              onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
+              required
+            />
 
-            <Grid item xs={12} sm={8}>
-              <DateTimePicker
+            <InputGroup>
+              <StyledDateTimePicker
+                className="date-picker"
                 label="Dátum a čas vyloženia"
                 value={formData.unloadingDateTime}
                 onChange={(newValue: Date | null) => setFormData({ ...formData, unloadingDateTime: newValue })}
-                sx={{ width: '100%' }}
               />
-            </Grid>
 
-            <Grid item xs={12} sm={4}>
-              <FormControl fullWidth>
+              <StyledFormControl className="reminder-select">
                 <InputLabel>Pripomienka pred</InputLabel>
                 <Select
                   value={formData.unloadingReminder}
@@ -239,24 +324,22 @@ function Transport() {
                     </MenuItem>
                   ))}
                 </Select>
-              </FormControl>
-            </Grid>
+              </StyledFormControl>
+            </InputGroup>
+          </FormSection>
 
-            <Grid item xs={12}>
-              <GradientButton
-                type="submit"
-                variant="contained"
-                fullWidth
-                size="large"
-                sx={{ mt: 2 }}
-              >
-                Vytvoriť prepravu
-              </GradientButton>
-            </Grid>
-          </Grid>
+          <GradientButton
+            type="submit"
+            variant="contained"
+            fullWidth
+            size="large"
+            sx={{ mt: 4 }}
+          >
+            Vytvoriť prepravu
+          </GradientButton>
         </form>
-      </StyledPaper>
-    </Container>
+      </StyledContainer>
+    </LocalizationProvider>
   );
 }
 
