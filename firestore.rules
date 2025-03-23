@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Povolíme vytvorenie záznamov v kolekcii users a companies
+    match /users/{userId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /companies/{companyId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyID == companyId ||
+        get(/databases/$(database)/documents/companies/$(companyId)).data.owner.uid == request.auth.uid
+      );
+    }
+  }
+} 

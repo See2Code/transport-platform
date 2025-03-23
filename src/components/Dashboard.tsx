@@ -27,6 +27,8 @@ import {
   Logout as LogoutIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -40,15 +42,19 @@ function Dashboard() {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    // Tu bude logika pre odhlásenie
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error('Chyba pri odhlasovaní:', error);
+    }
   };
 
   const menuItems = [
     { icon: <TransportIcon />, title: 'Transporty', description: 'Správa transportov a zásielok' },
     { icon: <TeamIcon />, title: 'Tím', description: 'Správa členov tímu a oprávnení' },
-    { icon: <SettingsIcon />, title: 'Nastavenia', description: 'Nastavenia firmy a profilu' },
+    { icon: <SettingsIcon />, title: 'Nastavenia', description: 'Nastavenia firmy a profilu', path: '/settings' },
   ];
 
   return (
@@ -116,7 +122,11 @@ function Dashboard() {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <Button size="small" color="primary">
+                  <Button 
+                    size="small" 
+                    color="primary"
+                    onClick={() => item.path && navigate(item.path)}
+                  >
                     Otvoriť
                   </Button>
                 </CardActions>

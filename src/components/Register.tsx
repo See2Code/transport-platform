@@ -205,11 +205,12 @@ function Register() {
             sx={{ 
               p: 2, 
               mb: 3, 
-              backgroundColor: 'primary.light',
+              backgroundColor: 'primary.main',
               color: 'white',
               textAlign: 'center',
               fontSize: '1.2rem',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              wordBreak: 'break-all'
             }}
           >
             {formData.companyID}
@@ -228,10 +229,10 @@ function Register() {
             fullWidth
             variant="contained"
             color="primary"
-            onClick={handleClose}
+            onClick={() => navigate('/login')}
             sx={{ mt: 3 }}
           >
-            Späť na hlavnú stránku
+            Prihlásiť sa
           </Button>
         </Paper>
       </Container>
