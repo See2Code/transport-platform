@@ -7,6 +7,12 @@ service cloud.firestore {
       return request.auth != null && user != null && user.data.role == 'admin';
     }
 
+    // Pomocná funkcia na kontrolu, či je používateľ v rovnakej firme
+    function isInSameCompany(companyId) {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return request.auth != null && user != null && user.data.companyID == companyId;
+    }
+
     // Pomocná funkcia na kontrolu platnej pozvánky
     function hasValidInvitation(email) {
       let invitations = get(/databases/$(database)/documents/invitations/{invitationId});
@@ -17,7 +23,10 @@ service cloud.firestore {
 
     // Pravidlá pre kolekciu users
     match /users/{userId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && (
+        request.auth.uid == userId || 
+        isInSameCompany(resource.data.companyID)
+      );
       allow create: if true;  // Povolíme vytvorenie používateľa bez obmedzení
       allow update: if request.auth != null && (
         request.auth.uid == userId || 
@@ -28,13 +37,13 @@ service cloud.firestore {
 
     // Pravidlá pre kolekciu companies
     match /companies/{companyId} {
-      allow read: if true;
+      allow read: if request.auth != null && isInSameCompany(companyId);
       allow write: if isAdmin();
     }
 
     // Pravidlá pre kolekciu invitations
     match /invitations/{invitationId} {
-      allow read: if true;
+      allow read: if request.auth != null && isInSameCompany(resource.data.companyID);
       allow create: if isAdmin();
       allow update: if true;
       allow delete: if isAdmin();
@@ -42,19 +51,19 @@ service cloud.firestore {
 
     // Pravidlá pre kolekciu vehicles
     match /vehicles/{vehicleId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && isInSameCompany(resource.data.companyID);
       allow write: if isAdmin();
     }
 
     // Pravidlá pre kolekciu routes
     match /routes/{routeId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && isInSameCompany(resource.data.companyID);
       allow write: if isAdmin();
     }
 
     // Pravidlá pre kolekciu settings
     match /settings/{settingId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && isInSameCompany(resource.data.companyID);
       allow write: if isAdmin();
     }
 
