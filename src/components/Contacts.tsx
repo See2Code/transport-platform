@@ -16,11 +16,29 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { collection, addDoc, query, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+
+interface Country {
+  code: string;
+  name: string;
+  prefix: string;
+}
+
+const countries: Country[] = [
+  { code: 'sk', name: 'Slovensko', prefix: '+421' },
+  { code: 'cz', name: 'Česko', prefix: '+420' },
+  { code: 'hu', name: 'Maďarsko', prefix: '+36' },
+  { code: 'pl', name: 'Poľsko', prefix: '+48' },
+  { code: 'at', name: 'Rakúsko', prefix: '+43' },
+  { code: 'de', name: 'Nemecko', prefix: '+49' },
+];
 
 interface Contact {
   id?: string;
@@ -29,6 +47,7 @@ interface Contact {
   company: string;
   phonePrefix: string;
   phoneNumber: string;
+  countryCode: string;
   email: string;
   userId: string;
 }
@@ -45,6 +64,7 @@ const Contacts = () => {
     company: '',
     phonePrefix: '+421',
     phoneNumber: '',
+    countryCode: 'sk',
     email: '',
   });
 
@@ -65,6 +85,18 @@ const Contacts = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCountryChange = (e: SelectChangeEvent) => {
+    const value = e.target.value;
+    const country = countries.find(c => c.code === value);
+    if (country) {
+      setFormData(prev => ({
+        ...prev,
+        countryCode: value,
+        phonePrefix: country.prefix
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -105,6 +137,7 @@ const Contacts = () => {
       company: contact.company,
       phonePrefix: contact.phonePrefix || '+421',
       phoneNumber: contact.phoneNumber || '',
+      countryCode: contact.countryCode || 'sk',
       email: contact.email,
     });
     setOpenDialog(true);
@@ -119,6 +152,7 @@ const Contacts = () => {
       company: '',
       phonePrefix: '+421',
       phoneNumber: '',
+      countryCode: 'sk',
       email: '',
     });
   };
@@ -221,16 +255,30 @@ const Contacts = () => {
               fullWidth
             />
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                name="phonePrefix"
-                label="Predvoľba"
-                value={formData.phonePrefix}
-                onChange={handleInputChange}
-                sx={{ width: '120px' }}
-              />
+              <Select
+                name="countryCode"
+                value={formData.countryCode}
+                onChange={handleCountryChange}
+                sx={{ width: '200px' }}
+              >
+                {countries.map((country) => (
+                  <MenuItem key={country.code} value={country.code}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <img
+                        loading="lazy"
+                        width="20"
+                        src={`https://flagcdn.com/${country.code}.svg`}
+                        alt={country.name}
+                      />
+                      <span>{country.name}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
               <TextField
                 name="phoneNumber"
                 label="Mobil"
+                placeholder="910 XXX XXX"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
                 fullWidth
