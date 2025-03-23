@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendInvitationEmail = void 0;
+exports.sendInvitationEmail = exports.clearDatabase = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
@@ -13,6 +13,30 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.EMAIL_USER || 'noreply@aesa.sk',
         pass: process.env.EMAIL_PASS || 'r.{jo$_;OJX8V>eKbo|!'
+    }
+});
+// Funkcia na vyčistenie databázy
+exports.clearDatabase = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Musíte byť prihlásený.');
+    }
+    try {
+        const db = admin.firestore();
+        const collections = ['users', 'companies', 'invitations', 'vehicles', 'routes', 'settings'];
+        for (const collectionName of collections) {
+            const collectionRef = db.collection(collectionName);
+            const snapshot = await collectionRef.get();
+            const batch = db.batch();
+            snapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        }
+        return { success: true, message: 'Databáza bola úspešne vyčistená.' };
+    }
+    catch (error) {
+        console.error('Chyba pri čistení databázy:', error);
+        throw new functions.https.HttpsError('internal', 'Nepodarilo sa vyčistiť databázu.');
     }
 });
 exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
@@ -51,26 +75,25 @@ exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
         console.log('Údaje o odosielateľovi:', senderData);
         // Vytvorenie odkazu na registráciu
         const appUrl = process.env.APP_URL || 'https://core-app-423c7.web.app';
-        const registrationLink = `${appUrl}/register?invitationId=${invitationId}`;
-        console.log('Registračný odkaz:', registrationLink);
+        const invitationLink = `${appUrl}/register-user?invitationId=${invitationId}`;
+        console.log('Registračný odkaz:', invitationLink);
         // Vytvorenie emailu
         const mailOptions = {
-            from: 'noreply@aesa.sk',
+            from: `"${companyData === null || companyData === void 0 ? void 0 : companyData.name}" <noreply@aesa.sk>`,
             to: email,
-            subject: `Pozvánka do tímu ${(companyData === null || companyData === void 0 ? void 0 : companyData.name) || 'vašej firmy'}`,
+            subject: `Pozvánka do tímu ${companyData === null || companyData === void 0 ? void 0 : companyData.name}`,
             html: `
         <h2>Pozvánka do tímu</h2>
         <p>Dobrý deň ${firstName} ${lastName},</p>
-        <p>${(senderData === null || senderData === void 0 ? void 0 : senderData.firstName) || 'Administrátor'} ${(senderData === null || senderData === void 0 ? void 0 : senderData.lastName) || ''} vás pozval do tímu ${(companyData === null || companyData === void 0 ? void 0 : companyData.name) || 'vašej firmy'}.</p>
-        <p>Vaše údaje:</p>
+        <p>Boli ste pozvaný do tímu spoločnosti <strong>${companyData === null || companyData === void 0 ? void 0 : companyData.name}</strong>.</p>
+        <p>Vaše priradené úlohy:</p>
         <ul>
-          <li>Meno: ${firstName} ${lastName}</li>
-          <li>Email: ${email}</li>
-          <li>Telefón: ${phone}</li>
-          <li>Rola: ${role === 'admin' ? 'Administrátor' : 'Klasický používateľ'}</li>
+          ${role === 'admin' ? '<li>Administrátor - plný prístup k všetkým funkciám</li>' : ''}
+          ${role === 'manager' ? '<li>Manažér - správa tímu a projektov</li>' : ''}
+          ${role === 'user' ? '<li>Používateľ - základné funkcie</li>' : ''}
         </ul>
         <p>Pre pripojenie sa k tímu kliknite na nasledujúci odkaz:</p>
-        <a href="${registrationLink}">${registrationLink}</a>
+        <a href="${invitationLink}">${invitationLink}</a>
         <p>Ak ste tento email nežiadali, môžete ho ignorovať.</p>
       `
         };

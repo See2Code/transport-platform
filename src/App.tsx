@@ -1,25 +1,15 @@
 import React from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Button, 
-  Paper,
-  Grid,
-  ThemeProvider,
-  createTheme,
-  CssBaseline
-} from '@mui/material';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import SpeedIcon from '@mui/icons-material/Speed';
-import SecurityIcon from '@mui/icons-material/Security';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
+import RegisterUser from './components/RegisterUser';
 import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
-import Settings from './components/Settings';
 import Team from './components/Team';
+import Settings from './components/Settings';
 import AcceptInvitation from './components/AcceptInvitation';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -35,90 +25,16 @@ const theme = createTheme({
   },
 });
 
-function HomePage() {
-  return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h2" component="h1" gutterBottom align="center" color="primary">
-          Dopravná Platforma
-        </Typography>
-        
-        <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <LocalShippingIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" gutterBottom>
-                  Spoľahlivá Doprava
-                </Typography>
-                <Typography variant="body1">
-                  Zabezpečujeme kvalitnú a spoľahlivú dopravu pre vaše potreby
-                </Typography>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <SpeedIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" gutterBottom>
-                  Rýchle Doručenie
-                </Typography>
-                <Typography variant="body1">
-                  Garantujeme rýchle a presné doručenie vašich zásielok
-                </Typography>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <SecurityIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" gutterBottom>
-                  Bezpečnosť
-                </Typography>
-                <Typography variant="body1">
-                  Vaše zásielky sú v bezpečných rukách našich profesionálov
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Paper>
-
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
-          <Button 
-            component={Link}
-            to="/login"
-            variant="contained" 
-            size="large" 
-            color="primary"
-            sx={{ minWidth: 200 }}
-          >
-            Prihlásiť sa
-          </Button>
-          <Button 
-            component={Link}
-            to="/register"
-            variant="outlined" 
-            size="large" 
-            color="primary"
-            sx={{ minWidth: 200 }}
-          >
-            Registrovať sa
-          </Button>
-        </Box>
-      </Box>
-    </Container>
-  );
-}
-
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/register-user" element={<RegisterUser />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             path="/dashboard"
@@ -129,18 +45,18 @@ function App() {
             }
           />
           <Route
-            path="/settings"
-            element={
-              <PrivateRoute>
-                <Settings />
-              </PrivateRoute>
-            }
-          />
-          <Route
             path="/team"
             element={
               <PrivateRoute>
                 <Team />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Settings />
               </PrivateRoute>
             }
           />

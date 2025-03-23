@@ -91,27 +91,26 @@ export const sendInvitationEmail = functions.https.onCall(async (data, context) 
 
     // Vytvorenie odkazu na registráciu
     const appUrl = process.env.APP_URL || 'https://core-app-423c7.web.app';
-    const registrationLink = `${appUrl}/register?invitationId=${invitationId}`;
-    console.log('Registračný odkaz:', registrationLink);
+    const invitationLink = `${appUrl}/register-user?invitationId=${invitationId}`;
+    console.log('Registračný odkaz:', invitationLink);
 
     // Vytvorenie emailu
     const mailOptions = {
-      from: 'noreply@aesa.sk',
+      from: `"${companyData?.name}" <noreply@aesa.sk>`,
       to: email,
-      subject: `Pozvánka do tímu ${companyData?.name || 'vašej firmy'}`,
+      subject: `Pozvánka do tímu ${companyData?.name}`,
       html: `
         <h2>Pozvánka do tímu</h2>
         <p>Dobrý deň ${firstName} ${lastName},</p>
-        <p>${senderData?.firstName || 'Administrátor'} ${senderData?.lastName || ''} vás pozval do tímu ${companyData?.name || 'vašej firmy'}.</p>
-        <p>Vaše údaje:</p>
+        <p>Boli ste pozvaný do tímu spoločnosti <strong>${companyData?.name}</strong>.</p>
+        <p>Vaše priradené úlohy:</p>
         <ul>
-          <li>Meno: ${firstName} ${lastName}</li>
-          <li>Email: ${email}</li>
-          <li>Telefón: ${phone}</li>
-          <li>Rola: ${role === 'admin' ? 'Administrátor' : 'Klasický používateľ'}</li>
+          ${role === 'admin' ? '<li>Administrátor - plný prístup k všetkým funkciám</li>' : ''}
+          ${role === 'manager' ? '<li>Manažér - správa tímu a projektov</li>' : ''}
+          ${role === 'user' ? '<li>Používateľ - základné funkcie</li>' : ''}
         </ul>
         <p>Pre pripojenie sa k tímu kliknite na nasledujúci odkaz:</p>
-        <a href="${registrationLink}">${registrationLink}</a>
+        <a href="${invitationLink}">${invitationLink}</a>
         <p>Ak ste tento email nežiadali, môžete ho ignorovať.</p>
       `
     };

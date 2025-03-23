@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Paper,
@@ -18,11 +18,11 @@ import {
   CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 const countries = [
@@ -65,7 +65,6 @@ function generateCompanyID(companyName: string): string {
 }
 
 function Register() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -86,35 +85,6 @@ function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [invitation, setInvitation] = useState<any>(null);
-
-  useEffect(() => {
-    const invitationId = searchParams.get('invitationId');
-    if (invitationId) {
-      const fetchInvitation = async () => {
-        try {
-          const invitationDoc = await getDoc(doc(db, 'invitations', invitationId));
-          if (!invitationDoc.exists()) {
-            setError('Pozvánka nebola nájdená');
-            return;
-          }
-
-          const invitationData = invitationDoc.data();
-          if (invitationData.status !== 'pending') {
-            setError('Táto pozvánka už bola použitá');
-            return;
-          }
-
-          setInvitation(invitationData);
-        } catch (err) {
-          console.error('Chyba pri načítaní pozvánky:', err);
-          setError('Nepodarilo sa načítať pozvánku');
-        }
-      };
-
-      fetchInvitation();
-    }
-  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -163,56 +133,33 @@ function Register() {
         formData.password
       );
 
-      if (invitation) {
-        // Registrácia cez pozvánku
-        // Aktualizácia pozvánky
-        await updateDoc(doc(db, 'invitations', searchParams.get('invitationId')!), {
-          status: 'accepted',
-          userId: userCredential.user.uid
-        });
+      // Generovanie companyID
+      const companyID = generateCompanyID(formData.companyName);
 
-        // Vytvorenie používateľského profilu
-        await updateDoc(doc(db, 'users', userCredential.user.uid), {
-          uid: userCredential.user.uid,
-          email: invitation.email,
-          firstName: invitation.firstName,
-          lastName: invitation.lastName,
-          phone: invitation.phone,
-          companyID: invitation.companyID,
-          role: invitation.role,
-          createdAt: new Date().toISOString(),
-          status: invitation.role === 'admin' ? 'active' : 'pending'
-        });
-      } else {
-        // Registrácia z hlavnej stránky
-        // Generovanie companyID
-        const companyID = generateCompanyID(formData.companyName);
+      // Vytvorenie používateľského profilu
+      await updateDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        companyID,
+        role: 'admin',
+        createdAt: new Date().toISOString(),
+        status: 'active'
+      });
 
-        // Vytvorenie používateľského profilu
-        await updateDoc(doc(db, 'users', userCredential.user.uid), {
-          uid: userCredential.user.uid,
-          email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone,
-          companyID,
-          role: 'admin',
-          createdAt: new Date().toISOString(),
-          status: 'active'
-        });
-
-        // Vytvorenie profilu firmy
-        await setDoc(doc(db, 'companies', companyID), {
-          name: formData.companyName,
-          street: formData.street,
-          zipCode: formData.zipCode,
-          city: formData.city,
-          country: formData.country,
-          ico: formData.ico,
-          icDph: formData.icDph,
-          createdAt: new Date().toISOString()
-        });
-      }
+      // Vytvorenie profilu firmy
+      await setDoc(doc(db, 'companies', companyID), {
+        name: formData.companyName,
+        street: formData.street,
+        zipCode: formData.zipCode,
+        city: formData.city,
+        country: formData.country,
+        ico: formData.ico,
+        icDph: formData.icDph,
+        createdAt: new Date().toISOString()
+      });
 
       setRegistrationSuccess(true);
     } catch (err: any) {
@@ -247,40 +194,36 @@ function Register() {
           </Typography>
 
           <Alert severity="success" sx={{ mb: 3 }}>
-            {invitation ? 'Boli ste úspešne pridaný do tímu.' : 'Vaša firma bola úspešne zaregistrovaná.'}
+            Vaša firma bola úspešne zaregistrovaná.
           </Alert>
 
-          {!invitation && (
-            <>
-              <Typography variant="h6" gutterBottom>
-                Váš Company ID:
-              </Typography>
-              <Paper 
-                elevation={2} 
-                sx={{ 
-                  p: 2, 
-                  mb: 3, 
-                  backgroundColor: 'primary.main',
-                  color: 'white',
-                  textAlign: 'center',
-                  fontSize: '1.2rem',
-                  fontWeight: 'bold',
-                  wordBreak: 'break-all'
-                }}
-              >
-                {formData.companyID}
-              </Paper>
+          <Typography variant="h6" gutterBottom>
+            Váš Company ID:
+          </Typography>
+          <Paper 
+            elevation={2} 
+            sx={{ 
+              p: 2, 
+              mb: 3, 
+              backgroundColor: 'primary.main',
+              color: 'white',
+              textAlign: 'center',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              wordBreak: 'break-all'
+            }}
+          >
+            {formData.companyID}
+          </Paper>
 
-              <Typography variant="body1" gutterBottom color="warning.main">
-                Prosím, uložte si tento Company ID. Budete ho potrebovať pre:
-              </Typography>
-              <ul>
-                <li>Správu zamestnancov</li>
-                <li>Pridávanie nových členov tímu</li>
-                <li>Administráciu vašej firmy</li>
-              </ul>
-            </>
-          )}
+          <Typography variant="body1" gutterBottom color="warning.main">
+            Prosím, uložte si tento Company ID. Budete ho potrebovať pre:
+          </Typography>
+          <ul>
+            <li>Správu zamestnancov</li>
+            <li>Pridávanie nových členov tímu</li>
+            <li>Administráciu vašej firmy</li>
+          </ul>
 
           <Button
             fullWidth
@@ -291,18 +234,6 @@ function Register() {
           >
             Prihlásiť sa
           </Button>
-        </Paper>
-      </Container>
-    );
-  }
-
-  if (!invitation && loading) {
-    return (
-      <Container maxWidth="sm">
-        <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-            <CircularProgress />
-          </Box>
         </Paper>
       </Container>
     );
@@ -323,19 +254,8 @@ function Register() {
         </IconButton>
 
         <Typography variant="h4" component="h1" gutterBottom align="center">
-          {invitation ? 'Dokončenie registrácie' : 'Registrácia novej firmy'}
+          Registrácia novej firmy
         </Typography>
-
-        {invitation && (
-          <>
-            <Typography variant="body1" gutterBottom>
-              Vitajte {invitation.firstName} {invitation.lastName}!
-            </Typography>
-            <Typography variant="body1" gutterBottom>
-              Pre dokončenie registrácie si prosím nastavte heslo.
-            </Typography>
-          </>
-        )}
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -345,180 +265,186 @@ function Register() {
         
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            {!invitation && (
-              <>
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Osobné údaje
-                  </Typography>
-                </Grid>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                Osobné údaje
+              </Typography>
+            </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Meno"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Meno"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Priezvisko"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Priezvisko"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
 
-                <Grid item xs={12}>
-                  <Box sx={{ position: 'relative' }}>
-                    <PhoneInput
-                      country={'sk'}
-                      value={formData.phone}
-                      onChange={handlePhoneChange}
-                      inputStyle={{
-                        width: '100%',
-                        height: '56px',
-                        fontSize: '16px',
-                        paddingLeft: '48px',
-                        border: '1px solid rgba(0, 0, 0, 0.23)',
-                        borderRadius: '4px',
-                        backgroundColor: 'transparent'
-                      }}
-                      buttonStyle={{
-                        border: 'none',
-                        borderRight: '1px solid rgba(0, 0, 0, 0.23)',
-                        backgroundColor: 'transparent'
-                      }}
-                      containerStyle={{
-                        width: '100%'
-                      }}
-                      dropdownStyle={{
-                        width: '300px'
-                      }}
-                      searchStyle={{
-                        width: '100%',
-                        padding: '8px'
-                      }}
-                      placeholder="Telefónne číslo"
-                      enableSearch
-                      searchPlaceholder="Vyhľadať krajinu..."
-                    />
-                  </Box>
-                </Grid>
+            <Grid item xs={12}>
+              <Box sx={{ position: 'relative' }}>
+                <PhoneInput
+                  country={'sk'}
+                  value={formData.phone}
+                  onChange={handlePhoneChange}
+                  inputStyle={{
+                    width: '100%',
+                    height: '56px',
+                    fontSize: '16px',
+                    paddingLeft: '48px',
+                    border: '1px solid rgba(0, 0, 0, 0.23)',
+                    borderRadius: '4px',
+                    backgroundColor: 'transparent'
+                  }}
+                  buttonStyle={{
+                    border: 'none',
+                    borderRight: '1px solid rgba(0, 0, 0, 0.23)',
+                    backgroundColor: 'transparent'
+                  }}
+                  containerStyle={{
+                    width: '100%'
+                  }}
+                  dropdownStyle={{
+                    width: '300px'
+                  }}
+                  searchStyle={{
+                    width: '100%',
+                    padding: '8px'
+                  }}
+                  placeholder="Telefónne číslo"
+                  enableSearch
+                  searchPlaceholder="Vyhľadať krajinu..."
+                />
+              </Box>
+            </Grid>
 
-                <Grid item xs={12}>
-                  <Divider sx={{ my: 2 }} />
-                </Grid>
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+            </Grid>
 
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Údaje o firme
-                  </Typography>
-                </Grid>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                Údaje o firme
+              </Typography>
+            </Grid>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Názov firmy"
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Názov firmy"
+                name="companyName"
+                value={formData.companyName}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Ulica"
-                    name="street"
-                    value={formData.street}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Ulica"
+                name="street"
+                value={formData.street}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="PSČ"
-                    name="zipCode"
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="PSČ"
+                name="zipCode"
+                value={formData.zipCode}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Mesto"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Mesto"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
 
-                <Grid item xs={12}>
-                  <FormControl fullWidth required>
-                    <InputLabel>Krajina</InputLabel>
-                    <Select
-                      name="country"
-                      value={formData.country}
-                      onChange={handleSelectChange}
-                      label="Krajina"
-                    >
-                      {countries.map((country) => (
-                        <MenuItem key={country.code} value={country.code}>
-                          {country.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth required>
+                <InputLabel>Krajina</InputLabel>
+                <Select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleSelectChange}
+                  label="Krajina"
+                >
+                  {countries.map((country) => (
+                    <MenuItem key={country.code} value={country.code}>
+                      {country.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="IČO"
-                    name="ico"
-                    value={formData.ico}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="IČO"
+                name="ico"
+                value={formData.ico}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="IČ DPH"
-                    name="icDph"
-                    value={formData.icDph}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
-              </>
-            )}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="IČ DPH"
+                name="icDph"
+                value={formData.icDph}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                Heslo
+              </Typography>
+            </Grid>
 
             <Grid item xs={12}>
               <TextField
@@ -553,22 +479,20 @@ function Register() {
                 size="large"
                 disabled={loading}
               >
-                {loading ? <CircularProgress size={20} /> : invitation ? 'Dokončiť registráciu' : 'Zaregistrovať firmu'}
+                {loading ? <CircularProgress size={20} /> : 'Zaregistrovať firmu'}
               </Button>
             </Grid>
 
-            {!invitation && (
-              <Grid item xs={12}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Už máte účet?{' '}
-                    <Link href="/login" color="primary">
-                      Prihláste sa
-                    </Link>
-                  </Typography>
-                </Box>
-              </Grid>
-            )}
+            <Grid item xs={12}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Už máte účet?{' '}
+                  <Link href="/login" color="primary">
+                    Prihláste sa
+                  </Link>
+                </Typography>
+              </Box>
+            </Grid>
           </Grid>
         </form>
       </Paper>
