@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CssBaseline,
   Divider,
@@ -30,6 +30,7 @@ import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import { MenuProps } from '@mui/material/Menu';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -127,116 +128,19 @@ const ListItemIconStyled = styled(ListItemIcon)({
   transition: 'all 0.3s ease-in-out',
 });
 
-const menuItems = [
-  {
-    text: 'Dashboard',
-    icon: <HomeIcon />,
-    path: '/dashboard'
-  },
-  {
-    text: 'Sledovať prepravu',
-    icon: <LocalShippingIcon />,
-    path: '/transport',
-    hidden: true
-  },
-  {
-    text: 'Sledované prepravy',
-    icon: <LocalShippingIcon />,
-    path: '/tracked-transports'
-  },
-  {
-    text: 'Tím',
-    icon: <GroupIcon />,
-    path: '/team'
-  },
-  {
-    text: 'Nastavenia',
-    icon: <SettingsIcon />,
-    path: '/settings'
-  },
-  {
-    text: 'Kontakty',
-    icon: <ContactsIcon />,
-    path: '/contacts'
-  }
-];
+interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
-const AppWrapper = styled('div')({
-  display: 'flex',
-  minHeight: '100vh',
-  backgroundColor: colors.primary.main,
-});
-
-const SideNav = styled('nav')(({ theme }) => ({
-  width: drawerWidth,
-  backgroundColor: colors.primary.light,
-  backdropFilter: 'blur(20px)',
-  borderRight: '1px solid rgba(255, 255, 255, 0.06)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'fixed',
-  height: '100vh',
-  zIndex: 1200,
-  boxShadow: '4px 0 24px rgba(0, 0, 0, 0.15)',
-  overflowX: 'hidden',
-  '&.drawer-closed': {
-    width: miniDrawerWidth,
-    '& .MuiListItemText-root': {
-      opacity: 0,
-      width: 0,
-    },
-    '& .MuiListItemIcon-root': {
-      minWidth: 0,
-      marginRight: 0,
-      justifyContent: 'center',
-    }
-  }
-}));
-
-const MainWrapper = styled('div')({
-  flexGrow: 1,
-  marginLeft: drawerWidth,
-  minHeight: '100vh',
-  transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&.drawer-closed': {
-    marginLeft: miniDrawerWidth,
-  }
-});
-
-const TopBar = styled('header')({
-  position: 'fixed',
-  top: '16px',
-  left: `calc(${drawerWidth}px + 16px)`,
-  right: '16px',
-  height: '64px',
-  backgroundColor: colors.primary.light,
-  backdropFilter: 'blur(20px)',
-  borderRadius: '16px',
-  display: 'flex',
-  alignItems: 'center',
-  padding: '0 20px',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  boxShadow: '0 4px 24px rgba(0, 0, 0, 0.15)',
-  zIndex: 1100,
-  '.drawer-closed &': {
-    left: `calc(${miniDrawerWidth}px + 16px)`,
-  },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    inset: 0,
-    borderRadius: '16px',
-    border: '1px solid rgba(255, 255, 255, 0.06)',
-    pointerEvents: 'none'
-  }
-});
-
-const ContentWrapper = styled('div')({
-  padding: '96px 16px 16px 16px',
-  minHeight: '100vh',
-  backgroundColor: colors.primary.main,
-  position: 'relative',
-  overflowX: 'hidden'
-});
+interface MenuItem {
+  text: string;
+  icon: React.ReactNode;
+  path?: string;
+  onClick?: () => void;
+  hidden?: boolean;
+}
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -273,11 +177,134 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
+
+  const handleNavigation = (path?: string) => {
+    if (path) {
+      navigate(path);
+    }
+  };
+
+  const menuItems: MenuItem[] = [
+    {
+      text: 'Dashboard',
+      icon: <HomeIcon />,
+      path: '/dashboard'
+    },
+    {
+      text: 'Sledované prepravy',
+      icon: <LocalShippingIcon />,
+      path: '/tracked-transports'
+    },
+    {
+      text: 'Tím',
+      icon: <GroupIcon />,
+      path: '/team'
+    },
+    {
+      text: 'Kontakty',
+      icon: <ContactsIcon />,
+      path: '/contacts'
+    },
+    {
+      text: 'Nastavenia',
+      icon: <SettingsIcon />,
+      path: '/settings'
+    },
+    {
+      text: 'Sledovať prepravu',
+      icon: <VisibilityIcon />,
+      path: '/track-transport',
+      hidden: true
+    },
+    {
+      text: 'Odhlásiť sa',
+      icon: <LogoutIcon />,
+      onClick: handleLogout,
+      hidden: true
+    }
+  ];
+
+  const AppWrapper = styled('div')({
+    display: 'flex',
+    minHeight: '100vh',
+    backgroundColor: colors.primary.main,
+  });
+
+  const SideNav = styled('nav')(({ theme }) => ({
+    width: drawerWidth,
+    backgroundColor: colors.primary.light,
+    backdropFilter: 'blur(20px)',
+    borderRight: '1px solid rgba(255, 255, 255, 0.06)',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    position: 'fixed',
+    height: '100vh',
+    zIndex: 1200,
+    boxShadow: '4px 0 24px rgba(0, 0, 0, 0.15)',
+    overflowX: 'hidden',
+    '&.drawer-closed': {
+      width: miniDrawerWidth,
+      '& .MuiListItemText-root': {
+        opacity: 0,
+        width: 0,
+      },
+      '& .MuiListItemIcon-root': {
+        minWidth: 0,
+        marginRight: 0,
+        justifyContent: 'center',
+      }
+    }
+  }));
+
+  const MainWrapper = styled('div')({
+    flexGrow: 1,
+    marginLeft: drawerWidth,
+    minHeight: '100vh',
+    transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    '&.drawer-closed': {
+      marginLeft: miniDrawerWidth,
+    }
+  });
+
+  const TopBar = styled('header')({
+    position: 'fixed',
+    top: '16px',
+    left: `calc(${drawerWidth}px + 16px)`,
+    right: '16px',
+    height: '64px',
+    backgroundColor: colors.primary.light,
+    backdropFilter: 'blur(20px)',
+    borderRadius: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 20px',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.15)',
+    zIndex: 1100,
+    '.drawer-closed &': {
+      left: `calc(${miniDrawerWidth}px + 16px)`,
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      inset: 0,
+      borderRadius: '16px',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      pointerEvents: 'none'
+    }
+  });
+
+  const ContentWrapper = styled('div')({
+    padding: '96px 16px 16px 16px',
+    minHeight: '100vh',
+    backgroundColor: colors.primary.main,
+    position: 'relative',
+    overflowX: 'hidden'
+  });
 
   const drawer = (
     <>
@@ -294,7 +321,7 @@ const Navbar = () => {
           !item.hidden && (
             <ListItem key={item.text} disablePadding>
               <ListItemButton 
-                onClick={() => navigate(item.path)}
+                onClick={item.onClick || (() => handleNavigation(item.path))}
                 sx={{
                   minHeight: 48,
                   justifyContent: drawerOpen ? 'initial' : 'center',
@@ -487,9 +514,24 @@ const Navbar = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          sx={{
+            '& .MuiMenu-paper': {
+              marginTop: '8px',
+              marginLeft: '0px',
+              left: 'auto !important',
+              right: '16px !important'
+            }
+          }}
           PaperProps={{
             sx: {
-              mt: 1.5,
               minWidth: 200,
               backgroundColor: colors.primary.light,
               backdropFilter: 'blur(20px)',
