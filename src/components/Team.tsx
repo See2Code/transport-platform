@@ -24,7 +24,8 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-  Tooltip
+  Tooltip,
+  DialogContentText
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -38,6 +39,8 @@ import { auth, db, functions } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 interface TeamMember {
   id: string;
@@ -264,23 +267,23 @@ function Team() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!inviteToDelete || !auth.currentUser) return;
+  const handleDeleteClick = (invite: Invitation) => {
+    setInviteToDelete(invite);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!inviteToDelete) return;
 
     try {
       setLoading(true);
-      setError('');
-      setSuccess('');
-
-      // Vymazanie pozvánky
       await deleteDoc(doc(db, 'invitations', inviteToDelete.id));
-      
-      setSuccess('Pozvánka bola úspešne odstránená.');
+      setSuccess('Pozvánka bola úspešne vymazaná.');
       setDeleteConfirmOpen(false);
       setInviteToDelete(null);
     } catch (err: any) {
-      console.error('Chyba pri odstránení pozvánky:', err);
-      setError(err.message || 'Nastala chyba pri odstránení pozvánky.');
+      console.error('Chyba pri mazaní pozvánky:', err);
+      setError(err.message || 'Nastala chyba pri mazaní pozvánky.');
     } finally {
       setLoading(false);
     }
@@ -588,26 +591,20 @@ function Team() {
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
-          <DialogTitle>Odstrániť {inviteToDelete?.userId ? 'člena tímu' : 'pozvánku'}</DialogTitle>
+        <Dialog
+          open={deleteConfirmOpen}
+          onClose={() => setDeleteConfirmOpen(false)}
+        >
+          <DialogTitle>Potvrdenie vymazania</DialogTitle>
           <DialogContent>
-            <Typography>
-              Naozaj chcete odstrániť {inviteToDelete?.userId ? 'člena tímu' : 'pozvánku'} pre {inviteToDelete?.firstName} {inviteToDelete?.lastName}?
-              Táto akcia je nezvratná.
-            </Typography>
+            <DialogContentText>
+              Naozaj chcete vymazať pozvánku pre {inviteToDelete?.firstName} {inviteToDelete?.lastName}?
+            </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteConfirmOpen(false)} disabled={loading}>
-              Zrušiť
-            </Button>
-            <Button 
-              onClick={handleDelete} 
-              variant="contained" 
-              color="error"
-              disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} /> : null}
-            >
-              {loading ? 'Odoberanie...' : 'Odstrániť'}
+            <Button onClick={() => setDeleteConfirmOpen(false)}>Zrušiť</Button>
+            <Button onClick={handleDeleteConfirm} color="error" disabled={loading}>
+              {loading ? <CircularProgress size={24} /> : 'Vymazať'}
             </Button>
           </DialogActions>
         </Dialog>

@@ -64,6 +64,10 @@ exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
         }
         const companyData = companyDoc.data();
         console.log('Údaje o firme:', companyData);
+        if (!(companyData === null || companyData === void 0 ? void 0 : companyData.companyName)) {
+            console.error('Chýba názov firmy v údajoch:', companyData);
+            throw new functions.https.HttpsError('internal', 'Chýba názov firmy v údajoch');
+        }
         // Získanie informácií o odosielateľovi
         console.log('Získavam údaje o odosielateľovi:', context.auth.uid);
         const senderDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
@@ -79,13 +83,13 @@ exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
         console.log('Registračný odkaz:', invitationLink);
         // Vytvorenie emailu
         const mailOptions = {
-            from: `"${companyData === null || companyData === void 0 ? void 0 : companyData.name}" <noreply@aesa.sk>`,
+            from: `"${companyData.companyName}" <noreply@aesa.sk>`,
             to: email,
-            subject: `Pozvánka do tímu ${companyData === null || companyData === void 0 ? void 0 : companyData.name}`,
+            subject: `Pozvánka do tímu ${companyData.companyName}`,
             html: `
         <h2>Pozvánka do tímu</h2>
         <p>Dobrý deň ${firstName} ${lastName},</p>
-        <p>Boli ste pozvaný do tímu spoločnosti <strong>${companyData === null || companyData === void 0 ? void 0 : companyData.name}</strong>.</p>
+        <p>Boli ste pozvaný do tímu spoločnosti <strong>${companyData.companyName}</strong>.</p>
         <p>Vaše priradené úlohy:</p>
         <ul>
           ${role === 'admin' ? '<li>Administrátor - plný prístup k všetkým funkciám</li>' : ''}
@@ -93,7 +97,7 @@ exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
           ${role === 'user' ? '<li>Používateľ - základné funkcie</li>' : ''}
         </ul>
         <p>Pre pripojenie sa k tímu kliknite na nasledujúci odkaz:</p>
-        <a href="${invitationLink}">${invitationLink}</a>
+        <p><a href="${invitationLink}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Pripojiť sa k tímu</a></p>
         <p>Ak ste tento email nežiadali, môžete ho ignorovať.</p>
       `
         };
