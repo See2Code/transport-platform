@@ -18,6 +18,8 @@ import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
+import Team from './components/Team';
+import AcceptInvitation from './components/AcceptInvitation';
 
 const theme = createTheme({
   palette: {
@@ -116,6 +118,8 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

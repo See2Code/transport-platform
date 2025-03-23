@@ -67,13 +67,14 @@ function Settings() {
             const userData = userDoc.data() as UserData;
             setUserData(userData);
             
-            // Kontrola či je používateľ admin alebo owner firmy
+            // Kontrola či je používateľ admin
             const companyDoc = await getDoc(doc(db, 'companies', userData.companyID));
             console.log('Dokument firmy:', companyDoc.exists() ? companyDoc.data() : 'neexistuje');
             
             if (companyDoc.exists()) {
               const companyData = companyDoc.data() as CompanyData;
-              setIsAdmin(userData.role === 'admin' || companyData.owner.uid === user.uid);
+              // Len admin môže upravovať údaje firmy
+              setIsAdmin(userData.role === 'admin');
               setCompanyData(companyData);
             } else {
               setError('Firma nebola nájdená v databáze.');
@@ -99,7 +100,7 @@ function Settings() {
 
   const handleCompanyUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!companyData) return;
+    if (!companyData || !isAdmin) return;
 
     try {
       await updateDoc(doc(db, 'companies', companyData.companyID), {

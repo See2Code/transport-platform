@@ -1,18 +1,50 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Povolíme vytvorenie záznamov v kolekcii users a companies
-    match /users/{userId} {
-      allow create: if true;
-      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+    // Pomocná funkcia na kontrolu či je používateľ členom firmy
+    function isCompanyMember(companyId) {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyID == companyId;
     }
-    
-    match /companies/{companyId} {
-      allow create: if true;
-      allow read, update, delete: if request.auth != null && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyID == companyId ||
-        get(/databases/$(database)/documents/companies/$(companyId)).data.owner.uid == request.auth.uid
+
+    // Pravidlá pre kolekciu users
+    match /users/{userId} {
+      // Používateľ môže čítať svoj vlastný dokument a dokumenty členov svojej firmy
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyID ==
+          resource.data.companyID
+        )
       );
+      
+      // Používateľ môže upravovať len svoj vlastný profil
+      allow update: if request.auth != null && request.auth.uid == userId;
+      
+      // Nový používateľ sa môže zaregistrovať
+      allow create: if true;
+    }
+
+    // Pravidlá pre kolekciu companies
+    match /companies/{companyId} {
+      // Členovia firmy môžu čítať údaje svojej firmy
+      allow read: if isCompanyMember(companyId);
+      
+      // Len admin môže upravovať údaje firmy
+      allow update: if isCompanyMember(companyId) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      
+      // Nová firma sa môže zaregistrovať
+      allow create: if true;
+    }
+
+    // Pravidlá pre kolekciu invitations
+    match /invitations/{invitationId} {
+      // Admin môže vytvárať a čítať pozvánky pre svoju firmu
+      allow create, read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 } 

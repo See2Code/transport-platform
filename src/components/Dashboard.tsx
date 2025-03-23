@@ -52,8 +52,8 @@ function Dashboard() {
   };
 
   const menuItems = [
-    { icon: <TransportIcon />, title: 'Transporty', description: 'Správa transportov a zásielok' },
-    { icon: <TeamIcon />, title: 'Tím', description: 'Správa členov tímu a oprávnení' },
+    { icon: <TransportIcon />, title: 'Transporty', description: 'Správa transportov a zásielok', path: '/transports' },
+    { icon: <TeamIcon />, title: 'Tím', description: 'Správa členov tímu a oprávnení', path: '/team' },
     { icon: <SettingsIcon />, title: 'Nastavenia', description: 'Nastavenia firmy a profilu', path: '/settings' },
   ];
 
