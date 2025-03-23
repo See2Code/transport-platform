@@ -26,6 +26,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AccountIcon from '@mui/icons-material/AccountCircle';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import ContactsIcon from '@mui/icons-material/Contacts';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -61,6 +62,11 @@ const menuItems = [
     text: 'Nastavenia',
     icon: <SettingsIcon />,
     path: '/settings'
+  },
+  {
+    text: 'Kontakty',
+    icon: <ContactsIcon />,
+    path: '/contacts'
   }
 ];
 

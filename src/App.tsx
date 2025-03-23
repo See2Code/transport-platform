@@ -15,6 +15,7 @@ import Settings from './components/Settings';
 import AcceptInvitation from './components/AcceptInvitation';
 import Transport from './components/Transport';
 import PrivateRoute from './components/PrivateRoute';
+import Contacts from './components/Contacts';
 
 const theme = createTheme({
   palette: {
@@ -105,6 +106,13 @@ function App() {
               </PrivateRoute>
             } />
             <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
+            <Route path="/contacts" element={
+              <PrivateRoute>
+                <Dashboard>
+                  <Contacts />
+                </Dashboard>
+              </PrivateRoute>
+            } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>

@@ -136,7 +136,8 @@ export const sendInvitationEmail = functions.https.onCall(async (data, context) 
   }
 });
 
-export const checkTransportReminders = functions.pubsub
+// Funkcia na kontrolu transportov a posielanie notifikácií
+export const checkTransportNotifications = functions.pubsub
   .schedule('every 5 minutes')
   .onRun(async (context) => {
     const now = admin.firestore.Timestamp.now();
@@ -171,18 +172,20 @@ export const checkTransportReminders = functions.pubsub
             await transporter.sendMail({
               from: functions.config().email.user,
               to: user.email,
-              subject: 'Pripomienka naloženia - Transport',
+              subject: 'Pripomienka naloženia - Transport Platform',
               html: `
-                <h2>Pripomienka naloženia</h2>
-                <p>Dobrý deň,</p>
-                <p>pripomíname Vám, že o ${transport.loadingReminder} ${transport.loadingReminder === 1 ? 'hodinu' : transport.loadingReminder < 5 ? 'hodiny' : 'hodín'} 
-                máte naplánované naloženie tovaru:</p>
-                <ul>
-                  <li><strong>Číslo objednávky:</strong> ${transport.orderNumber}</li>
-                  <li><strong>Adresa naloženia:</strong> ${transport.loadingAddress}</li>
-                  <li><strong>Dátum a čas:</strong> ${loadingTime.toLocaleString('sk-SK')}</li>
-                </ul>
-                <p>S pozdravom,<br>Váš CORE tím</p>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #1a1b2e;">Pripomienka naloženia</h2>
+                  <p>Dobrý deň,</p>
+                  <p>pripomíname Vám, že o ${transport.loadingReminder} ${transport.loadingReminder === 1 ? 'hodinu' : transport.loadingReminder < 5 ? 'hodiny' : 'hodín'} 
+                  máte naplánované naloženie tovaru:</p>
+                  <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>Číslo objednávky:</strong> ${transport.orderNumber}</p>
+                    <p style="margin: 5px 0;"><strong>Adresa naloženia:</strong> ${transport.loadingAddress}</p>
+                    <p style="margin: 5px 0;"><strong>Dátum a čas:</strong> ${loadingTime.toLocaleString('sk-SK')}</p>
+                  </div>
+                  <p style="color: #666;">S pozdravom,<br>Váš Transport Platform tím</p>
+                </div>
               `
             });
 
@@ -202,18 +205,20 @@ export const checkTransportReminders = functions.pubsub
             await transporter.sendMail({
               from: functions.config().email.user,
               to: user.email,
-              subject: 'Pripomienka vyloženia - Transport',
+              subject: 'Pripomienka vyloženia - Transport Platform',
               html: `
-                <h2>Pripomienka vyloženia</h2>
-                <p>Dobrý deň,</p>
-                <p>pripomíname Vám, že o ${transport.unloadingReminder} ${transport.unloadingReminder === 1 ? 'hodinu' : transport.unloadingReminder < 5 ? 'hodiny' : 'hodín'} 
-                máte naplánované vyloženie tovaru:</p>
-                <ul>
-                  <li><strong>Číslo objednávky:</strong> ${transport.orderNumber}</li>
-                  <li><strong>Adresa vyloženia:</strong> ${transport.unloadingAddress}</li>
-                  <li><strong>Dátum a čas:</strong> ${unloadingTime.toLocaleString('sk-SK')}</li>
-                </ul>
-                <p>S pozdravom,<br>Váš CORE tím</p>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #1a1b2e;">Pripomienka vyloženia</h2>
+                  <p>Dobrý deň,</p>
+                  <p>pripomíname Vám, že o ${transport.unloadingReminder} ${transport.unloadingReminder === 1 ? 'hodinu' : transport.unloadingReminder < 5 ? 'hodiny' : 'hodín'} 
+                  máte naplánované vyloženie tovaru:</p>
+                  <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>Číslo objednávky:</strong> ${transport.orderNumber}</p>
+                    <p style="margin: 5px 0;"><strong>Adresa vyloženia:</strong> ${transport.unloadingAddress}</p>
+                    <p style="margin: 5px 0;"><strong>Dátum a čas:</strong> ${unloadingTime.toLocaleString('sk-SK')}</p>
+                  </div>
+                  <p style="color: #666;">S pozdravom,<br>Váš Transport Platform tím</p>
+                </div>
               `
             });
 
@@ -225,10 +230,10 @@ export const checkTransportReminders = functions.pubsub
         }
       }
 
-      console.log('Transport reminders check completed successfully');
+      console.log('Transport notifications check completed successfully');
       return null;
     } catch (error) {
-      console.error('Error checking transport reminders:', error);
+      console.error('Error checking transport notifications:', error);
       return null;
     }
   }); 

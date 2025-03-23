@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendInvitationEmail = exports.clearDatabase = void 0;
+exports.checkTransportNotifications = exports.sendInvitationEmail = exports.clearDatabase = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
@@ -113,6 +113,97 @@ exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
     catch (error) {
         console.error('Chyba pri odosielaní emailu:', error);
         throw new functions.https.HttpsError('internal', 'Nepodarilo sa odoslať email s pozvánkou: ' + (error.message || 'Neznáma chyba'));
+    }
+});
+// Funkcia na kontrolu transportov a posielanie notifikácií
+exports.checkTransportNotifications = functions.pubsub
+    .schedule('every 5 minutes')
+    .onRun(async (context) => {
+    const now = admin.firestore.Timestamp.now();
+    const db = admin.firestore();
+    try {
+        // Získame všetky aktívne transporty
+        const transportsSnapshot = await db.collection('transports')
+            .where('status', '==', 'active')
+            .get();
+        for (const doc of transportsSnapshot.docs) {
+            const transport = doc.data();
+            const userId = transport.userId;
+            // Získame informácie o užívateľovi
+            const userDoc = await db.collection('users').doc(userId).get();
+            const user = userDoc.data();
+            if (!user || !user.email)
+                continue;
+            const loadingTime = transport.loadingDateTime.toDate();
+            const unloadingTime = transport.unloadingDateTime.toDate();
+            const currentTime = now.toDate();
+            // Kontrola pripomienky pre naloženie
+            if (!transport.loadingReminderSent) {
+                const loadingReminderTime = new Date(loadingTime.getTime() - (transport.loadingReminder * 60 * 60 * 1000));
+                if (currentTime >= loadingReminderTime) {
+                    // Pošleme email
+                    await transporter.sendMail({
+                        from: functions.config().email.user,
+                        to: user.email,
+                        subject: 'Pripomienka naloženia - Transport Platform',
+                        html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #1a1b2e;">Pripomienka naloženia</h2>
+                  <p>Dobrý deň,</p>
+                  <p>pripomíname Vám, že o ${transport.loadingReminder} ${transport.loadingReminder === 1 ? 'hodinu' : transport.loadingReminder < 5 ? 'hodiny' : 'hodín'} 
+                  máte naplánované naloženie tovaru:</p>
+                  <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>Číslo objednávky:</strong> ${transport.orderNumber}</p>
+                    <p style="margin: 5px 0;"><strong>Adresa naloženia:</strong> ${transport.loadingAddress}</p>
+                    <p style="margin: 5px 0;"><strong>Dátum a čas:</strong> ${loadingTime.toLocaleString('sk-SK')}</p>
+                  </div>
+                  <p style="color: #666;">S pozdravom,<br>Váš Transport Platform tím</p>
+                </div>
+              `
+                    });
+                    // Aktualizujeme záznam
+                    await doc.ref.update({
+                        loadingReminderSent: true
+                    });
+                }
+            }
+            // Kontrola pripomienky pre vyloženie
+            if (!transport.unloadingReminderSent) {
+                const unloadingReminderTime = new Date(unloadingTime.getTime() - (transport.unloadingReminder * 60 * 60 * 1000));
+                if (currentTime >= unloadingReminderTime) {
+                    // Pošleme email
+                    await transporter.sendMail({
+                        from: functions.config().email.user,
+                        to: user.email,
+                        subject: 'Pripomienka vyloženia - Transport Platform',
+                        html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #1a1b2e;">Pripomienka vyloženia</h2>
+                  <p>Dobrý deň,</p>
+                  <p>pripomíname Vám, že o ${transport.unloadingReminder} ${transport.unloadingReminder === 1 ? 'hodinu' : transport.unloadingReminder < 5 ? 'hodiny' : 'hodín'} 
+                  máte naplánované vyloženie tovaru:</p>
+                  <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>Číslo objednávky:</strong> ${transport.orderNumber}</p>
+                    <p style="margin: 5px 0;"><strong>Adresa vyloženia:</strong> ${transport.unloadingAddress}</p>
+                    <p style="margin: 5px 0;"><strong>Dátum a čas:</strong> ${unloadingTime.toLocaleString('sk-SK')}</p>
+                  </div>
+                  <p style="color: #666;">S pozdravom,<br>Váš Transport Platform tím</p>
+                </div>
+              `
+                    });
+                    // Aktualizujeme záznam
+                    await doc.ref.update({
+                        unloadingReminderSent: true
+                    });
+                }
+            }
+        }
+        console.log('Transport notifications check completed successfully');
+        return null;
+    }
+    catch (error) {
+        console.error('Error checking transport notifications:', error);
+        return null;
     }
 });
 //# sourceMappingURL=index.js.map
