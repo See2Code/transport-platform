@@ -23,11 +23,8 @@ service cloud.firestore {
 
     // Pravidlá pre kolekciu users
     match /users/{userId} {
-      allow read: if request.auth != null && (
-        request.auth.uid == userId || 
-        isInSameCompany(resource.data.companyID)
-      );
-      allow create: if true;  // Povolíme vytvorenie používateľa bez obmedzení
+      allow read: if request.auth != null;  // Každý prihlásený užívateľ môže čítať údaje o užívateľoch
+      allow create: if true;
       allow update: if request.auth != null && (
         request.auth.uid == userId || 
         isAdmin()
@@ -37,7 +34,7 @@ service cloud.firestore {
 
     // Pravidlá pre kolekciu companies
     match /companies/{companyId} {
-      allow read: if request.auth != null && isInSameCompany(companyId);
+      allow read: if request.auth != null;  // Každý prihlásený užívateľ môže čítať údaje o firmách
       allow write: if isAdmin();
     }
 

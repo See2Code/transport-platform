@@ -126,7 +126,7 @@ function Register() {
       setLoading(true);
       setError('');
 
-      // Vytvorenie používateľského účtu
+      // Vytvorenie používateľského účtu v Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
@@ -136,8 +136,8 @@ function Register() {
       // Generovanie companyID
       const companyID = generateCompanyID(formData.companyName);
 
-      // Vytvorenie používateľského profilu
-      await updateDoc(doc(db, 'users', userCredential.user.uid), {
+      // Vytvorenie používateľského profilu v Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
         uid: userCredential.user.uid,
         email: formData.email,
         firstName: formData.firstName,
@@ -151,7 +151,7 @@ function Register() {
 
       // Vytvorenie profilu firmy
       await setDoc(doc(db, 'companies', companyID), {
-        name: formData.companyName,
+        companyName: formData.companyName,
         street: formData.street,
         zipCode: formData.zipCode,
         city: formData.city,
@@ -161,6 +161,10 @@ function Register() {
         createdAt: new Date().toISOString()
       });
 
+      setFormData(prev => ({
+        ...prev,
+        companyID
+      }));
       setRegistrationSuccess(true);
     } catch (err: any) {
       console.error('Chyba pri registrácii:', err);

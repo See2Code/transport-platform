@@ -182,11 +182,6 @@ function Team() {
       return;
     }
 
-    if (!phone.startsWith('+')) {
-      setError('Telefónne číslo musí začínať predvoľbou krajiny (napr. +421)');
-      return;
-    }
-
     try {
       setLoading(true);
       setError('');
@@ -197,7 +192,7 @@ function Team() {
         email,
         firstName,
         lastName,
-        phone,
+        phone: phone.startsWith('+') ? phone : `+${phone}`,
         role,
         companyID,
         createdAt: new Date(),
@@ -210,7 +205,7 @@ function Team() {
         email,
         firstName,
         lastName,
-        phone,
+        phone: phone.startsWith('+') ? phone : `+${phone}`,
         role,
         companyId: companyID,
         invitationId: invitationRef.id
@@ -438,38 +433,43 @@ function Team() {
                         />
                       </TableCell>
                       {isAdmin && (
-                        <TableCell>
+                        <TableCell align="right">
                           <Tooltip title="Upraviť údaje člena tímu">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleEdit(member)}
-                              disabled={member.role === 'admin'}
-                              aria-label="Upraviť údaje člena tímu"
-                            >
-                              <EditIcon />
-                            </IconButton>
+                            <span>
+                              <IconButton
+                                onClick={() => handleEdit(member)}
+                                disabled={loading}
+                                aria-label="Upraviť údaje člena tímu"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </span>
                           </Tooltip>
                           {member.status === 'pending' && (
                             <Tooltip title="Overiť status člena tímu">
-                              <IconButton 
-                                size="small" 
-                                onClick={() => handleVerifyStatus(member)}
-                                disabled={member.role === 'admin' || loading}
-                                aria-label="Overiť status člena tímu"
-                              >
-                                <CheckCircleIcon color="success" />
-                              </IconButton>
+                              <span>
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => handleVerifyStatus(member)}
+                                  disabled={member.role === 'admin' || loading}
+                                  aria-label="Overiť status člena tímu"
+                                >
+                                  <CheckCircleIcon color="success" />
+                                </IconButton>
+                              </span>
                             </Tooltip>
                           )}
                           <Tooltip title="Vymazať člena z tímu">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleDeleteClick(member)}
-                              disabled={member.role === 'admin'}
-                              aria-label="Vymazať člena z tímu"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
+                            <span>
+                              <IconButton
+                                onClick={() => handleDeleteClick(member)}
+                                disabled={loading}
+                                aria-label="Vymazať člena z tímu"
+                                color="error"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </span>
                           </Tooltip>
                         </TableCell>
                       )}
@@ -515,24 +515,28 @@ function Team() {
                         />
                       </TableCell>
                       {isAdmin && (
-                        <TableCell>
+                        <TableCell align="right">
                           <Tooltip title="Upraviť údaje v pozvánke">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleEdit(invite)}
-                              aria-label="Upraviť údaje v pozvánke"
-                            >
-                              <EditIcon />
-                            </IconButton>
+                            <span>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleEdit(invite)}
+                                aria-label="Upraviť údaje v pozvánke"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </span>
                           </Tooltip>
                           <Tooltip title="Zrušiť pozvánku">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleDeleteClick(invite)}
-                              aria-label="Zrušiť pozvánku"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
+                            <span>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleDeleteClick(invite)}
+                                aria-label="Zrušiť pozvánku"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </span>
                           </Tooltip>
                         </TableCell>
                       )}

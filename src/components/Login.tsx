@@ -9,12 +9,14 @@ import {
   Link,
   Grid,
   IconButton,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -29,9 +31,55 @@ function Login() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Prihlásenie cez Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Kontrola, či užívateľ existuje vo Firestore
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (!userDoc.exists()) {
+        // Hľadanie pozvánky pre tento email
+        const invitationsQuery = query(
+          collection(db, 'invitations'),
+          where('email', '==', email),
+          where('status', '==', 'pending')
+        );
+        const invitationsSnapshot = await getDocs(invitationsQuery);
+        
+        if (!invitationsSnapshot.empty) {
+          // Použijeme údaje z prvej nájdenej pozvánky
+          const invitationData = invitationsSnapshot.docs[0].data();
+          
+          // Vytvoríme užívateľa s údajmi z pozvánky
+          await setDoc(doc(db, 'users', userCredential.user.uid), {
+            uid: userCredential.user.uid,
+            email: userCredential.user.email,
+            firstName: invitationData.firstName || '',
+            lastName: invitationData.lastName || '',
+            phone: invitationData.phone || '',
+            companyID: invitationData.companyID,
+            role: invitationData.role || 'user',
+            createdAt: new Date().toISOString(),
+            status: 'active'
+          });
+        } else {
+          // Ak neexistuje pozvánka, vytvoríme základný profil
+          await setDoc(doc(db, 'users', userCredential.user.uid), {
+            uid: userCredential.user.uid,
+            email: userCredential.user.email,
+            firstName: '',
+            lastName: '',
+            phone: '',
+            role: 'user',
+            createdAt: new Date().toISOString(),
+            status: 'pending'
+          });
+        }
+      }
+
       navigate('/dashboard');
     } catch (err: any) {
+      console.error('Chyba pri prihlásení:', err);
       setError(err.message || 'Nepodarilo sa prihlásiť. Skúste to znova.');
     } finally {
       setLoading(false);
@@ -101,19 +149,26 @@ function Login() {
                 size="large"
                 disabled={loading}
               >
-                {loading ? 'Prihlasovanie...' : 'Prihlásiť sa'}
+                {loading ? <CircularProgress size={24} /> : 'Prihlásiť sa'}
               </Button>
             </Grid>
-            
+
             <Grid item xs={12}>
-              <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Link href="/forgot-password" color="primary">
-                  Zabudli ste heslo?
-                </Link>
+              <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
-                  Nie ste ešte zaregistrovaný?{' '}
+                  Nemáte účet?{' '}
                   <Link href="/register" color="primary">
-                    Registrujte sa
+                    Zaregistrujte sa
+                  </Link>
+                </Typography>
+              </Box>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  <Link href="/forgot-password" color="primary">
+                    Zabudli ste heslo?
                   </Link>
                 </Typography>
               </Box>

@@ -95,8 +95,16 @@ function RegisterUser() {
       setLoading(true);
       setError('');
 
+      // Vytvorenie používateľa v Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        invitation.email,
+        formData.password
+      );
+
       // Vytvorenie používateľského profilu v Firestore
       const userData = {
+        uid: userCredential.user.uid,
         email: invitation.email,
         firstName: invitation.firstName,
         lastName: invitation.lastName,
@@ -107,17 +115,13 @@ function RegisterUser() {
         status: 'active'
       };
 
-      // Generujeme nové ID pre používateľa
-      const userRef = doc(collection(db, 'users'));
-      await setDoc(userRef, {
-        ...userData,
-        uid: userRef.id
-      });
+      // Uloženie užívateľa do Firestore s rovnakým ID ako v Auth
+      await setDoc(doc(db, 'users', userCredential.user.uid), userData);
 
       // Aktualizácia pozvánky
       await updateDoc(doc(db, 'invitations', searchParams.get('invitationId')!), {
         status: 'accepted',
-        userId: userRef.id,
+        userId: userCredential.user.uid,
         acceptedAt: new Date().toISOString()
       });
 
