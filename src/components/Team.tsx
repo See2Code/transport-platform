@@ -26,7 +26,10 @@ import {
   CircularProgress,
   Tooltip,
   DialogContentText,
-  Grid
+  Grid,
+  Card,
+  Avatar,
+  styled
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -44,6 +47,7 @@ import { httpsCallable } from 'firebase/functions';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { SelectChangeEvent } from '@mui/material';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Country {
   code: string;
@@ -83,6 +87,118 @@ interface Invitation {
   userId?: string;
 }
 
+const PageWrapper = styled('div')({
+  padding: '24px',
+});
+
+const PageHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '32px',
+});
+
+const PageTitle = styled(Typography)({
+  fontSize: '1.75rem',
+  fontWeight: 700,
+  color: '#ffffff',
+  position: 'relative',
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '-8px',
+    left: 0,
+    width: '60px',
+    height: '4px',
+    backgroundColor: '#00b894',
+    borderRadius: '2px',
+  }
+});
+
+const AddButton = styled('button')({
+  backgroundColor: '#00b894',
+  color: '#ffffff',
+  padding: '8px 24px',
+  borderRadius: '12px',
+  fontSize: '0.95rem',
+  fontWeight: 600,
+  border: 'none',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease-in-out',
+  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  '&:hover': {
+    backgroundColor: '#00d2a0',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+  }
+});
+
+const TeamCard = styled(Card)({
+  backgroundColor: 'rgba(35, 35, 66, 0.95)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: '16px',
+  padding: '24px',
+  color: '#ffffff',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
+  marginBottom: '16px',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+  }
+});
+
+const TeamInfo = styled(Box)({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+  gap: '24px',
+  marginBottom: '16px',
+});
+
+const InfoSection = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+});
+
+const InfoLabel = styled(Typography)({
+  fontSize: '0.85rem',
+  color: 'rgba(255, 255, 255, 0.5)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+});
+
+const InfoValue = styled(Typography)({
+  fontSize: '1rem',
+  color: '#ffffff',
+});
+
+const CardHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '24px',
+});
+
+const MemberName = styled(Typography)({
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  color: '#00b894',
+});
+
+const RoleChip = styled('span')({
+  backgroundColor: 'rgba(0, 184, 148, 0.2)',
+  color: '#00b894',
+  padding: '4px 12px',
+  borderRadius: '8px',
+  fontSize: '0.85rem',
+  fontWeight: 500,
+});
+
 function Team() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -104,6 +220,7 @@ function Team() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('sk');
   const [role, setRole] = useState('user');
+  const { userData } = useAuth();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -390,47 +507,22 @@ function Team() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Tooltip title="Späť na Dashboard">
-            <IconButton 
-              onClick={() => navigate('/dashboard')}
-              size="large"
-              sx={{ 
-                backgroundColor: 'primary.main',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: 'primary.dark',
-                }
-              }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-          </Tooltip>
-          <Typography variant="h4" component="h1">
-            Tím
-          </Typography>
-        </Box>
-        {isAdmin && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenInvite(true)}
-          >
-            Pozvať nového člena
-          </Button>
-        )}
-      </Box>
+    <PageWrapper>
+      <PageHeader>
+        <PageTitle>Tím</PageTitle>
+        <AddButton onClick={() => setOpenInvite(true)}>
+          Pridať člena
+        </AddButton>
+      </PageHeader>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <Alert severity="success" sx={{ mb: 3 }}>
           {success}
         </Alert>
       )}
@@ -808,7 +900,7 @@ function Team() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageWrapper>
   );
 }
 

@@ -26,6 +26,7 @@ import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/ico
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+import styled from '@emotion/styled';
 
 interface Country {
   code: string;
@@ -57,6 +58,41 @@ interface Contact {
     lastName: string;
   };
 }
+
+const PageTitle = styled(Typography)({
+  fontSize: '1.75rem',
+  fontWeight: 700,
+  color: '#ffffff',
+  position: 'relative',
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '-8px',
+    left: 0,
+    width: '60px',
+    height: '4px',
+    backgroundColor: '#00b894',
+    borderRadius: '2px',
+  }
+});
+
+const PageWrapper = styled(Box)({
+  padding: '30px',
+});
+
+const PageHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '30px',
+});
+
+const AddContactButton = styled(Button)({
+  backgroundColor: '#00b894',
+  '&:hover': {
+    backgroundColor: '#00967e',
+  },
+});
 
 const Contacts = () => {
   const { userData } = useAuth();
@@ -231,19 +267,17 @@ const Contacts = () => {
   );
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5" component="h2">
-          Kontakty
-        </Typography>
-        <Button
+    <PageWrapper>
+      <PageHeader>
+        <PageTitle>Kontakty</PageTitle>
+        <AddContactButton
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setOpenDialog(true)}
         >
           Pridať kontakt
-        </Button>
-      </Box>
+        </AddContactButton>
+      </PageHeader>
 
       <TextField
         fullWidth
@@ -415,7 +449,7 @@ const Contacts = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </PageWrapper>
   );
 };
 
