@@ -27,12 +27,15 @@ import AccountIcon from '@mui/icons-material/AccountCircle';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import ContactsIcon from '@mui/icons-material/Contacts';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 const drawerWidth = 240;
+const miniDrawerWidth = 64;
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backdropFilter: 'blur(10px)',
@@ -42,8 +45,13 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   margin: '16px',
   borderRadius: '12px',
   width: `calc(100% - ${drawerWidth}px - 32px)`,
+  transition: 'width 0.3s ease-in-out, margin-left 0.3s ease-in-out',
   '& .MuiToolbar-root': {
     minHeight: '56px',
+  },
+  '&.drawer-closed': {
+    width: `calc(100% - ${miniDrawerWidth}px - 32px)`,
+    marginLeft: 0,
   }
 }));
 
@@ -67,17 +75,100 @@ const AesaLogo = styled('img')({
 });
 
 const AesaLogoDrawer = styled('img')({
-  height: '40px',
+  height: '28px',
   width: 'auto',
-  marginBottom: '16px',
+  transition: 'all 0.3s ease-in-out',
 });
+
+const AesaLogoMini = styled('img')({
+  height: '24px',
+  width: 'auto',
+  transition: 'all 0.3s ease-in-out',
+});
+
+const AesaMinimalLogo = styled(Typography)(({ theme }) => ({
+  color: '#ffffff',
+  fontSize: '28px',
+  fontFamily: 'Arial, sans-serif',
+  fontWeight: '900',
+  letterSpacing: '-1px',
+  transform: 'scaleX(1.2)',
+  userSelect: 'none',
+  transition: 'all 0.3s ease-in-out',
+  '&::before': {
+    content: '"―"',
+    position: 'absolute',
+    fontSize: '16px',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    fontWeight: 'bold',
+  }
+}));
 
 const DrawerHeader = styled('div')({
   padding: '16px',
   display: 'flex',
-  flexDirection: 'column',
+  justifyContent: 'flex-start',
   alignItems: 'center',
   width: '100%',
+  height: '88px',
+  paddingLeft: '24px',
+  marginBottom: '8px',
+  transition: 'padding-left 0.3s ease-in-out',
+  '&.drawer-closed': {
+    paddingLeft: '20px',
+    justifyContent: 'center',
+  }
+});
+
+const ToggleButton = styled(IconButton)(({ theme }) => ({
+  position: 'absolute',
+  right: '4px',
+  bottom: '16px',
+  backgroundColor: '#00b894',
+  color: '#ffffff',
+  zIndex: 1200,
+  padding: '4px',
+  borderRadius: '8px',
+  width: '32px',
+  height: '32px',
+  '&:hover': {
+    backgroundColor: '#00d2a0',
+  },
+  transition: 'all 0.3s ease-in-out',
+  '& .MuiSvgIcon-root': {
+    fontSize: '20px',
+  }
+}));
+
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
+  '& .MuiDrawer-paper': { 
+    boxSizing: 'border-box', 
+    width: drawerWidth,
+    backgroundColor: 'rgba(35, 35, 66, 0.95)',
+    backdropFilter: 'blur(10px)',
+    borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+    transition: 'width 0.3s ease-in-out',
+    '&.drawer-closed': {
+      width: miniDrawerWidth,
+      overflowX: 'hidden',
+      '& .MuiListItemText-root': {
+        opacity: 0,
+        width: 0,
+      },
+      '& .MuiListItemIcon-root': {
+        minWidth: 0,
+        marginRight: 0,
+        justifyContent: 'center',
+      },
+    }
+  },
+}));
+
+const ListItemIconStyled = styled(ListItemIcon)({
+  minWidth: 48,
+  transition: 'margin-right 0.3s ease-in-out',
 });
 
 const menuItems = [
@@ -117,11 +208,16 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { userData } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const toggleDrawer = () => {
+    setDrawerOpen(!drawerOpen);
   };
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -150,24 +246,54 @@ const Navbar = () => {
   };
 
   const drawer = (
-    <div>
-      <DrawerHeader>
-        <AesaLogoDrawer src="/AESA white.svg" alt="AESA Logo" />
+    <Box position="relative" sx={{ height: '100%' }}>
+      <DrawerHeader className={!drawerOpen ? 'drawer-closed' : ''}>
+        {drawerOpen ? (
+          <AesaLogoDrawer src="/AESA white.svg" alt="AESA Logo" />
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AesaLogoMini src="/mininavbar.png" alt="AESA Logo Mini" />
+          </Box>
+        )}
       </DrawerHeader>
       <Divider />
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton onClick={() => navigate(item.path)}>
-              <ListItemIcon>
+            <ListItemButton 
+              onClick={() => navigate(item.path)}
+              sx={{
+                minHeight: 48,
+                justifyContent: drawerOpen ? 'initial' : 'center',
+                px: 2.5,
+              }}
+            >
+              <ListItemIconStyled
+                sx={{
+                  minWidth: 0,
+                  mr: drawerOpen ? 3 : 'auto',
+                  justifyContent: 'center',
+                }}
+              >
                 {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
+              </ListItemIconStyled>
+              <ListItemText 
+                primary={item.text} 
+                sx={{ 
+                  opacity: drawerOpen ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out',
+                }} 
+              />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
-    </div>
+      <ToggleButton
+        onClick={toggleDrawer}
+      >
+        {drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+      </ToggleButton>
+    </Box>
   );
 
   return (
@@ -175,8 +301,9 @@ const Navbar = () => {
       <CssBaseline />
       <StyledAppBar
         position="fixed"
+        className={!drawerOpen ? 'drawer-closed' : ''}
         sx={{
-          ml: { sm: `${drawerWidth}px` },
+          ml: { sm: drawerOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px` },
         }}
       >
         <Toolbar>
@@ -310,9 +437,13 @@ const Navbar = () => {
       </StyledAppBar>
       <Box
         component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        sx={{ 
+          width: { sm: drawerOpen ? drawerWidth : miniDrawerWidth }, 
+          flexShrink: { sm: 0 },
+          transition: 'width 0.3s ease-in-out'
+        }}
       >
-        <Drawer
+        <StyledDrawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
@@ -321,31 +452,33 @@ const Navbar = () => {
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
-              width: drawerWidth,
-              backgroundColor: 'rgba(35, 35, 66, 0.95)',
-              backdropFilter: 'blur(10px)',
-            },
           }}
         >
           {drawer}
-        </Drawer>
-        <Drawer
+        </StyledDrawer>
+        <StyledDrawer
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
-              width: drawerWidth,
-              backgroundColor: 'rgba(35, 35, 66, 0.95)',
-              backdropFilter: 'blur(10px)',
-            },
           }}
           open
+          classes={{
+            paper: !drawerOpen ? 'drawer-closed' : ''
+          }}
         >
           {drawer}
-        </Drawer>
+        </StyledDrawer>
+      </Box>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { sm: `calc(100% - ${drawerOpen ? drawerWidth : 0}px)` },
+          transition: 'width 0.3s ease-in-out'
+        }}
+      >
+        <Toolbar />
       </Box>
     </Box>
   );
