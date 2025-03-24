@@ -3,6 +3,7 @@ import { User } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { CircularProgress, Box } from '@mui/material';
 import { doc, getDoc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 
 interface UserData {
   uid: string;
@@ -18,12 +19,18 @@ interface AuthContextType {
   currentUser: User | null;
   userData: UserData | null;
   loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({ 
   currentUser: null, 
   userData: null,
-  loading: true 
+  loading: true,
+  login: async () => {},
+  register: async () => {},
+  logout: async () => {},
 });
 
 export const useAuth = () => {
@@ -64,10 +71,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  const login = async (email: string, password: string) => {
+    // Implementation of login function
+  };
+
+  const register = async (email: string, password: string, firstName: string, lastName: string) => {
+    // Implementation of register function
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setCurrentUser(null);
+      setUserData(null);
+    } catch (error) {
+      console.error('Chyba pri odhlásení:', error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     userData,
-    loading
+    loading,
+    login,
+    register,
+    logout,
   };
 
   console.log('AuthProvider: Render - loading:', loading, 'currentUser:', currentUser?.uid, 'userData:', userData);

@@ -13,6 +13,11 @@ import {
   Menu,
   MenuItem,
   styled,
+  Box,
+  Toolbar,
+  AppBar,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
@@ -32,6 +37,8 @@ import { Link } from 'react-router-dom';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { MenuProps } from '@mui/material/Menu';
 import BusinessIcon from '@mui/icons-material/Business';
+import MenuIcon from '@mui/icons-material/Menu';
+import PersonIcon from '@mui/icons-material/Person';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -152,95 +159,46 @@ interface MenuItem {
 }
 
 const Navbar = () => {
+  const { currentUser, userData, logout } = useAuth();
   const navigate = useNavigate();
-  const { userData } = useAuth();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [notificationsAnchorEl, setNotificationsAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
-  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleNotificationsMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setNotificationsAnchorEl(event.currentTarget);
+  const handleMobileMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setMobileMenuAnchor(event.currentTarget);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
-  };
-
-  const handleNotificationsClose = () => {
-    setNotificationsAnchorEl(null);
+    setMobileMenuAnchor(null);
   };
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await logout();
       navigate('/login');
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Chyba pri odhlásení:', error);
     }
   };
 
-  const handleNavigation = (path?: string) => {
-    if (path) {
-      navigate(path);
-    }
-  };
-
-  const menuItems: MenuItem[] = [
-    {
-      text: 'Dashboard',
-      icon: <HomeIcon />,
-      path: '/dashboard'
-    },
-    {
-      text: 'Sledované prepravy',
-      icon: <LocalShippingIcon />,
-      path: '/tracked-transports'
-    },
-    {
-      text: 'Tím',
-      icon: <GroupIcon />,
-      path: '/team'
-    },
-    {
-      text: 'Kontakty',
-      icon: <ContactsIcon />,
-      path: '/contacts'
-    },
-    {
-      text: 'Obchodné prípady',
-      icon: <BusinessIcon />,
-      path: '/business-cases'
-    },
-    {
-      text: 'Nastavenia',
-      icon: <SettingsIcon />,
-      path: '/settings'
-    },
-    {
-      text: 'Sledovať prepravu',
-      icon: <VisibilityIcon />,
-      path: '/track-transport',
-      hidden: true
-    },
-    {
-      text: 'Odhlásiť sa',
-      icon: <LogoutIcon />,
-      onClick: handleLogout,
-      hidden: true
-    }
+  const menuItems = [
+    { text: 'Domov', icon: <HomeIcon />, path: '/home' },
+    { text: 'Tím', icon: <GroupIcon />, path: '/team' },
+    { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases' },
+    { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },
+    { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings' },
   ];
 
   const AppWrapper = styled('div')({
@@ -284,36 +242,8 @@ const Navbar = () => {
     }
   });
 
-  const TopBar = styled('header')({
-    position: 'fixed',
-    top: '16px',
-    left: `calc(${drawerWidth}px + 16px)`,
-    right: '16px',
-    height: '64px',
-    backgroundColor: colors.primary.light,
-    backdropFilter: 'blur(20px)',
-    borderRadius: '16px',
-    display: 'flex',
-    alignItems: 'center',
-    padding: '0 20px',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.15)',
-    zIndex: 1100,
-    '.drawer-closed &': {
-      left: `calc(${miniDrawerWidth}px + 16px)`,
-    },
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      inset: 0,
-      borderRadius: '16px',
-      border: '1px solid rgba(255, 255, 255, 0.06)',
-      pointerEvents: 'none'
-    }
-  });
-
   const ContentWrapper = styled('div')({
-    padding: '96px 16px 16px 16px',
+    padding: '16px',
     minHeight: '100vh',
     backgroundColor: colors.primary.main,
     position: 'relative',
@@ -322,8 +252,8 @@ const Navbar = () => {
 
   const drawer = (
     <>
-      <DrawerHeader className={!drawerOpen ? 'drawer-closed' : ''}>
-        {drawerOpen ? (
+      <DrawerHeader className={!mobileOpen ? 'drawer-closed' : ''}>
+        {mobileOpen ? (
           <AesaLogoDrawer src="/AESA white.svg" alt="AESA Logo" />
         ) : (
           <AesaLogoMini src="/mininavbar.png" alt="AESA Logo Mini" />
@@ -332,88 +262,182 @@ const Navbar = () => {
       <Divider />
       <List>
         {menuItems.map((item) => (
-          !item.hidden && (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton 
-                onClick={item.onClick || (() => handleNavigation(item.path))}
-                sx={{
-                  minHeight: 48,
-                  justifyContent: drawerOpen ? 'initial' : 'center',
-                  px: 2.5,
-                  borderRadius: '12px',
-                  margin: '4px 8px',
+          <ListItem 
+            button 
+            key={item.text} 
+            onClick={() => {
+              navigate(item.path);
+              if (isMobile) {
+                setMobileOpen(false);
+              }
+            }}
+            sx={{
+              minHeight: 48,
+              justifyContent: mobileOpen ? 'initial' : 'center',
+              px: 2.5,
+              borderRadius: '12px',
+              margin: '4px 8px',
+              transition: 'all 0.2s ease-in-out',
+              position: 'relative',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                '& .MuiListItemIcon-root': {
+                  color: colors.accent.main,
+                  transform: 'scale(1.1)',
+                },
+                '& .MuiListItemText-primary': {
+                  color: '#ffffff',
+                }
+              },
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                left: '-8px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '3px',
+                height: '0%',
+                backgroundColor: colors.accent.main,
+                borderRadius: '4px',
+                transition: 'height 0.2s ease-in-out',
+              },
+              '&:hover::before': {
+                height: '50%',
+              },
+              '&.active': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                '&::before': {
+                  height: '70%',
+                },
+                '& .MuiListItemIcon-root': {
+                  color: colors.accent.main,
+                },
+                '& .MuiListItemText-primary': {
+                  color: '#ffffff',
+                  fontWeight: 600,
+                }
+              }
+            }}
+          >
+            <ListItemIconStyled
+              sx={{
+                minWidth: 0,
+                mr: mobileOpen ? 3 : 'auto',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              {item.icon}
+            </ListItemIconStyled>
+            <ListItemText 
+              primary={item.text} 
+              sx={{ 
+                opacity: mobileOpen ? 1 : 0,
+                transition: 'all 0.3s ease-in-out',
+                '& .MuiTypography-root': {
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                  color: 'rgba(255, 255, 255, 0.7)',
                   transition: 'all 0.2s ease-in-out',
-                  position: 'relative',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    '& .MuiListItemIcon-root': {
-                      color: colors.accent.main,
-                      transform: 'scale(1.1)',
-                    },
-                    '& .MuiListItemText-primary': {
-                      color: '#ffffff',
-                    }
-                  },
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    left: '-8px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '3px',
-                    height: '0%',
-                    backgroundColor: colors.accent.main,
-                    borderRadius: '4px',
-                    transition: 'height 0.2s ease-in-out',
-                  },
-                  '&:hover::before': {
-                    height: '50%',
-                  },
-                  '&.active': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    '&::before': {
-                      height: '70%',
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: colors.accent.main,
-                    },
-                    '& .MuiListItemText-primary': {
-                      color: '#ffffff',
-                      fontWeight: 600,
-                    }
-                  }
-                }}
-              >
-                <ListItemIconStyled
-                  sx={{
-                    minWidth: 0,
-                    mr: drawerOpen ? 3 : 'auto',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s ease-in-out',
-                  }}
-                >
-                  {item.icon}
-                </ListItemIconStyled>
-                <ListItemText 
-                  primary={item.text} 
-                  sx={{ 
-                    opacity: drawerOpen ? 1 : 0,
-                    transition: 'all 0.3s ease-in-out',
-                    '& .MuiTypography-root': {
-                      fontSize: '0.95rem',
-                      fontWeight: 500,
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      transition: 'all 0.2s ease-in-out',
-                    }
-                  }} 
-                />
-              </ListItemButton>
-            </ListItem>
-          )
+                }
+              }} 
+            />
+          </ListItem>
         ))}
       </List>
-      <ToggleButton onClick={toggleDrawer}>
-        {drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+      <Box sx={{ mt: 'auto', mb: 2 }}>
+        <Divider sx={{ mb: 2, backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
+        {currentUser && userData && (
+          <>
+            <ListItem 
+              button 
+              onClick={handleLogout}
+              sx={{
+                minHeight: 48,
+                justifyContent: mobileOpen ? 'initial' : 'center',
+                px: 2.5,
+                borderRadius: '12px',
+                margin: '4px 8px',
+                transition: 'all 0.2s ease-in-out',
+                position: 'relative',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  '& .MuiListItemIcon-root': {
+                    color: colors.accent.main,
+                    transform: 'scale(1.1)',
+                  },
+                  '& .MuiListItemText-primary': {
+                    color: '#ffffff',
+                  }
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  left: '-8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '3px',
+                  height: '0%',
+                  backgroundColor: colors.accent.main,
+                  borderRadius: '4px',
+                  transition: 'height 0.2s ease-in-out',
+                },
+                '&:hover::before': {
+                  height: '50%',
+                }
+              }}
+            >
+              <ListItemIconStyled
+                sx={{
+                  minWidth: 0,
+                  mr: mobileOpen ? 3 : 'auto',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              >
+                <LogoutIcon />
+              </ListItemIconStyled>
+              <ListItemText 
+                primary="Odhlásiť sa" 
+                sx={{ 
+                  opacity: mobileOpen ? 1 : 0,
+                  transition: 'all 0.3s ease-in-out',
+                  '& .MuiTypography-root': {
+                    fontSize: '0.95rem',
+                    fontWeight: 500,
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    transition: 'all 0.2s ease-in-out',
+                  }
+                }} 
+              />
+            </ListItem>
+            <ListItem 
+              sx={{
+                minHeight: 48,
+                justifyContent: mobileOpen ? 'initial' : 'center',
+                px: 2.5,
+                borderRadius: '12px',
+                margin: '4px 8px',
+                opacity: 0.7,
+                '& .MuiListItemText-primary': {
+                  fontSize: '0.85rem',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                }
+              }}
+            >
+              <ListItemText 
+                primary={`Prihlásený: ${userData.firstName} ${userData.lastName}`}
+                sx={{ 
+                  opacity: mobileOpen ? 1 : 0,
+                  transition: 'all 0.3s ease-in-out',
+                }} 
+              />
+            </ListItem>
+          </>
+        )}
+      </Box>
+      <ToggleButton onClick={handleDrawerToggle}>
+        {mobileOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
       </ToggleButton>
     </>
   );
@@ -422,174 +446,14 @@ const Navbar = () => {
     <AppWrapper>
       <CssBaseline />
       
-      <SideNav className={!drawerOpen ? 'drawer-closed' : ''}>
+      <SideNav className={!mobileOpen ? 'drawer-closed' : ''}>
         {drawer}
       </SideNav>
 
-      <MainWrapper className={!drawerOpen ? 'drawer-closed' : ''}>
-        <TopBar>
-          <Logo variant="h6" noWrap>
-            CORE
-          </Logo>
-          <Typography 
-            variant="h6" 
-            noWrap 
-            component="div" 
-            sx={{ 
-              flexGrow: 1, 
-              color: '#ffffff',
-              opacity: 0.7,
-              fontWeight: 'normal'
-            }}
-          >
-            Transport Platform
-          </Typography>
-          
-          <IconButton
-            onClick={handleNotificationsMenu}
-            sx={{ 
-              mr: 2, 
-              color: '#ffffff',
-              opacity: 0.7,
-              padding: '8px',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                opacity: 1,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                transform: 'translateY(-2px)',
-              }
-            }}
-          >
-            <NotificationsIcon />
-          </IconButton>
-
-          <IconButton
-            onClick={handleMenu}
-            sx={{ 
-              padding: '8px',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                transform: 'translateY(-2px)',
-              }
-            }}
-          >
-            <Avatar 
-              sx={{ 
-                width: 38,
-                height: 38,
-                backgroundColor: 'transparent',
-                color: '#ffffff',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  transform: 'scale(1.1)',
-                }
-              }}
-            >
-              <AccountIcon />
-            </Avatar>
-          </IconButton>
-        </TopBar>
-
+      <MainWrapper className={!mobileOpen ? 'drawer-closed' : ''}>
         <ContentWrapper>
           {/* Page content goes here */}
         </ContentWrapper>
-
-        <Menu
-          anchorEl={notificationsAnchorEl}
-          open={Boolean(notificationsAnchorEl)}
-          onClose={handleNotificationsClose}
-          PaperProps={{
-            sx: {
-              mt: 1.5,
-              minWidth: 250,
-              backgroundColor: colors.primary.light,
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.24)',
-              color: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              '& .MuiMenuItem-root': {
-                padding: '12px 20px',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                }
-              }
-            }
-          }}
-        >
-          <MenuItem onClick={handleNotificationsClose}>
-            <Typography variant="body2">Žiadne nové notifikácie</Typography>
-          </MenuItem>
-        </Menu>
-
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          sx={{
-            '& .MuiMenu-paper': {
-              marginTop: '8px',
-              marginLeft: '0px',
-              left: 'auto !important',
-              right: '16px !important'
-            }
-          }}
-          PaperProps={{
-            sx: {
-              minWidth: 200,
-              backgroundColor: colors.primary.light,
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.24)',
-              color: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              '& .MuiMenuItem-root': {
-                padding: '12px 20px',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                }
-              }
-            }
-          }}
-        >
-          {userData && (
-            <MenuItem disabled>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                {userData.firstName} {userData.lastName}
-              </Typography>
-            </MenuItem>
-          )}
-          <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
-            <ListItemIcon>
-              <AccountIcon fontSize="small" sx={{ color: '#ffffff' }} />
-            </ListItemIcon>
-            <Typography variant="body2">Profil</Typography>
-          </MenuItem>
-          <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" sx={{ color: '#ffffff' }} />
-            </ListItemIcon>
-            <Typography variant="body2">Nastavenia</Typography>
-          </MenuItem>
-          <Divider sx={{ my: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-          <MenuItem onClick={handleLogout}>
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" sx={{ color: '#ffffff' }} />
-            </ListItemIcon>
-            <Typography variant="body2">Odhlásiť sa</Typography>
-          </MenuItem>
-        </Menu>
       </MainWrapper>
     </AppWrapper>
   );
