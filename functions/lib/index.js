@@ -42,7 +42,9 @@ exports.clearDatabase = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', 'Nepodarilo sa vyčistiť databázu.');
     }
 });
-exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
+exports.sendInvitationEmail = functions
+    .region('us-central1')
+    .https.onCall(async (data, context) => {
     console.log('Funkcia bola volaná s dátami:', data);
     if (!context.auth) {
         console.error('Používateľ nie je prihlásený');
