@@ -49,6 +49,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { SelectChangeEvent } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Country {
   code: string;
@@ -88,6 +89,8 @@ interface Invitation {
   createdAt: Date;
   userId?: string;
 }
+
+type DeleteableItem = TeamMember | Invitation;
 
 const PageWrapper = styled('div')({
   padding: '24px',
@@ -201,6 +204,24 @@ const RoleChip = styled('span')({
   fontWeight: 500,
 });
 
+const AnimatedTableRow = styled(motion.tr)({
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+});
+
+const fadeOut = {
+  initial: { opacity: 1, height: 'auto' },
+  exit: { 
+    opacity: 0,
+    height: 0,
+    transition: {
+      duration: 0.3,
+      ease: "easeInOut"
+    }
+  }
+};
+
 function Team() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -213,7 +234,7 @@ function Team() {
   const [openInvite, setOpenInvite] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [inviteToDelete, setInviteToDelete] = useState<Invitation | null>(null);
+  const [inviteToDelete, setInviteToDelete] = useState<DeleteableItem | null>(null);
   const [editingInvite, setEditingInvite] = useState<Invitation | null>(null);
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -223,6 +244,7 @@ function Team() {
   const [countryCode, setCountryCode] = useState('sk');
   const [role, setRole] = useState('user');
   const { userData } = useAuth();
+  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -444,8 +466,8 @@ function Team() {
     }
   };
 
-  const handleDeleteClick = (member: TeamMember | Invitation) => {
-    setInviteToDelete(member as Invitation);
+  const handleDeleteClick = (member: DeleteableItem) => {
+    setInviteToDelete(member);
     setDeleteConfirmOpen(true);
   };
 
@@ -457,6 +479,7 @@ function Team() {
       if ('userId' in inviteToDelete && inviteToDelete.userId) {
         // Ak je to člen tímu
         console.log('Mazanie člena tímu s ID:', inviteToDelete.userId);
+        setDeletingMemberId(inviteToDelete.id);
         await deleteDoc(doc(db, 'users', inviteToDelete.userId));
       } else {
         // Ak je to pozvánka
@@ -472,6 +495,7 @@ function Team() {
       setError(err.message || 'Nastala chyba pri mazaní záznamu.');
     } finally {
       setLoading(false);
+      setDeletingMemberId(null);
     }
   };
 
@@ -581,68 +605,77 @@ function Team() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {teamMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>{member.firstName} {member.lastName}</TableCell>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell>{member.phone}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={member.role} 
-                          color={member.role === 'admin' ? 'primary' : 'default'} 
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={member.status} 
-                          color={member.status === 'active' ? 'success' : 'warning'} 
-                          size="small"
-                        />
-                      </TableCell>
-                      {isAdmin && (
-                        <TableCell align="right">
-                          <Tooltip title="Upraviť údaje člena tímu">
-                            <span>
-                              <IconButton
-                                onClick={() => handleEdit(member)}
-                                disabled={loading}
-                                aria-label="Upraviť údaje člena tímu"
-                              >
-                                <EditIcon />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                          {member.status === 'pending' && (
-                            <Tooltip title="Overiť status člena tímu">
+                  <AnimatePresence mode="wait">
+                    {teamMembers.map((member) => (
+                      <AnimatedTableRow
+                        key={member.id}
+                        variants={fadeOut}
+                        initial="initial"
+                        exit="exit"
+                        animate={deletingMemberId === member.id ? "exit" : "initial"}
+                        style={{ display: deletingMemberId === member.id ? 'none' : 'table-row' }}
+                      >
+                        <TableCell>{member.firstName} {member.lastName}</TableCell>
+                        <TableCell>{member.email}</TableCell>
+                        <TableCell>{member.phone}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={member.role} 
+                            color={member.role === 'admin' ? 'primary' : 'default'} 
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={member.status} 
+                            color={member.status === 'active' ? 'success' : 'warning'} 
+                            size="small"
+                          />
+                        </TableCell>
+                        {isAdmin && (
+                          <TableCell align="right">
+                            <Tooltip title="Upraviť údaje člena tímu">
                               <span>
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => handleVerifyStatus(member)}
-                                  disabled={member.role === 'admin' || loading}
-                                  aria-label="Overiť status člena tímu"
+                                <IconButton
+                                  onClick={() => handleEdit(member)}
+                                  disabled={loading}
+                                  aria-label="Upraviť údaje člena tímu"
                                 >
-                                  <CheckCircleIcon color="success" />
+                                  <EditIcon />
                                 </IconButton>
                               </span>
                             </Tooltip>
-                          )}
-                          <Tooltip title="Vymazať člena z tímu">
-                            <span>
-                              <IconButton
-                                onClick={() => handleDeleteClick(member)}
-                                disabled={loading}
-                                aria-label="Vymazať člena z tímu"
-                                color="error"
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
+                            {member.status === 'pending' && (
+                              <Tooltip title="Overiť status člena tímu">
+                                <span>
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handleVerifyStatus(member)}
+                                    disabled={member.role === 'admin' || loading}
+                                    aria-label="Overiť status člena tímu"
+                                  >
+                                    <CheckCircleIcon color="success" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                            <Tooltip title="Vymazať člena z tímu">
+                              <span>
+                                <IconButton
+                                  onClick={() => handleDeleteClick(member)}
+                                  disabled={loading}
+                                  aria-label="Vymazať člena z tímu"
+                                  color="error"
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          </TableCell>
+                        )}
+                      </AnimatedTableRow>
+                    ))}
+                  </AnimatePresence>
                 </TableBody>
               </Table>
             </TableContainer>
@@ -663,67 +696,76 @@ function Team() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {invitations.map((invite) => (
-                    <TableRow key={invite.id}>
-                      <TableCell>{invite.firstName} {invite.lastName}</TableCell>
-                      <TableCell>{invite.email}</TableCell>
-                      <TableCell>{invite.phone}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={invite.role} 
-                          color={invite.role === 'admin' ? 'primary' : 'default'} 
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={invite.status} 
-                          color={invite.status === 'pending' ? 'warning' : invite.status === 'accepted' ? 'success' : 'error'} 
-                          size="small"
-                        />
-                      </TableCell>
-                      {isAdmin && (
-                        <TableCell align="right">
-                          <Tooltip title="Upraviť údaje v pozvánke">
-                            <span>
-                              <IconButton 
-                                size="small" 
-                                onClick={() => handleEdit(invite)}
-                                aria-label="Upraviť údaje v pozvánke"
-                              >
-                                <EditIcon />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                          {invite.status === 'pending' && (
-                            <Tooltip title="Preposlať pozvánku">
+                  <AnimatePresence mode="wait">
+                    {invitations.map((invite) => (
+                      <AnimatedTableRow
+                        key={invite.id}
+                        variants={fadeOut}
+                        initial="initial"
+                        exit="exit"
+                        animate={deletingMemberId === invite.id ? "exit" : "initial"}
+                        style={{ display: deletingMemberId === invite.id ? 'none' : 'table-row' }}
+                      >
+                        <TableCell>{invite.firstName} {invite.lastName}</TableCell>
+                        <TableCell>{invite.email}</TableCell>
+                        <TableCell>{invite.phone}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={invite.role} 
+                            color={invite.role === 'admin' ? 'primary' : 'default'} 
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={invite.status} 
+                            color={invite.status === 'pending' ? 'warning' : invite.status === 'accepted' ? 'success' : 'error'} 
+                            size="small"
+                          />
+                        </TableCell>
+                        {isAdmin && (
+                          <TableCell align="right">
+                            <Tooltip title="Upraviť údaje v pozvánke">
                               <span>
                                 <IconButton 
                                   size="small" 
-                                  onClick={() => handleResendInvitation(invite)}
-                                  disabled={loading}
-                                  aria-label="Preposlať pozvánku"
+                                  onClick={() => handleEdit(invite)}
+                                  aria-label="Upraviť údaje v pozvánke"
                                 >
-                                  <SendIcon color="primary" />
+                                  <EditIcon />
                                 </IconButton>
                               </span>
                             </Tooltip>
-                          )}
-                          <Tooltip title="Zrušiť pozvánku">
-                            <span>
-                              <IconButton 
-                                size="small" 
-                                onClick={() => handleDeleteClick(invite)}
-                                aria-label="Zrušiť pozvánku"
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
+                            {invite.status === 'pending' && (
+                              <Tooltip title="Preposlať pozvánku">
+                                <span>
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handleResendInvitation(invite)}
+                                    disabled={loading}
+                                    aria-label="Preposlať pozvánku"
+                                  >
+                                    <SendIcon color="primary" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                            <Tooltip title="Zrušiť pozvánku">
+                              <span>
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => handleDeleteClick(invite)}
+                                  aria-label="Zrušiť pozvánku"
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          </TableCell>
+                        )}
+                      </AnimatedTableRow>
+                    ))}
+                  </AnimatePresence>
                 </TableBody>
               </Table>
             </TableContainer>
