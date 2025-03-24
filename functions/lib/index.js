@@ -78,7 +78,7 @@ exports.sendInvitationEmail = functions
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             createdBy: context.auth.uid
         });
-        const invitationLink = `https://core-app-423c7.web.app/accept-invitation/${data.invitationId}`;
+        const invitationLink = `https://core.aesa.sk/register-user?invitationId=${data.invitationId}`;
         const emailHtml = `
         <h2>Pozvánka do AESA Transport Platform</h2>
         <p>Dobrý deň ${data.firstName},</p>
@@ -118,7 +118,7 @@ exports.checkBusinessCaseReminders = functions
             <p>Máte pripomienku pre obchodný prípad "${businessCase.title}".</p>
             <p>Dátum pripomienky: ${businessCase.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
             <p>Pre zobrazenie detailov kliknite na nasledujúci odkaz:</p>
-            <a href="https://core-app-423c7.web.app/business-cases">Zobraziť obchodný prípad</a>
+            <a href="https://core.aesa.sk/business-cases">Zobraziť obchodný prípad</a>
           `;
                 await sendEmail(userData.email, 'Pripomienka pre obchodný prípad', emailHtml);
                 await doc.ref.update({ reminderSent: true });
@@ -153,7 +153,7 @@ exports.checkTransportNotifications = functions
             <p>Máte pripomienku pre sledovanú prepravu "${transport.title}".</p>
             <p>Dátum pripomienky: ${transport.notificationDateTime.toDate().toLocaleString('sk-SK')}</p>
             <p>Pre zobrazenie detailov kliknite na nasledujúci odkaz:</p>
-            <a href="https://core-app-423c7.web.app/tracked-transports">Zobraziť sledovanú prepravu</a>
+            <a href="https://core.aesa.sk/tracked-transports">Zobraziť sledovanú prepravu</a>
           `;
                 await sendEmail(userData.email, 'Pripomienka pre sledovanú prepravu', emailHtml);
                 await doc.ref.update({ notificationSent: true });

@@ -7,13 +7,13 @@ interface PrivateRouteProps {
 }
 
 function PrivateRoute({ children }: PrivateRouteProps) {
-  const { currentUser, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return <div>Načítanie...</div>;
   }
 
-  if (!currentUser) {
+  if (!user) {
     return <Navigate to="/login" />;
   }
 

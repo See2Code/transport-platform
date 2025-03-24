@@ -3,7 +3,7 @@ import { User } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { CircularProgress, Box } from '@mui/material';
 import { doc, getDoc } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 
 interface UserData {
   uid: string;
@@ -16,7 +16,8 @@ interface UserData {
 }
 
 interface AuthContextType {
-  currentUser: User | null;
+  user: User | null;
+  setUser: (user: User | null) => void;
   userData: UserData | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -24,8 +25,9 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({ 
-  currentUser: null, 
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  setUser: () => {},
   userData: null,
   loading: true,
   login: async () => {},
@@ -33,20 +35,18 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
 });
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     console.log('AuthProvider: Inicializácia onAuthStateChanged');
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('AuthProvider: onAuthStateChanged callback - user:', user?.uid);
-      setCurrentUser(user);
+      setUser(user);
       
       if (user) {
         try {
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       await signOut(auth);
-      setCurrentUser(null);
+      setUser(null);
       setUserData(null);
     } catch (error) {
       console.error('Chyba pri odhlásení:', error);
@@ -91,7 +91,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const value = {
-    currentUser,
+    user,
+    setUser,
     userData,
     loading,
     login,
@@ -99,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
   };
 
-  console.log('AuthProvider: Render - loading:', loading, 'currentUser:', currentUser?.uid, 'userData:', userData);
+  console.log('AuthProvider: Render - loading:', loading, 'user:', user?.uid, 'userData:', userData);
 
   return (
     <AuthContext.Provider value={value}>

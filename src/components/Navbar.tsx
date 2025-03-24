@@ -164,7 +164,7 @@ interface MenuItem {
 }
 
 const Navbar = () => {
-  const { currentUser, userData, logout } = useAuth();
+  const { user, userData, logout } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -353,7 +353,7 @@ const Navbar = () => {
       </List>
       <Box sx={{ mt: 'auto', mb: 2 }}>
         <Divider sx={{ mb: 2, backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
-        {currentUser && userData && (
+        {user && userData && (
           <>
             <ListItem 
               button 

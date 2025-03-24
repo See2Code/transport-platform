@@ -130,7 +130,7 @@ export default function BusinessCases() {
   const [cases, setCases] = useState<BusinessCase[]>([]);
   const [open, setOpen] = useState(false);
   const [editCase, setEditCase] = useState<BusinessCase | null>(null);
-  const { currentUser, userData } = useAuth();
+  const { user, userData } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
@@ -154,11 +154,11 @@ export default function BusinessCases() {
   const [selectedCountry, setSelectedCountry] = useState(euCountries[0]);
 
   useEffect(() => {
-    if (!currentUser) {
+    if (!user) {
       navigate('/login');
       return;
     }
-  }, [currentUser, navigate]);
+  }, [user, navigate]);
 
   useEffect(() => {
     fetchCases();
@@ -191,7 +191,7 @@ export default function BusinessCases() {
 
   const handleSubmit = async () => {
     try {
-      if (!currentUser || !userData) {
+      if (!user || !userData) {
         setSnackbar({
           open: true,
           message: 'Nie ste prihlásený',
@@ -248,8 +248,8 @@ export default function BusinessCases() {
       // Ak je nastavený reminder, vytvoríme email notifikáciu
       if (formData.reminderDateTime) {
         await addDoc(collection(db, 'reminders'), {
-          userId: currentUser.uid,
-          userEmail: currentUser.email,
+          userId: user.uid,
+          userEmail: user.email,
           businessCaseId: editCase?.id || '',
           reminderDateTime: Timestamp.fromDate(formData.reminderDateTime),
           companyName: formData.companyName,
