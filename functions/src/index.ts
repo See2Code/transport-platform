@@ -1,6 +1,5 @@
 import * as functions from 'firebase-functions/v1';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { CloudFunction, EventContext } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as nodemailer from 'nodemailer';
 

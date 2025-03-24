@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateExistingRecords = exports.logFunctionMetrics = exports.checkTransportNotifications = exports.checkBusinessCaseReminders = exports.sendInvitationEmail = exports.clearDatabase = void 0;
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 admin.initializeApp();
@@ -65,29 +65,28 @@ exports.sendInvitationEmail = functions
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Užívateľ nie je prihlásený');
     }
-    const { email, firstName, lastName, phone, invitationId, companyId, role } = data;
     try {
-        const invitationRef = admin.firestore().collection('invitations').doc(invitationId);
+        const invitationRef = admin.firestore().collection('invitations').doc(data.invitationId);
         await invitationRef.set({
-            email,
-            firstName,
-            lastName,
-            phone,
-            companyId,
-            role,
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phone: data.phone,
+            companyId: data.companyId,
+            role: data.role,
             status: 'pending',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             createdBy: context.auth.uid
         });
-        const invitationLink = `https://core-app-423c7.web.app/accept-invitation/${invitationId}`;
+        const invitationLink = `https://core-app-423c7.web.app/accept-invitation/${data.invitationId}`;
         const emailHtml = `
         <h2>Pozvánka do AESA Transport Platform</h2>
-        <p>Dobrý deň ${firstName},</p>
+        <p>Dobrý deň ${data.firstName},</p>
         <p>Boli ste pozvaní do AESA Transport Platform.</p>
         <p>Pre prijatie pozvánky kliknite na nasledujúci odkaz:</p>
         <a href="${invitationLink}">Prijať pozvánku</a>
       `;
-        await sendEmail(email, 'Pozvánka do AESA Transport Platform', emailHtml);
+        await sendEmail(data.email, 'Pozvánka do AESA Transport Platform', emailHtml);
         return { success: true };
     }
     catch (error) {
