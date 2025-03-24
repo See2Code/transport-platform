@@ -354,22 +354,28 @@ const Contacts = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Spoločnosť</TableCell>
-              <TableCell>Kontaktná osoba</TableCell>
-              <TableCell>Mobil</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Poznámka</TableCell>
-              <TableCell>Vytvoril</TableCell>
-              <TableCell>Dátum vytvorenia</TableCell>
-              <TableCell>Akcie</TableCell>
+              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Spoločnosť</TableCell>
+              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Kontaktná osoba</TableCell>
+              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Mobil</TableCell>
+              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Email</TableCell>
+              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Vytvoril</TableCell>
+              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Dátum vytvorenia</TableCell>
+              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Poznámka</TableCell>
+              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Akcie</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredContacts.map((contact) => (
-              <TableRow key={contact.id} sx={{ '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } }}>
-                <TableCell>{contact.company}</TableCell>
-                <TableCell>{contact.firstName} {contact.lastName}</TableCell>
-                <TableCell>
+              <TableRow 
+                key={contact.id} 
+                sx={{ 
+                  '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+                  height: '60px'
+                }}
+              >
+                <TableCell sx={{ height: '60px' }}>{contact.company}</TableCell>
+                <TableCell sx={{ height: '60px' }}>{contact.firstName} {contact.lastName}</TableCell>
+                <TableCell sx={{ height: '60px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <img
                       loading="lazy"
@@ -380,12 +386,9 @@ const Contacts = () => {
                     {contact.phonePrefix} {contact.phoneNumber}
                   </Box>
                 </TableCell>
-                <TableCell>{contact.email}</TableCell>
-                <TableCell sx={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {contact.notes || ''}
-                </TableCell>
-                <TableCell>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                <TableCell sx={{ height: '60px' }}>{contact.email}</TableCell>
+                <TableCell sx={{ height: '60px' }}>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
+                <TableCell sx={{ height: '60px', whiteSpace: 'nowrap' }}>
                   {contact.createdAt?.toDate().toLocaleString('sk-SK', {
                     day: '2-digit',
                     month: '2-digit',
@@ -394,13 +397,26 @@ const Contacts = () => {
                     minute: '2-digit'
                   })}
                 </TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleEdit(contact)} color="primary">
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => contact.id && handleDelete(contact.id)} color="error">
-                    <DeleteIcon />
-                  </IconButton>
+                <TableCell sx={{ height: '60px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {contact.notes || ''}
+                </TableCell>
+                <TableCell sx={{ height: '60px' }}>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton 
+                      onClick={() => handleEdit(contact)} 
+                      color="primary"
+                      sx={{ padding: '8px' }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton 
+                      onClick={() => contact.id && handleDelete(contact.id)} 
+                      color="error"
+                      sx={{ padding: '8px' }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
