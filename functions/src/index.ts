@@ -117,7 +117,14 @@ export const sendInvitationEmail = functions
       `;
 
       await sendEmail(data.email, 'Pozvánka do AESA Transport Platform', emailHtml);
-      return { success: true };
+      return { 
+        success: true,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      };
     } catch (error) {
       console.error('Chyba pri odosielaní pozvánky:', error);
       throw new functions.https.HttpsError('internal', 'Chyba pri odosielaní pozvánky');

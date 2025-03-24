@@ -212,6 +212,35 @@ function RegisterUser() {
               Pre dokončenie registrácie si prosím nastavte heslo.
             </Typography>
 
+            <Divider sx={{ my: 3 }} />
+            <Typography variant="h6" gutterBottom>
+              Nastavenie hesla
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Heslo"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Potvrďte heslo"
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+            </Grid>
+
             {!companyLoading && company && (
               <>
                 <Divider sx={{ my: 3 }} />
@@ -254,35 +283,6 @@ function RegisterUser() {
                 </Grid>
               </>
             )}
-
-            <Divider sx={{ my: 3 }} />
-            <Typography variant="h6" gutterBottom>
-              Nastavenie hesla
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Heslo"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Potvrďte heslo"
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
-            </Grid>
 
             {error && (
               <Alert severity="error" sx={{ mt: 2 }}>

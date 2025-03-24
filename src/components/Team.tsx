@@ -362,6 +362,12 @@ function Team() {
       setError('');
       setSuccess('');
 
+      // Kontrola autentifikácie
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('Užívateľ nie je prihlásený');
+      }
+
       // Vytvorenie pozvánky v Firestore
       const invitationRef = await addDoc(collection(db, 'invitations'), {
         email,
@@ -702,7 +708,7 @@ function Team() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <AnimatePresence mode="wait">
+                  <AnimatePresence mode="sync">
                     {invitations.map((invite) => (
                       <AnimatedTableRow
                         key={invite.id}
