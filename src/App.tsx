@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { sk } from 'date-fns/locale';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { auth } from './firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import Navbar from './components/Navbar';
+import { AuthProvider } from './contexts/AuthContext';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -74,99 +71,68 @@ const theme = createTheme({
   },
 });
 
-const INACTIVITY_TIMEOUT = 3 * 60 * 60 * 1000; // 3 hodiny v milisekundách
-
 function App() {
-  const { user, setUser } = useAuth();
-  const [lastActivity, setLastActivity] = useState(Date.now());
-  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
-
-  // Funkcia na resetovanie časovača nečinnosti
-  const resetInactivityTimer = () => {
-    setLastActivity(Date.now());
-    if (inactivityTimer) {
-      clearTimeout(inactivityTimer);
-    }
-    const timer = setTimeout(() => {
-      if (user) {
-        signOut(auth);
-      }
-    }, INACTIVITY_TIMEOUT);
-    setInactivityTimer(timer);
-  };
-
-  // Pridanie event listenerov pre sledovanie aktivity
-  useEffect(() => {
-    if (user) {
-      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-      events.forEach(event => {
-        document.addEventListener(event, resetInactivityTimer);
-      });
-
-      // Inicializácia časovača
-      resetInactivityTimer();
-
-      // Vyčistenie event listenerov pri odhlásení
-      return () => {
-        events.forEach(event => {
-          document.removeEventListener(event, resetInactivityTimer);
-        });
-        if (inactivityTimer) {
-          clearTimeout(inactivityTimer);
-        }
-      };
-    }
-  }, [user]);
-
-  // Kontrola aktivity každú minútu
-  useEffect(() => {
-    if (user) {
-      const interval = setInterval(() => {
-        const timeSinceLastActivity = Date.now() - lastActivity;
-        if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
-          signOut(auth);
-        }
-      }, 60000); // Kontrola každú minútu
-
-      return () => clearInterval(interval);
-    }
-  }, [user, lastActivity]);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   return (
     <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
         <CssBaseline />
         <AuthProvider>
           <Router>
-            {user ? (
-              <>
-                <Navbar />
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/business-cases" element={<BusinessCases />} />
-                  <Route path="/contacts" element={<Contacts />} />
-                  <Route path="/team" element={<Team />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/tracked-transports" element={<TrackedTransports />} />
-                  <Route path="/transport/:id" element={<Transport />} />
-                </Routes>
-              </>
-            ) : (
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/register-user" element={<RegisterUser />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Routes>
-            )}
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/register-user" element={<RegisterUser />} />
+              <Route path="/dashboard" element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              } />
+              <Route path="/transport" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <Transport />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/tracked-transports" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <TrackedTransports />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/team" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <Team />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/settings" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <Settings />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
+              <Route path="/contacts" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <Contacts />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="/business-cases" element={
+                <PrivateRoute>
+                  <Dashboard>
+                    <BusinessCases />
+                  </Dashboard>
+                </PrivateRoute>
+              } />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </Router>
         </AuthProvider>
       </LocalizationProvider>

@@ -96,7 +96,7 @@ export const sendInvitationEmail = functions
         createdBy: context.auth.uid
       });
 
-      const invitationLink = `https://core.aesa.sk/register-user?invitationId=${data.invitationId}`;
+      const invitationLink = `https://core.aesa.sk/registration-user?invitationId=${data.invitationId}`;
       const emailHtml = `
         <h2>Pozvánka do AESA Transport Platform</h2>
         <p>Dobrý deň ${data.firstName},</p>
