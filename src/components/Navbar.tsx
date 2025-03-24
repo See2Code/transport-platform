@@ -130,8 +130,12 @@ const ToggleButton = styled(IconButton)(({ theme }) => ({
     fontSize: '24px',
   },
   '@media (max-width: 600px)': {
-    right: '16px',
-    bottom: '16px',
+    position: 'relative',
+    right: 'auto',
+    bottom: 'auto',
+    margin: '16px auto',
+    display: 'flex',
+    justifyContent: 'center',
     width: '48px',
     height: '48px',
     borderRadius: '50%',
@@ -401,16 +405,7 @@ const Navbar = () => {
               </ListItemIconStyled>
               <ListItemText 
                 primary="Odhlásiť sa" 
-                sx={{ 
-                  opacity: mobileOpen ? 1 : 0,
-                  transition: 'all 0.3s ease-in-out',
-                  '& .MuiTypography-root': {
-                    fontSize: '0.95rem',
-                    fontWeight: 500,
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    transition: 'all 0.2s ease-in-out',
-                  }
-                }} 
+                sx={{ opacity: mobileOpen ? 1 : 0 }} 
               />
             </ListItem>
             <ListItem 
@@ -429,18 +424,31 @@ const Navbar = () => {
             >
               <ListItemText 
                 primary={`Prihlásený: ${userData.firstName} ${userData.lastName}`}
-                sx={{ 
-                  opacity: mobileOpen ? 1 : 0,
-                  transition: 'all 0.3s ease-in-out',
-                }} 
+                sx={{ opacity: mobileOpen ? 1 : 0 }} 
               />
             </ListItem>
+            <Box sx={{ 
+              display: { xs: 'flex', sm: 'none' },
+              justifyContent: 'center',
+              mt: 2
+            }}>
+              <ToggleButton onClick={handleDrawerToggle}>
+                {mobileOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+              </ToggleButton>
+            </Box>
           </>
         )}
       </Box>
-      <ToggleButton onClick={handleDrawerToggle}>
-        {mobileOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-      </ToggleButton>
+      <Box sx={{ 
+        display: { xs: 'none', sm: 'block' },
+        position: 'fixed',
+        right: '12px',
+        bottom: '24px'
+      }}>
+        <ToggleButton onClick={handleDrawerToggle}>
+          {mobileOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+        </ToggleButton>
+      </Box>
     </>
   );
 

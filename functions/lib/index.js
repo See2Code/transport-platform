@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkBusinessCaseReminders = exports.checkTransportNotifications = exports.sendInvitationEmail = exports.clearDatabase = void 0;
+exports.updateExistingRecords = exports.checkBusinessCaseReminders = exports.checkTransportNotifications = exports.sendInvitationEmail = exports.clearDatabase = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
@@ -224,63 +224,89 @@ exports.checkTransportNotifications = functions.pubsub
 });
 // Funkcia na kontrolu pripomienok obchodných prípadov
 exports.checkBusinessCaseReminders = functions.pubsub
-    .schedule('every 5 minutes')
+    .schedule('* * * * *') // Každú minútu
+    .timeZone('Europe/Bratislava')
     .onRun(async (context) => {
-    const now = admin.firestore.Timestamp.now();
     const db = admin.firestore();
+    const now = admin.firestore.Timestamp.now();
     try {
-        console.log('Začínam kontrolu pripomienok obchodných prípadov:', now.toDate().toISOString());
-        // Získame všetky neodoslané pripomienky, ktoré majú byť odoslané v najbližších 5 minútach
-        const fiveMinutesFromNow = new Date(now.toDate().getTime() + 5 * 60 * 1000);
         const remindersSnapshot = await db.collection('reminders')
-            .where('reminderDateTime', '<=', admin.firestore.Timestamp.fromDate(fiveMinutesFromNow))
             .where('sent', '==', false)
+            .where('reminderDateTime', '<=', now)
             .get();
         console.log(`Našiel som ${remindersSnapshot.size} pripomienok na odoslanie`);
         for (const doc of remindersSnapshot.docs) {
             const reminder = doc.data();
-            const userEmail = reminder.userEmail;
-            const reminderTime = reminder.reminderDateTime.toDate();
-            console.log(`Spracovávam pripomienku pre ${userEmail} na čas ${reminderTime.toISOString()}`);
-            if (!userEmail) {
-                console.log('Pripomienka nemá nastavený email, preskakujem');
-                continue;
-            }
-            // Pošleme email
-            await transporter.sendMail({
-                from: process.env.EMAIL_USER || 'noreply@aesa.sk',
-                to: userEmail,
-                subject: 'Pripomienka obchodného prípadu - Transport Platform',
-                html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #1a1b2e;">Pripomienka obchodného prípadu</h2>
-              <p>Dobrý deň,</p>
-              <p>pripomíname Vám obchodný prípad:</p>
-              <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="margin: 5px 0;"><strong>Firma:</strong> ${reminder.companyName}</p>
-                <p style="margin: 5px 0;"><strong>Kontaktná osoba:</strong> ${reminder.contactPerson.firstName} ${reminder.contactPerson.lastName}</p>
-                <p style="margin: 5px 0;"><strong>Telefón:</strong> ${reminder.contactPerson.phone}</p>
-                <p style="margin: 5px 0;"><strong>Email:</strong> ${reminder.contactPerson.email}</p>
-                ${reminder.reminderNote ? `<p style="margin: 5px 0;"><strong>Poznámka:</strong> ${reminder.reminderNote}</p>` : ''}
-                <p style="margin: 5px 0;"><strong>Čas pripomienky:</strong> ${reminderTime.toLocaleString('sk-SK')}</p>
+            if (reminder.userEmail) {
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER || 'noreply@aesa.sk',
+                    to: reminder.userEmail,
+                    subject: `Pripomienka: ${reminder.companyName}`,
+                    html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #1a1b2e;">Pripomienka obchodného prípadu</h2>
+                <p>Dobrý deň,</p>
+                <p>pripomíname Vám obchodný prípad:</p>
+                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                  <p style="margin: 5px 0;"><strong>Firma:</strong> ${reminder.companyName}</p>
+                  <p style="margin: 5px 0;"><strong>Kontaktná osoba:</strong> ${reminder.contactPerson.firstName} ${reminder.contactPerson.lastName}</p>
+                  <p style="margin: 5px 0;"><strong>Telefón:</strong> ${reminder.contactPerson.phone}</p>
+                  <p style="margin: 5px 0;"><strong>Email:</strong> ${reminder.contactPerson.email}</p>
+                  ${reminder.reminderNote ? `<p style="margin: 5px 0;"><strong>Poznámka:</strong> ${reminder.reminderNote}</p>` : ''}
+                </div>
+                <p style="color: #666;">S pozdravom,<br>Váš Transport Platform tím</p>
               </div>
-              <p style="color: #666;">S pozdravom,<br>Váš Transport Platform tím</p>
-            </div>
-          `
-            });
-            // Aktualizujeme záznam
-            await doc.ref.update({
-                sent: true,
-                sentAt: now
-            });
-            console.log(`Pripomienka bola úspešne odoslaná pre ${userEmail}`);
+            `
+                });
+                await doc.ref.update({
+                    sent: true,
+                    sentAt: now
+                });
+                console.log(`Pripomienka bola úspešne odoslaná pre ${reminder.userEmail}`);
+            }
         }
-        console.log('Kontrola pripomienok obchodných prípadov bola úspešne dokončená');
         return null;
     }
     catch (error) {
-        console.error('Chyba pri kontrole pripomienok obchodných prípadov:', error);
+        console.error('Chyba pri kontrole pripomienok:', error);
         return null;
+    }
+});
+// Funkcia na aktualizáciu existujúcich záznamov
+exports.updateExistingRecords = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Musíte byť prihlásený.');
+    }
+    try {
+        const db = admin.firestore();
+        const now = admin.firestore.Timestamp.now();
+        // Aktualizácia obchodných prípadov
+        const businessCasesSnapshot = await db.collection('businessCases')
+            .where('createdBy', '==', null)
+            .get();
+        console.log(`Našiel som ${businessCasesSnapshot.size} obchodných prípadov na aktualizáciu`);
+        const batch = db.batch();
+        for (const doc of businessCasesSnapshot.docs) {
+            // Získame údaje o používateľovi, ktorý vytvoril záznam
+            const userDoc = await db.collection('users').doc(doc.data().userId || context.auth.uid).get();
+            const userData = userDoc.data();
+            if (userData) {
+                batch.update(doc.ref, {
+                    createdAt: doc.data().createdAt || now,
+                    createdBy: {
+                        firstName: userData.firstName || '',
+                        lastName: userData.lastName || ''
+                    }
+                });
+            }
+        }
+        await batch.commit();
+        console.log('Aktualizácia záznamov bola úspešne dokončená');
+        return { success: true, message: 'Záznamy boli úspešne aktualizované.' };
+    }
+    catch (error) {
+        console.error('Chyba pri aktualizácii záznamov:', error);
+        throw new functions.https.HttpsError('internal', 'Nepodarilo sa aktualizovať záznamy.');
     }
 });
 //# sourceMappingURL=index.js.map

@@ -69,7 +69,7 @@ const caseStatuses = {
 };
 
 interface BusinessCase {
-  id: string;
+  id?: string;
   companyName: string;
   vatNumber: string;
   companyAddress: string;
@@ -81,13 +81,19 @@ interface BusinessCase {
   };
   internalNote: string;
   status: keyof typeof caseStatuses;
-  reminderDateTime?: Date;
-  reminderNote?: string;
-  createdAt: Date;
+  reminderDateTime: Date | null;
+  reminderNote: string;
+  createdAt: Timestamp;
   createdBy: {
-    id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
   };
+  updatedAt?: Timestamp;
+  updatedBy?: {
+    firstName: string;
+    lastName: string;
+  };
+  countryCode?: string;
 }
 
 const PageWrapper = styled(Box)({
@@ -129,7 +135,7 @@ export default function BusinessCases() {
   const [cases, setCases] = useState<BusinessCase[]>([]);
   const [open, setOpen] = useState(false);
   const [editCase, setEditCase] = useState<BusinessCase | null>(null);
-  const { currentUser } = useAuth();
+  const { currentUser, userData } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
@@ -147,6 +153,8 @@ export default function BusinessCases() {
     status: 'NOT_CALLED' as keyof typeof caseStatuses,
     reminderDateTime: null as Date | null,
     reminderNote: '',
+    createdBy: null as { firstName: string; lastName: string; } | null,
+    createdAt: null as Date | null
   });
   const [selectedCountry, setSelectedCountry] = useState(euCountries[0]);
 
@@ -166,12 +174,16 @@ export default function BusinessCases() {
       const casesCollection = collection(db, 'businessCases');
       const casesQuery = query(casesCollection, orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(casesQuery);
-      const casesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt.toDate(),
-        reminderDateTime: doc.data().reminderDateTime?.toDate(),
-      })) as BusinessCase[];
+      const casesData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt : Timestamp.fromDate(new Date(data.createdAt)),
+          updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : (data.updatedAt ? Timestamp.fromDate(new Date(data.updatedAt)) : null),
+          reminderDateTime: data.reminderDateTime ? (data.reminderDateTime instanceof Timestamp ? data.reminderDateTime.toDate() : new Date(data.reminderDateTime)) : null
+        };
+      }) as BusinessCase[];
       setCases(casesData);
     } catch (error) {
       console.error('Error fetching cases:', error);
@@ -184,38 +196,43 @@ export default function BusinessCases() {
   };
 
   const handleSubmit = async () => {
-    if (!currentUser) {
-      console.error('No authenticated user');
-      return;
-    }
-
     try {
-      const casesCollection = collection(db, 'businessCases');
-      const caseData = {
-        ...formData,
-        createdAt: Timestamp.now(),
-        createdBy: {
-          id: currentUser.uid,
-          name: currentUser.displayName || currentUser.email || 'Unknown User',
-        },
-      };
-
-      // Vytvorenie alebo aktualizácia obchodného prípadu
-      let savedCaseId = editCase?.id;
-      
-      if (editCase) {
-        await updateDoc(doc(db, 'businessCases', editCase.id), caseData);
+      if (!currentUser || !userData) {
         setSnackbar({
           open: true,
-          message: 'Prípad bol úspešne upravený',
+          message: 'Nie ste prihlásený',
+          severity: 'error'
+        });
+        return;
+      }
+
+      const businessCaseData = {
+        ...formData,
+        countryCode: selectedCountry.code,
+        createdAt: editCase ? editCase.createdAt : Timestamp.now(),
+        createdBy: editCase ? editCase.createdBy : {
+          firstName: userData.firstName,
+          lastName: userData.lastName
+        },
+        updatedAt: editCase ? Timestamp.now() : null,
+        updatedBy: editCase ? {
+          firstName: userData.firstName,
+          lastName: userData.lastName
+        } : null
+      };
+
+      if (editCase?.id) {
+        await updateDoc(doc(db, 'businessCases', editCase.id), businessCaseData);
+        setSnackbar({
+          open: true,
+          message: 'Obchodný prípad bol úspešne upravený',
           severity: 'success'
         });
       } else {
-        const docRef = await addDoc(casesCollection, caseData);
-        savedCaseId = docRef.id;
+        await addDoc(collection(db, 'businessCases'), businessCaseData);
         setSnackbar({
           open: true,
-          message: 'Nový prípad bol úspešne pridaný',
+          message: 'Nový obchodný prípad bol úspešne pridaný',
           severity: 'success'
         });
       }
@@ -232,10 +249,10 @@ export default function BusinessCases() {
         email: formData.contactPerson.email,
         createdAt: Timestamp.now(),
         createdBy: {
-          firstName: currentUser.displayName?.split(' ')[0] || '',
-          lastName: currentUser.displayName?.split(' ')[1] || '',
+          firstName: userData.firstName,
+          lastName: userData.lastName
         },
-        businessCaseId: savedCaseId, // Pridáme referenciu na obchodný prípad
+        businessCaseId: editCase?.id || ''
       };
 
       await addDoc(contactsCollection, contactData);
@@ -245,7 +262,7 @@ export default function BusinessCases() {
         await addDoc(collection(db, 'reminders'), {
           userId: currentUser.uid,
           userEmail: currentUser.email,
-          businessCaseId: savedCaseId,
+          businessCaseId: editCase?.id || '',
           reminderDateTime: Timestamp.fromDate(formData.reminderDateTime),
           companyName: formData.companyName,
           reminderNote: formData.reminderNote || '',
@@ -271,13 +288,15 @@ export default function BusinessCases() {
         status: 'NOT_CALLED',
         reminderDateTime: null,
         reminderNote: '',
+        createdBy: null,
+        createdAt: null
       });
       fetchCases();
     } catch (error) {
-      console.error('Error saving case:', error);
+      console.error('Error saving business case:', error);
       setSnackbar({
         open: true,
-        message: 'Nastala chyba pri ukladaní prípadu',
+        message: 'Nastala chyba pri ukladaní obchodného prípadu',
         severity: 'error'
       });
     }
@@ -313,8 +332,10 @@ export default function BusinessCases() {
       contactPerson: businessCase.contactPerson,
       internalNote: businessCase.internalNote,
       status: businessCase.status,
-      reminderDateTime: businessCase.reminderDateTime || null,
-      reminderNote: businessCase.reminderNote || '',
+      reminderDateTime: businessCase.reminderDateTime,
+      reminderNote: businessCase.reminderNote,
+      createdBy: businessCase.createdBy || null,
+      createdAt: businessCase.createdAt?.toDate() || null
     });
     setOpen(true);
   };
@@ -363,6 +384,8 @@ export default function BusinessCases() {
               status: 'NOT_CALLED',
               reminderDateTime: null,
               reminderNote: '',
+              createdBy: null,
+              createdAt: null
             });
             setSelectedCountry(euCountries[0]);
             setOpen(true);
@@ -382,76 +405,118 @@ export default function BusinessCases() {
       />
 
       <TableContainer component={Paper}>
-        <Table>
+        <Table sx={{ whiteSpace: 'nowrap' }}>
           <TableHead>
             <TableRow>
-              <TableCell>Vytvorené</TableCell>
-              <TableCell>Vytvoril</TableCell>
-              <TableCell>Firma</TableCell>
-              <TableCell>IČ DPH</TableCell>
-              <TableCell>Kontaktná osoba</TableCell>
-              <TableCell>Kontakt</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Pripomienka</TableCell>
-              <TableCell>Akcie</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Dátum vytvorenia</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Status</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Firma</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>IČ DPH</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Kontaktná osoba</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Telefón</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Email</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Vytvoril</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Upravil</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Dátum úpravy</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Pripomienka</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>Akcie</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredCases.map((businessCase) => (
-              <TableRow key={businessCase.id}>
-                <TableCell>
-                  {businessCase.createdAt.toLocaleDateString('sk-SK')}
+              <TableRow key={businessCase.id} sx={{ '& td': { whiteSpace: 'nowrap' } }}>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {businessCase.createdAt instanceof Timestamp ? 
+                    businessCase.createdAt.toDate().toLocaleString('sk-SK', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }).replace(',', '') : 
+                    new Date(businessCase.createdAt).toLocaleString('sk-SK', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }).replace(',', '')}
                 </TableCell>
-                <TableCell>
-                  {businessCase.createdBy.name}
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <BusinessIcon fontSize="small" />
-                    {businessCase.companyName}
-                  </Box>
-                </TableCell>
-                <TableCell>{businessCase.vatNumber}</TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <PersonIcon fontSize="small" />
-                    {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <PhoneIcon fontSize="small" />
-                      {businessCase.contactPerson.phone}
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <EmailIcon fontSize="small" />
-                      {businessCase.contactPerson.email}
-                    </Box>
-                  </Box>
-                </TableCell>
-                <TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   <Chip
                     label={caseStatuses[businessCase.status].label}
                     color={caseStatuses[businessCase.status].color}
                     size="small"
                   />
                 </TableCell>
-                <TableCell>
-                  {businessCase.reminderDateTime && (
-                    <Tooltip title="Pripomienka">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <AccessTimeIcon fontSize="small" />
-                        {businessCase.reminderDateTime.toLocaleString('sk-SK')}
-                      </Box>
-                    </Tooltip>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {businessCase.companyName}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {businessCase.vatNumber}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, whiteSpace: 'nowrap' }}>
+                    <PersonIcon fontSize="small" />
+                    {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, whiteSpace: 'nowrap' }}>
+                    <img
+                      loading="lazy"
+                      width="20"
+                      src={`https://flagcdn.com/${businessCase.countryCode?.toLowerCase()}.svg`}
+                      alt=""
+                    />
+                    {businessCase.contactPerson.phone}
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {businessCase.contactPerson.email}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {businessCase.createdBy?.firstName} {businessCase.createdBy?.lastName}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {businessCase.updatedBy?.firstName} {businessCase.updatedBy?.lastName}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {businessCase.updatedAt && (
+                    businessCase.updatedAt instanceof Timestamp ? 
+                      businessCase.updatedAt.toDate().toLocaleString('sk-SK', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).replace(',', '') :
+                      new Date(businessCase.updatedAt).toLocaleString('sk-SK', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).replace(',', '')
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {businessCase.reminderDateTime && (
+                    typeof businessCase.reminderDateTime === 'object' && 'toLocaleString' in businessCase.reminderDateTime ?
+                    businessCase.reminderDateTime.toLocaleString('sk-SK', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }).replace(',', '') : ''
+                  )}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   <IconButton onClick={() => handleEdit(businessCase)}>
                     <EditIcon />
                   </IconButton>
-                  <IconButton onClick={() => handleDelete(businessCase.id)}>
+                  <IconButton onClick={() => handleDelete(businessCase.id || '')}>
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
@@ -480,6 +545,8 @@ export default function BusinessCases() {
             status: 'NOT_CALLED',
             reminderDateTime: null,
             reminderNote: '',
+            createdBy: null,
+            createdAt: null
           });
         }}
         maxWidth="md"
