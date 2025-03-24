@@ -38,45 +38,53 @@ const AcceptInvitation: React.FC = () => {
 
   useEffect(() => {
     const loadInvitation = async () => {
-      if (!invitationId) {
-        setError('Chýbajúce ID pozvánky.');
-        setLoading(false);
-        return;
-      }
-
       try {
-        const invitationDoc = await getDoc(doc(db, 'invitations', invitationId));
+        console.log('Načítavam pozvánku s ID:', invitationId);
+        const invitationRef = doc(db, 'invitations', invitationId);
+        const invitationDoc = await getDoc(invitationRef);
         
         if (!invitationDoc.exists()) {
+          console.error('Pozvánka neexistuje:', invitationId);
           setError('Pozvánka nebola nájdená.');
-          setLoading(false);
           return;
         }
 
-        const invitationData = invitationDoc.data() as Invitation;
-        
+        const invitationData = invitationDoc.data();
+        console.log('Načítané dáta pozvánky:', invitationData);
+
         if (invitationData.status !== 'pending') {
-          setError('Táto pozvánka už bola použitá.');
-          setLoading(false);
+          console.error('Pozvánka už nie je aktívna:', invitationData.status);
+          setError('Pozvánka už nie je aktívna.');
           return;
         }
 
         if (!invitationData.companyID) {
-          setError('Chýbajúce údaje pozvánky: companyID.');
-          setLoading(false);
+          console.error('Pozvánka nemá nastavené companyID:', invitationData);
+          setError('Chýbajúce údaje pozvánky.');
           return;
         }
 
-        setInvitation(invitationData);
-      } catch (err) {
+        setInvitation({
+          id: invitationDoc.id,
+          ...invitationData,
+          createdAt: invitationData.createdAt?.toDate?.() || invitationData.createdAt || new Date()
+        });
+        setLoading(false);
+      } catch (err: any) {
         console.error('Chyba pri načítaní pozvánky:', err);
-        setError('Nepodarilo sa načítať pozvánku.');
-      } finally {
+        console.error('Detaily chyby:', {
+          code: err.code,
+          message: err.message,
+          stack: err.stack
+        });
+        setError('Nepodarilo sa načítať pozvánku. Prosím skúste to znova.');
         setLoading(false);
       }
     };
 
-    loadInvitation();
+    if (invitationId) {
+      loadInvitation();
+    }
   }, [invitationId]);
 
   const handleSubmit = async (e: React.FormEvent) => {

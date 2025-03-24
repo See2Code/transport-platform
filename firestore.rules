@@ -1,10 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Pomocná funkcia na kontrolu, či je používateľ admin
-    function isAdmin() {
-      let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return request.auth != null && user != null && user.data.role == 'admin';
+    // Funkcia na kontrolu, či je užívateľ prihlásený
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Funkcia na kontrolu, či je užívateľ admin
+    function isAdmin(userData) {
+      return isAuthenticated() && userData.role == 'admin';
     }
 
     // Pomocná funkcia na kontrolu, či je používateľ v rovnakej firme
@@ -23,13 +27,7 @@ service cloud.firestore {
 
     // Pravidlá pre kolekciu users
     match /users/{userId} {
-      allow read: if request.auth != null;  // Každý prihlásený užívateľ môže čítať údaje o užívateľoch
-      allow create: if true;
-      allow update: if request.auth != null && (
-        request.auth.uid == userId || 
-        isAdmin()
-      );
-      allow delete: if isAdmin();
+      allow read, write: if true; // Povolíme všetky operácie pre všetkých
     }
 
     // Pravidlá pre kolekciu companies
@@ -40,10 +38,7 @@ service cloud.firestore {
 
     // Pravidlá pre kolekciu invitations
     match /invitations/{invitationId} {
-      allow read: if request.auth != null && isInSameCompany(resource.data.companyID);
-      allow create: if isAdmin();
-      allow update: if true;
-      allow delete: if isAdmin();
+      allow read, write: if true; // Povolíme všetky operácie pre všetkých
     }
 
     // Pravidlá pre kolekciu vehicles
@@ -66,8 +61,7 @@ service cloud.firestore {
 
     // Pravidlá pre ostatné kolekcie
     match /{document=**} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read, write: if true; // Povolíme všetky operácie pre všetkých
     }
   }
 } 

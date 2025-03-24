@@ -260,8 +260,7 @@ function Team() {
             // Načítanie pozvánok
             const invitationsQuery = query(
               collection(db, 'invitations'),
-              where('companyID', '==', userData.companyID),
-              where('status', '==', 'pending')
+              where('companyID', '==', userData.companyID)
             );
 
             // Real-time sledovanie členov tímu
@@ -292,17 +291,19 @@ function Team() {
               const invites: Invitation[] = [];
               snapshot.forEach((doc) => {
                 const data = doc.data();
-                invites.push({
-                  id: doc.id,
-                  firstName: data.firstName,
-                  lastName: data.lastName,
-                  email: data.email,
-                  phone: data.phone,
-                  role: data.role,
-                  status: data.status,
-                  createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
-                  userId: data.userId
-                });
+                if (data.status === 'pending') {
+                  invites.push({
+                    id: doc.id,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    email: data.email,
+                    phone: data.phone,
+                    role: data.role,
+                    status: data.status,
+                    createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
+                    userId: data.userId
+                  });
+                }
               });
               setInvitations(invites);
             });
@@ -456,7 +457,9 @@ function Team() {
         await deleteDoc(doc(db, 'users', inviteToDelete.id));
       } else {
         // Ak je to pozvánka
-        await deleteDoc(doc(db, 'invitations', inviteToDelete.id));
+        const invitationRef = doc(db, 'invitations', inviteToDelete.id);
+        await deleteDoc(invitationRef);
+        console.log('Pozvánka vymazaná:', inviteToDelete.id);
       }
       setSuccess('Záznam bol úspešne vymazaný.');
       setDeleteConfirmOpen(false);
