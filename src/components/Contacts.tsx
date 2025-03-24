@@ -25,7 +25,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
-import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
@@ -46,7 +46,7 @@ const countries: Country[] = [
 ];
 
 interface Contact {
-  id?: string;
+  id: string;
   firstName: string;
   lastName: string;
   company: string;
@@ -54,8 +54,9 @@ interface Contact {
   phoneNumber: string;
   countryCode: string;
   email: string;
-  createdAt: any; // Firebase Timestamp
-  createdBy: {
+  notes?: string;
+  createdAt: Timestamp;
+  createdBy?: {
     firstName: string;
     lastName: string;
   };
@@ -119,7 +120,7 @@ const Contacts = () => {
     phoneNumber: '',
     countryCode: 'sk',
     email: '',
-    createdAt: new Date(),
+    createdAt: Timestamp.fromDate(new Date()),
     createdBy: {
       firstName: userData?.firstName || '',
       lastName: userData?.lastName || ''
@@ -198,7 +199,8 @@ const Contacts = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       if (!userData) {
         setSnackbar({
@@ -211,8 +213,8 @@ const Contacts = () => {
 
       const contactData = {
         ...formData,
-        createdAt: editingContact?.createdAt || new Date(),
-        createdBy: editingContact ? formData.createdBy : {
+        createdAt: editingContact?.createdAt || Timestamp.fromDate(new Date()),
+        createdBy: {
           firstName: userData.firstName,
           lastName: userData.lastName
         }
@@ -233,9 +235,26 @@ const Contacts = () => {
           severity: 'success'
         });
       }
+
       handleCloseDialog();
+      setEditingContact(null);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        company: '',
+        phonePrefix: '+421',
+        phoneNumber: '',
+        countryCode: 'sk',
+        email: '',
+        createdAt: Timestamp.fromDate(new Date()),
+        createdBy: {
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || ''
+        }
+      });
+      setTouchedFields({});
     } catch (error) {
-      console.error('Error saving contact:', error);
+      console.error('Chyba pri ukladaní kontaktu:', error);
       setSnackbar({
         open: true,
         message: 'Nastala chyba pri ukladaní kontaktu',
@@ -247,8 +266,13 @@ const Contacts = () => {
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'contacts', id));
+      setSnackbar({
+        open: true,
+        message: 'Kontakt bol úspešne odstránený',
+        severity: 'success'
+      });
     } catch (error) {
-      console.error('Error deleting contact:', error);
+      console.error('Chyba pri mazaní kontaktu:', error);
       setSnackbar({
         open: true,
         message: 'Nastala chyba pri mazaní kontaktu',
@@ -263,12 +287,16 @@ const Contacts = () => {
       firstName: contact.firstName,
       lastName: contact.lastName,
       company: contact.company,
-      phonePrefix: contact.phonePrefix || '+421',
-      phoneNumber: contact.phoneNumber || '',
-      countryCode: contact.countryCode || 'sk',
+      phonePrefix: contact.phonePrefix,
+      phoneNumber: contact.phoneNumber,
+      countryCode: contact.countryCode,
       email: contact.email,
+      notes: contact.notes || '',
       createdAt: contact.createdAt,
-      createdBy: contact.createdBy
+      createdBy: {
+        firstName: contact.createdBy?.firstName || userData?.firstName || '',
+        lastName: contact.createdBy?.lastName || userData?.lastName || ''
+      }
     });
     setOpenDialog(true);
   };
@@ -284,7 +312,7 @@ const Contacts = () => {
       phoneNumber: '',
       countryCode: 'sk',
       email: '',
-      createdAt: new Date(),
+      createdAt: Timestamp.fromDate(new Date()),
       createdBy: {
         firstName: userData?.firstName || '',
         lastName: userData?.lastName || ''
@@ -322,64 +350,60 @@ const Contacts = () => {
         sx={{ mb: 3 }}
       />
 
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ mt: 2, backgroundColor: 'transparent' }}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Meno</TableCell>
-              <TableCell>Priezvisko</TableCell>
               <TableCell>Spoločnosť</TableCell>
-              <TableCell>Telefón</TableCell>
+              <TableCell>Kontaktná osoba</TableCell>
+              <TableCell>Mobil</TableCell>
               <TableCell>Email</TableCell>
+              <TableCell>Poznámka</TableCell>
               <TableCell>Vytvoril</TableCell>
               <TableCell>Dátum vytvorenia</TableCell>
               <TableCell>Akcie</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredContacts
-              .sort((a, b) => {
-                const dateA = a.createdAt?.toDate() || new Date(0);
-                const dateB = b.createdAt?.toDate() || new Date(0);
-                return dateB.getTime() - dateA.getTime();
-              })
-              .map((contact) => (
-                <TableRow key={contact.id}>
-                  <TableCell>{contact.firstName}</TableCell>
-                  <TableCell>{contact.lastName}</TableCell>
-                  <TableCell>{contact.company}</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <img
-                        loading="lazy"
-                        width="20"
-                        src={`https://flagcdn.com/${contact.countryCode}.svg`}
-                        alt=""
-                      />
-                      {contact.phonePrefix} {contact.phoneNumber}
-                    </Box>
-                  </TableCell>
-                  <TableCell>{contact.email}</TableCell>
-                  <TableCell>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
-                  <TableCell>
-                    {contact.createdAt?.toDate().toLocaleDateString('sk-SK', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleEdit(contact)} color="primary">
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton onClick={() => contact.id && handleDelete(contact.id)} color="error">
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+            {filteredContacts.map((contact) => (
+              <TableRow key={contact.id} sx={{ '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } }}>
+                <TableCell>{contact.company}</TableCell>
+                <TableCell>{contact.firstName} {contact.lastName}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <img
+                      loading="lazy"
+                      width="20"
+                      src={`https://flagcdn.com/${contact.countryCode}.svg`}
+                      alt=""
+                    />
+                    {contact.phonePrefix} {contact.phoneNumber}
+                  </Box>
+                </TableCell>
+                <TableCell>{contact.email}</TableCell>
+                <TableCell sx={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {contact.notes || ''}
+                </TableCell>
+                <TableCell>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {contact.createdAt?.toDate().toLocaleString('sk-SK', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </TableCell>
+                <TableCell>
+                  <IconButton onClick={() => handleEdit(contact)} color="primary">
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton onClick={() => contact.id && handleDelete(contact.id)} color="error">
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -464,7 +488,10 @@ const Contacts = () => {
               <FormControl fullWidth>
                 <InputLabel>Vytvoril</InputLabel>
                 <Select
-                  value={users.find(user => user.firstName === formData.createdBy.firstName && user.lastName === formData.createdBy.lastName)?.email || ''}
+                  value={users.find(user => 
+                    user.firstName === formData.createdBy?.firstName && 
+                    user.lastName === formData.createdBy?.lastName
+                  )?.email || ''}
                   onChange={handleCreatorChange}
                   label="Vytvoril"
                 >

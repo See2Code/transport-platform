@@ -8,14 +8,14 @@ admin.initializeApp();
 const REGION = 'europe-west1';
 const MEMORY = '128MB';
 const TIMEOUT = 30;
-// Konfigurácia emailového transportu pre SMTP server Websupport
+// Konfigurácia emailového transportu
 const transporter = nodemailer.createTransport({
     host: 'smtp.m1.websupport.sk',
     port: 465,
     secure: true,
     auth: {
-        user: process.env.EMAIL_USER || 'noreply@aesa.sk',
-        pass: process.env.EMAIL_PASS || 'r.{jo$_;OJX8V>eKbo|!'
+        user: 'noreply@aesa.sk',
+        pass: 'r.{jo$_;OJX8V>eKbo|!'
     }
 });
 // Funkcia na vyčistenie databázy
@@ -118,7 +118,7 @@ exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', 'Nepodarilo sa odoslať email s pozvánkou: ' + (error.message || 'Neznáma chyba'));
     }
 });
-// Kontrola obchodných prípadov každých 30 sekúnd
+// Kontrola obchodných prípadov každú minútu
 exports.checkBusinessCaseReminders = functions
     .region(REGION)
     .runWith({
@@ -129,14 +129,14 @@ exports.checkBusinessCaseReminders = functions
         feature: 'business-case'
     }
 })
-    .pubsub.schedule('*/0.5 * * * *')
+    .pubsub.schedule('* * * * *')
+    .timeZone('Europe/Bratislava')
     .onRun(async (context) => {
-    var _a, _b, _c, _d, _e;
     const now = admin.firestore.Timestamp.now();
     console.log('Kontrolujem pripomienky obchodných prípadov:', now.toDate());
     try {
         const remindersSnapshot = await admin.firestore()
-            .collection('businessCases')
+            .collection('reminders')
             .where('reminderDateTime', '<=', now)
             .where('sent', '==', false)
             .get();
@@ -144,20 +144,53 @@ exports.checkBusinessCaseReminders = functions
         const batch = admin.firestore().batch();
         const promises = [];
         for (const doc of remindersSnapshot.docs) {
-            const businessCase = doc.data();
-            if ((_a = businessCase.createdBy) === null || _a === void 0 ? void 0 : _a.email) {
+            const reminder = doc.data();
+            if (reminder.userEmail) {
+                const businessCaseDoc = await admin.firestore()
+                    .collection('businessCases')
+                    .doc(reminder.businessCaseId)
+                    .get();
+                const businessCase = businessCaseDoc.exists ? businessCaseDoc.data() : null;
                 const mailOptions = {
                     from: 'AESA Transport Platform <noreply@aesa.sk>',
-                    to: businessCase.createdBy.email,
-                    subject: `Pripomienka: ${businessCase.companyName}`,
+                    to: reminder.userEmail,
+                    subject: `Pripomienka: ${reminder.companyName}`,
                     html: `
-              <h2>Pripomienka obchodného prípadu</h2>
-              <p><strong>Spoločnosť:</strong> ${businessCase.companyName}</p>
-              <p><strong>Kontaktná osoba:</strong> ${(_b = businessCase.contactPerson) === null || _b === void 0 ? void 0 : _b.firstName} ${(_c = businessCase.contactPerson) === null || _c === void 0 ? void 0 : _c.lastName}</p>
-              <p><strong>Telefón:</strong> ${(_d = businessCase.contactPerson) === null || _d === void 0 ? void 0 : _d.phone}</p>
-              <p><strong>Email:</strong> ${(_e = businessCase.contactPerson) === null || _e === void 0 ? void 0 : _e.email}</p>
-              ${businessCase.notes ? `<p><strong>Poznámky:</strong> ${businessCase.notes}</p>` : ''}
-              <p>Pripomienka bola nastavená na: ${businessCase.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #1a1b2e; border-bottom: 3px solid #00b894; padding-bottom: 10px;">Pripomienka obchodného prípadu</h2>
+                
+                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 10px 0;"><strong>Spoločnosť:</strong> ${reminder.companyName}</p>
+                  <p style="margin: 10px 0;"><strong>Kontaktná osoba:</strong> ${reminder.contactPerson.firstName} ${reminder.contactPerson.lastName}</p>
+                  <p style="margin: 10px 0;"><strong>Telefón:</strong> ${reminder.contactPerson.phone}</p>
+                  <p style="margin: 10px 0;"><strong>Email:</strong> ${reminder.contactPerson.email}</p>
+                  ${reminder.reminderNote ? `
+                    <div style="background-color: #ffffff; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                      <p style="margin: 0;"><strong>Poznámka k pripomienke:</strong></p>
+                      <p style="margin: 10px 0;">${reminder.reminderNote}</p>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <p style="color: #666666;">
+                  Pripomienka bola nastavená na: ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}
+                </p>
+
+                ${(businessCase === null || businessCase === void 0 ? void 0 : businessCase.status) ? `
+                  <p style="margin: 10px 0;"><strong>Aktuálny stav:</strong> ${businessCase.status}</p>
+                ` : ''}
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666666;">
+                  <p style="margin: 0;">S pozdravom,</p>
+                  <p style="margin: 5px 0;">Váš AESA Transport Platform tím</p>
+                </div>
+              </div>
             `
                 };
                 promises.push(transporter.sendMail(mailOptions));
@@ -165,6 +198,13 @@ exports.checkBusinessCaseReminders = functions
                     sent: true,
                     sentAt: now
                 });
+                if (businessCaseDoc.exists) {
+                    batch.update(businessCaseDoc.ref, {
+                        reminderSent: true,
+                        reminderSentAt: now
+                    });
+                }
+                console.log(`Pripravený email pre ${reminder.userEmail} - ${reminder.companyName}`);
             }
         }
         if (promises.length > 0) {
@@ -179,7 +219,7 @@ exports.checkBusinessCaseReminders = functions
         throw error;
     }
 });
-// Kontrola prepráv každých 30 sekúnd
+// Kontrola prepráv každú minútu
 exports.checkTransportNotifications = functions
     .region(REGION)
     .runWith({
@@ -190,42 +230,129 @@ exports.checkTransportNotifications = functions
         feature: 'transport'
     }
 })
-    .pubsub.schedule('*/0.5 * * * *')
+    .pubsub.schedule('* * * * *')
+    .timeZone('Europe/Bratislava')
     .onRun(async (context) => {
-    var _a;
+    var _a, _b;
     const now = admin.firestore.Timestamp.now();
     console.log('Kontrolujem notifikácie prepráv:', now.toDate());
     try {
-        const notificationsSnapshot = await admin.firestore()
+        // Kontrolujeme pripomienky pre nakládku
+        const loadingRemindersSnapshot = await admin.firestore()
             .collection('transports')
-            .where('notificationDateTime', '<=', now)
-            .where('notificationSent', '==', false)
+            .where('loadingDateTime', '>', now)
+            .where('loadingReminderSent', '==', false)
             .get();
-        console.log(`Nájdených ${notificationsSnapshot.size} notifikácií na odoslanie`);
+        const unloadingRemindersSnapshot = await admin.firestore()
+            .collection('transports')
+            .where('unloadingDateTime', '>', now)
+            .where('unloadingReminderSent', '==', false)
+            .get();
+        console.log(`Nájdených ${loadingRemindersSnapshot.size} pripomienok nakládky a ${unloadingRemindersSnapshot.size} pripomienok vykládky`);
         const batch = admin.firestore().batch();
         const promises = [];
-        for (const doc of notificationsSnapshot.docs) {
+        // Spracovanie pripomienok nakládky
+        for (const doc of loadingRemindersSnapshot.docs) {
             const transport = doc.data();
-            if ((_a = transport.createdBy) === null || _a === void 0 ? void 0 : _a.email) {
+            const loadingTime = transport.loadingDateTime.toDate();
+            const reminderTime = new Date(loadingTime.getTime() - (transport.loadingReminder * 60 * 60 * 1000));
+            if (now.toDate() >= reminderTime && ((_a = transport.createdBy) === null || _a === void 0 ? void 0 : _a.email)) {
                 const mailOptions = {
                     from: 'AESA Transport Platform <noreply@aesa.sk>',
                     to: transport.createdBy.email,
-                    subject: `Pripomienka sledovanej prepravy: ${transport.reference || transport.id}`,
+                    subject: `Pripomienka nakládky: ${transport.reference || transport.id}`,
                     html: `
-              <h2>Pripomienka sledovanej prepravy</h2>
-              <p><strong>Referencia:</strong> ${transport.reference || transport.id}</p>
-              <p><strong>Odkiaľ:</strong> ${transport.from}</p>
-              <p><strong>Kam:</strong> ${transport.to}</p>
-              <p><strong>Dopravca:</strong> ${transport.carrier}</p>
-              ${transport.notes ? `<p><strong>Poznámky:</strong> ${transport.notes}</p>` : ''}
-              <p>Pripomienka bola nastavená na: ${transport.notificationDateTime.toDate().toLocaleString('sk-SK')}</p>
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #1a1b2e; border-bottom: 3px solid #00b894; padding-bottom: 10px;">Pripomienka nakládky</h2>
+                
+                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 10px 0;"><strong>Referencia:</strong> ${transport.reference || transport.id}</p>
+                  <p style="margin: 10px 0;"><strong>Miesto nakládky:</strong> ${transport.loadingAddress}</p>
+                  <p style="margin: 10px 0;"><strong>Čas nakládky:</strong> ${loadingTime.toLocaleString('sk-SK', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</p>
+                  <p style="margin: 10px 0;"><strong>Dopravca:</strong> ${transport.carrier}</p>
+                  ${transport.notes ? `
+                    <div style="background-color: #ffffff; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                      <p style="margin: 0;"><strong>Poznámky:</strong></p>
+                      <p style="margin: 10px 0;">${transport.notes}</p>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <p style="color: #666666;">
+                  Pripomienka bola nastavená ${transport.loadingReminder} ${transport.loadingReminder === 1 ? 'hodinu' : transport.loadingReminder < 5 ? 'hodiny' : 'hodín'} pred nakládkou
+                </p>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666666;">
+                  <p style="margin: 0;">S pozdravom,</p>
+                  <p style="margin: 5px 0;">Váš AESA Transport Platform tím</p>
+                </div>
+              </div>
             `
                 };
                 promises.push(transporter.sendMail(mailOptions));
                 batch.update(doc.ref, {
-                    notificationSent: true,
-                    notificationSentAt: now
+                    loadingReminderSent: true,
+                    loadingReminderSentAt: now
                 });
+                console.log(`Pripravený email pre ${transport.createdBy.email} - nakládka ${transport.reference || transport.id}`);
+            }
+        }
+        // Spracovanie pripomienok vykládky
+        for (const doc of unloadingRemindersSnapshot.docs) {
+            const transport = doc.data();
+            const unloadingTime = transport.unloadingDateTime.toDate();
+            const reminderTime = new Date(unloadingTime.getTime() - (transport.unloadingReminder * 60 * 60 * 1000));
+            if (now.toDate() >= reminderTime && ((_b = transport.createdBy) === null || _b === void 0 ? void 0 : _b.email)) {
+                const mailOptions = {
+                    from: 'AESA Transport Platform <noreply@aesa.sk>',
+                    to: transport.createdBy.email,
+                    subject: `Pripomienka vykládky: ${transport.reference || transport.id}`,
+                    html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #1a1b2e; border-bottom: 3px solid #00b894; padding-bottom: 10px;">Pripomienka vykládky</h2>
+                
+                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 10px 0;"><strong>Referencia:</strong> ${transport.reference || transport.id}</p>
+                  <p style="margin: 10px 0;"><strong>Miesto vykládky:</strong> ${transport.unloadingAddress}</p>
+                  <p style="margin: 10px 0;"><strong>Čas vykládky:</strong> ${unloadingTime.toLocaleString('sk-SK', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</p>
+                  <p style="margin: 10px 0;"><strong>Dopravca:</strong> ${transport.carrier}</p>
+                  ${transport.notes ? `
+                    <div style="background-color: #ffffff; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                      <p style="margin: 0;"><strong>Poznámky:</strong></p>
+                      <p style="margin: 10px 0;">${transport.notes}</p>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <p style="color: #666666;">
+                  Pripomienka bola nastavená ${transport.unloadingReminder} ${transport.unloadingReminder === 1 ? 'hodinu' : transport.unloadingReminder < 5 ? 'hodiny' : 'hodín'} pred vykládkou
+                </p>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666666;">
+                  <p style="margin: 0;">S pozdravom,</p>
+                  <p style="margin: 5px 0;">Váš AESA Transport Platform tím</p>
+                </div>
+              </div>
+            `
+                };
+                promises.push(transporter.sendMail(mailOptions));
+                batch.update(doc.ref, {
+                    unloadingReminderSent: true,
+                    unloadingReminderSentAt: now
+                });
+                console.log(`Pripravený email pre ${transport.createdBy.email} - vykládka ${transport.reference || transport.id}`);
             }
         }
         if (promises.length > 0) {
