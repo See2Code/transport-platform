@@ -256,30 +256,6 @@ function RegisterUser() {
                       disabled
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="IČO"
-                      value={company?.ico || ''}
-                      disabled
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="DIČ"
-                      value={company?.dic || ''}
-                      disabled
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="IČ DPH"
-                      value={company?.icDph || ''}
-                      disabled
-                    />
-                  </Grid>
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
