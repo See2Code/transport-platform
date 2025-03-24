@@ -74,6 +74,7 @@ interface TeamMember {
   role: string;
   status: 'active' | 'pending';
   createdAt?: Date;
+  userId?: string;
 }
 
 interface Invitation {
@@ -279,7 +280,8 @@ function Team() {
                   phone: data.phone,
                   role: data.role,
                   status: data.role === 'admin' ? 'active' : (data.status || 'pending'),
-                  createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date()
+                  createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
+                  userId: doc.id  // Používame doc.id ako userId
                 });
               });
               console.log('Finálny zoznam členov po odstránení duplicít:', Array.from(membersMap.values()));
@@ -452,9 +454,10 @@ function Team() {
 
     try {
       setLoading(true);
-      if ('userId' in inviteToDelete) {
+      if ('userId' in inviteToDelete && inviteToDelete.userId) {
         // Ak je to člen tímu
-        await deleteDoc(doc(db, 'users', inviteToDelete.id));
+        console.log('Mazanie člena tímu s ID:', inviteToDelete.userId);
+        await deleteDoc(doc(db, 'users', inviteToDelete.userId));
       } else {
         // Ak je to pozvánka
         const invitationRef = doc(db, 'invitations', inviteToDelete.id);

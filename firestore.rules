@@ -40,26 +40,26 @@ service cloud.firestore {
 
     // Pravidlá pre kontakty
     match /contacts/{contactId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow read: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow create: if isAuthenticated() && isInSameCompany(request.resource.data.companyID);
+      allow update: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow delete: if isAuthenticated() && isInSameCompany(resource.data.companyID);
     }
 
     // Pravidlá pre obchodné prípady
     match /businessCases/{caseId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow read: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow create: if isAuthenticated() && isInSameCompany(request.resource.data.companyID);
+      allow update: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow delete: if isAuthenticated() && isInSameCompany(resource.data.companyID);
     }
 
     // Pravidlá pre sledované prepravy
     match /trackedTransports/{transportId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow read: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow create: if isAuthenticated() && isInSameCompany(request.resource.data.companyID);
+      allow update: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow delete: if isAuthenticated() && isInSameCompany(resource.data.companyID);
     }
 
     // Pomocná funkcia na kontrolu, či je užívateľ v rovnakej firme
