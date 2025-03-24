@@ -6,41 +6,64 @@ import {
   TextField,
   Button,
   Alert,
-  Box
+  Box,
+  CircularProgress
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
-function AcceptInvitation() {
-  const { invitationId } = useParams();
+interface Invitation {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  role: string;
+  status: string;
+  companyID: string;
+  invitedBy: string;
+  invitedAt: string;
+}
+
+const AcceptInvitation: React.FC = () => {
+  const { invitationId } = useParams<{ invitationId: string }>();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [invitation, setInvitation] = useState<any>(null);
+  const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const loadInvitation = async () => {
-      try {
-        if (!invitationId) {
-          setError('Neplatný odkaz pozvánky.');
-          return;
-        }
+      if (!invitationId) {
+        setError('Chýbajúce ID pozvánky.');
+        setLoading(false);
+        return;
+      }
 
+      try {
         const invitationDoc = await getDoc(doc(db, 'invitations', invitationId));
         
         if (!invitationDoc.exists()) {
           setError('Pozvánka nebola nájdená.');
+          setLoading(false);
           return;
         }
 
-        const invitationData = invitationDoc.data();
+        const invitationData = invitationDoc.data() as Invitation;
         
         if (invitationData.status !== 'pending') {
-          setError('Táto pozvánka už nie je platná.');
+          setError('Táto pozvánka už bola použitá.');
+          setLoading(false);
+          return;
+        }
+
+        if (!invitationData.companyID) {
+          setError('Chýbajúce údaje pozvánky: companyID.');
+          setLoading(false);
           return;
         }
 
@@ -70,7 +93,7 @@ function AcceptInvitation() {
     }
 
     setError('');
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       // Vytvorenie používateľa v Firebase Auth
@@ -106,14 +129,16 @@ function AcceptInvitation() {
       console.error('Chyba pri registrácii:', err);
       setError(err.message || 'Nepodarilo sa dokončiť registráciu.');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <Typography>Načítavam...</Typography>
+      <Container maxWidth="sm">
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+          <CircularProgress />
+        </Box>
       </Container>
     );
   }
@@ -121,70 +146,65 @@ function AcceptInvitation() {
   if (error) {
     return (
       <Container maxWidth="sm">
-        <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
           <Alert severity="error">{error}</Alert>
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Button variant="contained" onClick={() => navigate('/')}>
-              Späť na hlavnú stránku
-            </Button>
-          </Box>
-        </Paper>
+        </Box>
       </Container>
     );
   }
 
   return (
     <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-        <Typography variant="h4" gutterBottom align="center">
-          Dokončenie registrácie
-        </Typography>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center">
+            Dokončenie registrácie
+          </Typography>
+          
+          <Typography variant="body1" gutterBottom>
+            Vitajte {invitation?.firstName} {invitation?.lastName}!
+          </Typography>
+          
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Pre dokončenie registrácie prosím nastavte svoje heslo.
+          </Typography>
 
-        <Typography variant="body1" paragraph>
-          Vitajte! Boli ste pozvaný do tímu spoločnosti. Pre dokončenie registrácie si prosím nastavte heslo.
-        </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Heslo"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              margin="normal"
+              required
+            />
+            
+            <TextField
+              fullWidth
+              label="Potvrdenie hesla"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              margin="normal"
+              required
+            />
 
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Email"
-            value={invitation?.email || ''}
-            disabled
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Heslo"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Potvrďte heslo"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            margin="normal"
-          />
-
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            type="submit"
-            disabled={loading}
-            sx={{ mt: 3 }}
-          >
-            {loading ? 'Registrácia...' : 'Dokončiť registráciu'}
-          </Button>
-        </form>
-      </Paper>
+            <Button
+              fullWidth
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={submitting}
+              sx={{ mt: 3 }}
+            >
+              {submitting ? <CircularProgress size={24} /> : 'Dokončiť registráciu'}
+            </Button>
+          </form>
+        </Paper>
+      </Box>
     </Container>
   );
-}
+};
 
 export default AcceptInvitation; 

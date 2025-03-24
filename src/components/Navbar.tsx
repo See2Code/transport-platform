@@ -101,12 +101,12 @@ const DrawerHeader = styled('div')({
 });
 
 const ToggleButton = styled(IconButton)(({ theme }) => ({
-  position: 'absolute',
+  position: 'fixed',
   right: '12px',
   bottom: '24px',
   backgroundColor: colors.accent.main,
   color: '#ffffff',
-  zIndex: 1200,
+  zIndex: 1300,
   padding: '8px',
   borderRadius: '12px',
   width: '40px',
@@ -120,6 +120,14 @@ const ToggleButton = styled(IconButton)(({ theme }) => ({
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '& .MuiSvgIcon-root': {
     fontSize: '24px',
+  },
+  '@media (max-width: 600px)': {
+    right: '16px',
+    bottom: '16px',
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    boxShadow: '0 4px 16px rgba(0, 184, 148, 0.4)',
   }
 }));
 
