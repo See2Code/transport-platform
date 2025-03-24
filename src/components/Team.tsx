@@ -37,7 +37,8 @@ import {
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  CheckCircle as CheckCircleIcon
+  CheckCircle as CheckCircleIcon,
+  Send as SendIcon
 } from '@mui/icons-material';
 import { collection, query, where, getDocs, addDoc, doc, getDoc, onSnapshot, deleteDoc, updateDoc } from 'firebase/firestore';
 import { auth, db, functions } from '../firebase';
@@ -380,7 +381,11 @@ function Team() {
     setFirstName(member.firstName);
     setLastName(member.lastName);
     setEmail(member.email);
-    setPhoneNumber(member.phone.replace(phonePrefix, ''));
+    // Extrahujeme predvoľbu a číslo
+    const prefix = countries.find(c => member.phone.startsWith(c.prefix))?.prefix || '+421';
+    setPhonePrefix(prefix);
+    setCountryCode(countries.find(c => c.prefix === prefix)?.code || 'sk');
+    setPhoneNumber(member.phone.replace(prefix, ''));
     setRole(member.role);
     setOpenEdit(true);
   };
@@ -391,33 +396,30 @@ function Team() {
       return;
     }
 
-    if (!phoneNumber.startsWith('+')) {
-      setError('Telefónne číslo musí začínať predvoľbou krajiny (napr. +421)');
-      return;
-    }
-
     try {
       setLoading(true);
       setError('');
       setSuccess('');
 
-      if ('userId' in editingInvite) {
-        // Ak je to člen tímu
-        await updateDoc(doc(db, 'users', editingInvite.id), {
-          firstName,
-          lastName,
-          email,
-          phone: `${phonePrefix}${phoneNumber}`,
-          role,
-          updatedAt: new Date()
-        });
-      } else {
-        // Ak je to pozvánka
+      const fullPhoneNumber = `${phonePrefix}${phoneNumber}`;
+
+      // Ak je to pozvánka (nemá userId)
+      if (!editingInvite.userId) {
         await updateDoc(doc(db, 'invitations', editingInvite.id), {
           firstName,
           lastName,
           email,
-          phone: `${phonePrefix}${phoneNumber}`,
+          phone: fullPhoneNumber,
+          role,
+          updatedAt: new Date()
+        });
+      } else {
+        // Ak je to člen tímu (má userId)
+        await updateDoc(doc(db, 'users', editingInvite.userId), {
+          firstName,
+          lastName,
+          email,
+          phone: fullPhoneNumber,
           role,
           updatedAt: new Date()
         });
@@ -493,6 +495,33 @@ function Team() {
     if (country) {
       setCountryCode(value);
       setPhonePrefix(country.prefix);
+    }
+  };
+
+  const handleResendInvitation = async (invite: Invitation) => {
+    try {
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      // Volanie Cloud Function na opätovné odoslanie emailu
+      const sendInvitationEmail = httpsCallable(functions, 'sendInvitationEmail');
+      await sendInvitationEmail({
+        email: invite.email,
+        firstName: invite.firstName,
+        lastName: invite.lastName,
+        phone: invite.phone,
+        role: invite.role,
+        companyId: companyID,
+        invitationId: invite.id
+      });
+
+      setSuccess('Pozvánka bola úspešne preposlená.');
+    } catch (err: any) {
+      console.error('Chyba pri preposielaní pozvánky:', err);
+      setError(err.message || 'Nastala chyba pri preposielaní pozvánky.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -660,6 +689,20 @@ function Team() {
                               </IconButton>
                             </span>
                           </Tooltip>
+                          {invite.status === 'pending' && (
+                            <Tooltip title="Preposlať pozvánku">
+                              <span>
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => handleResendInvitation(invite)}
+                                  disabled={loading}
+                                  aria-label="Preposlať pozvánku"
+                                >
+                                  <SendIcon color="primary" />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
                           <Tooltip title="Zrušiť pozvánku">
                             <span>
                               <IconButton 

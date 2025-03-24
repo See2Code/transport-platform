@@ -63,7 +63,9 @@ const caseStatuses = {
   IN_PROGRESS: { label: 'V štádiu riešenia', color: 'warning' as const },
   CALL_LATER: { label: 'Volať neskôr', color: 'secondary' as const },
   MEETING: { label: 'Stretnutie', color: 'primary' as const },
-  CALL: { label: 'Telefonát', color: 'info' as const }
+  CALL: { label: 'Telefonát', color: 'info' as const },
+  INTERESTED: { label: 'Záujem', color: 'success' as const },
+  NOT_INTERESTED: { label: 'Nezáujem', color: 'error' as const }
 };
 
 interface BusinessCase {
@@ -80,6 +82,7 @@ interface BusinessCase {
   internalNote: string;
   status: keyof typeof caseStatuses;
   reminderDateTime?: Date;
+  reminderNote?: string;
   createdAt: Date;
   createdBy: {
     id: string;
@@ -143,6 +146,7 @@ export default function BusinessCases() {
     internalNote: '',
     status: 'NOT_CALLED' as keyof typeof caseStatuses,
     reminderDateTime: null as Date | null,
+    reminderNote: '',
   });
   const [selectedCountry, setSelectedCountry] = useState(euCountries[0]);
 
@@ -196,6 +200,9 @@ export default function BusinessCases() {
         },
       };
 
+      // Vytvorenie alebo aktualizácia obchodného prípadu
+      let savedCaseId = editCase?.id;
+      
       if (editCase) {
         await updateDoc(doc(db, 'businessCases', editCase.id), caseData);
         setSnackbar({
@@ -204,7 +211,8 @@ export default function BusinessCases() {
           severity: 'success'
         });
       } else {
-        await addDoc(casesCollection, caseData);
+        const docRef = await addDoc(casesCollection, caseData);
+        savedCaseId = docRef.id;
         setSnackbar({
           open: true,
           message: 'Nový prípad bol úspešne pridaný',
@@ -212,14 +220,36 @@ export default function BusinessCases() {
         });
       }
 
+      // Vytvorenie alebo aktualizácia kontaktu
+      const contactsCollection = collection(db, 'contacts');
+      const contactData = {
+        firstName: formData.contactPerson.firstName,
+        lastName: formData.contactPerson.lastName,
+        company: formData.companyName,
+        phonePrefix: selectedCountry.prefix,
+        phoneNumber: formData.contactPerson.phone.replace(selectedCountry.prefix, ''),
+        countryCode: selectedCountry.code.toLowerCase(),
+        email: formData.contactPerson.email,
+        createdAt: Timestamp.now(),
+        createdBy: {
+          firstName: currentUser.displayName?.split(' ')[0] || '',
+          lastName: currentUser.displayName?.split(' ')[1] || '',
+        },
+        businessCaseId: savedCaseId, // Pridáme referenciu na obchodný prípad
+      };
+
+      await addDoc(contactsCollection, contactData);
+
       // Ak je nastavený reminder, vytvoríme email notifikáciu
-      if (formData.status === 'CALL_LATER' && formData.reminderDateTime) {
+      if (formData.reminderDateTime) {
         await addDoc(collection(db, 'reminders'), {
           userId: currentUser.uid,
           userEmail: currentUser.email,
-          businessCaseId: editCase?.id,
+          businessCaseId: savedCaseId,
           reminderDateTime: Timestamp.fromDate(formData.reminderDateTime),
           companyName: formData.companyName,
+          reminderNote: formData.reminderNote || '',
+          contactPerson: formData.contactPerson,
           createdAt: Timestamp.now(),
         });
       }
@@ -239,6 +269,7 @@ export default function BusinessCases() {
         internalNote: '',
         status: 'NOT_CALLED',
         reminderDateTime: null,
+        reminderNote: '',
       });
       fetchCases();
     } catch (error) {
@@ -282,6 +313,7 @@ export default function BusinessCases() {
       internalNote: businessCase.internalNote,
       status: businessCase.status,
       reminderDateTime: businessCase.reminderDateTime || null,
+      reminderNote: businessCase.reminderNote || '',
     });
     setOpen(true);
   };
@@ -427,6 +459,7 @@ export default function BusinessCases() {
             internalNote: '',
             status: 'NOT_CALLED',
             reminderDateTime: null,
+            reminderNote: '',
           });
         }}
         maxWidth="md"
@@ -529,6 +562,7 @@ export default function BusinessCases() {
                   })}
                   placeholder="9XX XXX XXX"
                   helperText="Zadajte telefónne číslo"
+                  required
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       color: '#ffffff',
@@ -598,16 +632,26 @@ export default function BusinessCases() {
               </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              {formData.status === 'CALL_LATER' && (
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                  <DateTimePicker
-                    label="Dátum a čas pripomienky"
-                    value={formData.reminderDateTime}
-                    onChange={(newValue) => setFormData({ ...formData, reminderDateTime: newValue })}
-                    sx={{ width: '100%' }}
-                  />
-                </LocalizationProvider>
-              )}
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                <DateTimePicker
+                  label="Dátum a čas pripomienky"
+                  value={formData.reminderDateTime}
+                  onChange={(newValue) => setFormData({ ...formData, reminderDateTime: newValue })}
+                  sx={{ width: '100%' }}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Poznámka k pripomienke"
+                multiline
+                rows={2}
+                value={formData.reminderNote}
+                onChange={(e) => setFormData({ ...formData, reminderNote: e.target.value })}
+                placeholder="Zadajte text pripomienky, ktorý vám príde emailom"
+                helperText="Tento text vám príde emailom v čase pripomienky"
+              />
             </Grid>
           </Grid>
         </DialogContent>
@@ -622,7 +666,11 @@ export default function BusinessCases() {
             onClick={handleSubmit}
             variant="contained"
             sx={{ backgroundColor: '#00b894' }}
-            disabled={!formData.companyName || !formData.contactPerson.firstName || !formData.contactPerson.lastName || !formData.contactPerson.email}
+            disabled={!formData.companyName || 
+                     !formData.contactPerson.firstName || 
+                     !formData.contactPerson.lastName || 
+                     !formData.contactPerson.email ||
+                     !formData.contactPerson.phone}
           >
             {editCase ? 'Uložiť zmeny' : 'Pridať prípad'}
           </Button>

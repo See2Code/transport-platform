@@ -89,13 +89,15 @@ function AcceptInvitation() {
         phone: invitation.phone,
         companyID: invitation.companyID,
         role: invitation.role,
+        status: 'active',
         createdAt: new Date().toISOString()
       });
 
       // Aktualizácia stavu pozvánky
       await updateDoc(doc(db, 'invitations', invitationId!), {
         status: 'accepted',
-        acceptedAt: new Date().toISOString()
+        acceptedAt: new Date().toISOString(),
+        userId: userCredential.user.uid
       });
 
       // Presmerovanie na dashboard
