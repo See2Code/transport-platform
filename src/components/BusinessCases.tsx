@@ -88,11 +88,6 @@ interface BusinessCase {
     firstName: string;
     lastName: string;
   };
-  updatedAt?: Timestamp;
-  updatedBy?: {
-    firstName: string;
-    lastName: string;
-  };
   countryCode?: string;
 }
 
@@ -180,7 +175,6 @@ export default function BusinessCases() {
           id: doc.id,
           ...data,
           createdAt: data.createdAt instanceof Timestamp ? data.createdAt : Timestamp.fromDate(new Date(data.createdAt)),
-          updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : (data.updatedAt ? Timestamp.fromDate(new Date(data.updatedAt)) : null),
           reminderDateTime: data.reminderDateTime ? (data.reminderDateTime instanceof Timestamp ? data.reminderDateTime.toDate() : new Date(data.reminderDateTime)) : null
         };
       }) as BusinessCase[];
@@ -213,12 +207,7 @@ export default function BusinessCases() {
         createdBy: editCase ? editCase.createdBy : {
           firstName: userData.firstName,
           lastName: userData.lastName
-        },
-        updatedAt: editCase ? Timestamp.now() : null,
-        updatedBy: editCase ? {
-          firstName: userData.firstName,
-          lastName: userData.lastName
-        } : null
+        }
       };
 
       if (editCase?.id) {
@@ -251,8 +240,7 @@ export default function BusinessCases() {
         createdBy: {
           firstName: userData.firstName,
           lastName: userData.lastName
-        },
-        businessCaseId: editCase?.id || ''
+        }
       };
 
       await addDoc(contactsCollection, contactData);
@@ -416,8 +404,6 @@ export default function BusinessCases() {
               <TableCell sx={{ whiteSpace: 'nowrap' }}>Telefón</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap' }}>Email</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap' }}>Vytvoril</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Upravil</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Dátum úpravy</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap' }}>Pripomienka</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap' }}>Akcie</TableCell>
             </TableRow>
@@ -477,28 +463,6 @@ export default function BusinessCases() {
                 </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   {businessCase.createdBy?.firstName} {businessCase.createdBy?.lastName}
-                </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {businessCase.updatedBy?.firstName} {businessCase.updatedBy?.lastName}
-                </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {businessCase.updatedAt && (
-                    businessCase.updatedAt instanceof Timestamp ? 
-                      businessCase.updatedAt.toDate().toLocaleString('sk-SK', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }).replace(',', '') :
-                      new Date(businessCase.updatedAt).toLocaleString('sk-SK', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }).replace(',', '')
-                  )}
                 </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   {businessCase.reminderDateTime && (
