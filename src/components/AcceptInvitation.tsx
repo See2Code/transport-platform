@@ -15,6 +15,7 @@ import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 interface Invitation {
+  id?: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -24,6 +25,7 @@ interface Invitation {
   companyID: string;
   invitedBy: string;
   invitedAt: string;
+  createdAt?: Date;
 }
 
 const AcceptInvitation: React.FC = () => {
@@ -38,6 +40,12 @@ const AcceptInvitation: React.FC = () => {
 
   useEffect(() => {
     const loadInvitation = async () => {
+      if (!invitationId) {
+        setError('Chýbajúce ID pozvánky.');
+        setLoading(false);
+        return;
+      }
+
       try {
         console.log('Načítavam pozvánku s ID:', invitationId);
         const invitationRef = doc(db, 'invitations', invitationId);
@@ -66,8 +74,16 @@ const AcceptInvitation: React.FC = () => {
 
         setInvitation({
           id: invitationDoc.id,
-          ...invitationData,
-          createdAt: invitationData.createdAt?.toDate?.() || invitationData.createdAt || new Date()
+          email: invitationData.email,
+          firstName: invitationData.firstName,
+          lastName: invitationData.lastName,
+          phone: invitationData.phone,
+          role: invitationData.role,
+          status: invitationData.status,
+          companyID: invitationData.companyID,
+          invitedBy: invitationData.invitedBy,
+          invitedAt: invitationData.invitedAt,
+          createdAt: invitationData.createdAt?.toDate?.() || new Date()
         });
         setLoading(false);
       } catch (err: any) {
@@ -82,9 +98,7 @@ const AcceptInvitation: React.FC = () => {
       }
     };
 
-    if (invitationId) {
-      loadInvitation();
-    }
+    loadInvitation();
   }, [invitationId]);
 
   const handleSubmit = async (e: React.FormEvent) => {

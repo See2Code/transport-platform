@@ -39,6 +39,7 @@ import { MenuProps } from '@mui/material/Menu';
 import BusinessIcon from '@mui/icons-material/Business';
 import MenuIcon from '@mui/icons-material/Menu';
 import PersonIcon from '@mui/icons-material/Person';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -194,7 +195,7 @@ const Navbar = () => {
   };
 
   const menuItems = [
-    { text: 'Domov', icon: <HomeIcon />, path: '/home' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Tím', icon: <GroupIcon />, path: '/team' },
     { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases' },
     { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },

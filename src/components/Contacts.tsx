@@ -21,9 +21,11 @@ import {
   SelectChangeEvent,
   Alert,
   Snackbar,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
-import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
@@ -57,6 +59,13 @@ interface Contact {
     firstName: string;
     lastName: string;
   };
+}
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 const PageTitle = styled(Typography)({
@@ -116,6 +125,7 @@ const Contacts = () => {
       lastName: userData?.lastName || ''
     }
   });
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     const q = query(collection(db, 'contacts'));
@@ -143,6 +153,20 @@ const Contacts = () => {
     }
   }, [userData, editingContact]);
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef);
+      const querySnapshot = await getDocs(q);
+      const usersList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as User[];
+      setUsers(usersList);
+    };
+    fetchUsers();
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -161,6 +185,19 @@ const Contacts = () => {
     }
   };
 
+  const handleCreatorChange = (e: SelectChangeEvent) => {
+    const selectedUser = users.find(user => user.email === e.target.value);
+    if (selectedUser) {
+      setFormData(prev => ({
+        ...prev,
+        createdBy: {
+          firstName: selectedUser.firstName,
+          lastName: selectedUser.lastName
+        }
+      }));
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       if (!userData) {
@@ -174,11 +211,8 @@ const Contacts = () => {
 
       const contactData = {
         ...formData,
-        createdAt: new Date(),
-        createdBy: {
-          firstName: userData.firstName,
-          lastName: userData.lastName
-        }
+        createdAt: editingContact?.createdAt || new Date(),
+        createdBy: formData.createdBy
       };
 
       if (editingContact?.id) {
@@ -231,10 +265,7 @@ const Contacts = () => {
       countryCode: contact.countryCode || 'sk',
       email: contact.email,
       createdAt: contact.createdAt,
-      createdBy: contact.createdBy || {
-        firstName: userData?.firstName || '',
-        lastName: userData?.lastName || ''
-      }
+      createdBy: contact.createdBy
     });
     setOpenDialog(true);
   };
@@ -292,13 +323,12 @@ const Contacts = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Vytvorené</TableCell>
-              <TableCell>Vytvoril</TableCell>
               <TableCell>Meno</TableCell>
               <TableCell>Priezvisko</TableCell>
-              <TableCell>Firma</TableCell>
-              <TableCell>Mobil</TableCell>
+              <TableCell>Spoločnosť</TableCell>
+              <TableCell>Telefón</TableCell>
               <TableCell>Email</TableCell>
+              <TableCell>Vytvoril</TableCell>
               <TableCell>Akcie</TableCell>
             </TableRow>
           </TableHead>
@@ -310,38 +340,33 @@ const Contacts = () => {
                 return dateB.getTime() - dateA.getTime();
               })
               .map((contact) => (
-              <TableRow key={contact.id}>
-                <TableCell>
-                  {contact.createdAt && contact.createdAt.toDate().toLocaleDateString('sk-SK')}
-                </TableCell>
-                <TableCell>
-                  {contact.createdBy?.firstName} {contact.createdBy?.lastName}
-                </TableCell>
-                <TableCell>{contact.firstName}</TableCell>
-                <TableCell>{contact.lastName}</TableCell>
-                <TableCell>{contact.company}</TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <img
-                      loading="lazy"
-                      width="20"
-                      src={`https://flagcdn.com/${contact.countryCode}.svg`}
-                      alt=""
-                    />
-                    {contact.phonePrefix} {contact.phoneNumber}
-                  </Box>
-                </TableCell>
-                <TableCell>{contact.email}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => contact.id && handleEdit(contact)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => contact.id && handleDelete(contact.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+                <TableRow key={contact.id}>
+                  <TableCell>{contact.firstName}</TableCell>
+                  <TableCell>{contact.lastName}</TableCell>
+                  <TableCell>{contact.company}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <img
+                        loading="lazy"
+                        width="20"
+                        src={`https://flagcdn.com/${contact.countryCode}.svg`}
+                        alt=""
+                      />
+                      {contact.phonePrefix} {contact.phoneNumber}
+                    </Box>
+                  </TableCell>
+                  <TableCell>{contact.email}</TableCell>
+                  <TableCell>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => handleEdit(contact)} color="primary">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => contact.id && handleDelete(contact.id)} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -422,6 +447,22 @@ const Contacts = () => {
               required
               error={touchedFields.email && !formData.email}
             />
+            {editingContact && (
+              <FormControl fullWidth>
+                <InputLabel>Vytvoril</InputLabel>
+                <Select
+                  value={users.find(user => user.firstName === formData.createdBy.firstName && user.lastName === formData.createdBy.lastName)?.email || ''}
+                  onChange={handleCreatorChange}
+                  label="Vytvoril"
+                >
+                  {users.map((user) => (
+                    <MenuItem key={user.email} value={user.email}>
+                      {user.firstName} {user.lastName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>
