@@ -212,7 +212,10 @@ const Contacts = () => {
       const contactData = {
         ...formData,
         createdAt: editingContact?.createdAt || new Date(),
-        createdBy: formData.createdBy
+        createdBy: editingContact ? formData.createdBy : {
+          firstName: userData.firstName,
+          lastName: userData.lastName
+        }
       };
 
       if (editingContact?.id) {
@@ -329,6 +332,7 @@ const Contacts = () => {
               <TableCell>Telefón</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Vytvoril</TableCell>
+              <TableCell>Dátum vytvorenia</TableCell>
               <TableCell>Akcie</TableCell>
             </TableRow>
           </TableHead>
@@ -357,6 +361,15 @@ const Contacts = () => {
                   </TableCell>
                   <TableCell>{contact.email}</TableCell>
                   <TableCell>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
+                  <TableCell>
+                    {contact.createdAt?.toDate().toLocaleDateString('sk-SK', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </TableCell>
                   <TableCell>
                     <IconButton onClick={() => handleEdit(contact)} color="primary">
                       <EditIcon />

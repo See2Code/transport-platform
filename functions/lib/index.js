@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkTransportNotifications = exports.sendInvitationEmail = exports.clearDatabase = void 0;
+exports.checkBusinessCaseReminders = exports.checkTransportNotifications = exports.sendInvitationEmail = exports.clearDatabase = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
@@ -117,33 +117,43 @@ exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
 });
 // Funkcia na kontrolu transportov a posielanie notifikácií
 exports.checkTransportNotifications = functions.pubsub
-    .schedule('every 5 minutes')
+    .schedule('every 15 minutes')
     .onRun(async (context) => {
     const now = admin.firestore.Timestamp.now();
     const db = admin.firestore();
     try {
+        console.log('Začínam kontrolu transportových notifikácií:', now.toDate().toISOString());
         // Získame všetky aktívne transporty
         const transportsSnapshot = await db.collection('transports')
             .where('status', '==', 'active')
             .get();
+        console.log(`Našiel som ${transportsSnapshot.size} aktívnych transportov`);
         for (const doc of transportsSnapshot.docs) {
             const transport = doc.data();
             const userId = transport.userId;
+            console.log(`Spracovávam transport ${transport.orderNumber} pre užívateľa ${userId}`);
             // Získame informácie o užívateľovi
             const userDoc = await db.collection('users').doc(userId).get();
             const user = userDoc.data();
-            if (!user || !user.email)
+            if (!user || !user.email) {
+                console.log(`Používateľ ${userId} nemá nastavený email, preskakujem`);
                 continue;
+            }
             const loadingTime = transport.loadingDateTime.toDate();
             const unloadingTime = transport.unloadingDateTime.toDate();
             const currentTime = now.toDate();
+            console.log(`Čas naloženia: ${loadingTime.toISOString()}`);
+            console.log(`Čas vyloženia: ${unloadingTime.toISOString()}`);
+            console.log(`Aktuálny čas: ${currentTime.toISOString()}`);
             // Kontrola pripomienky pre naloženie
             if (!transport.loadingReminderSent) {
                 const loadingReminderTime = new Date(loadingTime.getTime() - (transport.loadingReminder * 60 * 60 * 1000));
+                console.log(`Čas pripomienky naloženia: ${loadingReminderTime.toISOString()}`);
                 if (currentTime >= loadingReminderTime) {
+                    console.log(`Odosielam pripomienku naloženia pre transport ${transport.orderNumber}`);
                     // Pošleme email
                     await transporter.sendMail({
-                        from: functions.config().email.user,
+                        from: process.env.EMAIL_USER || 'noreply@aesa.sk',
                         to: user.email,
                         subject: 'Pripomienka naloženia - Transport Platform',
                         html: `
@@ -163,17 +173,21 @@ exports.checkTransportNotifications = functions.pubsub
                     });
                     // Aktualizujeme záznam
                     await doc.ref.update({
-                        loadingReminderSent: true
+                        loadingReminderSent: true,
+                        loadingReminderSentAt: now
                     });
+                    console.log(`Pripomienka naloženia bola úspešne odoslaná pre transport ${transport.orderNumber}`);
                 }
             }
             // Kontrola pripomienky pre vyloženie
             if (!transport.unloadingReminderSent) {
                 const unloadingReminderTime = new Date(unloadingTime.getTime() - (transport.unloadingReminder * 60 * 60 * 1000));
+                console.log(`Čas pripomienky vyloženia: ${unloadingReminderTime.toISOString()}`);
                 if (currentTime >= unloadingReminderTime) {
+                    console.log(`Odosielam pripomienku vyloženia pre transport ${transport.orderNumber}`);
                     // Pošleme email
                     await transporter.sendMail({
-                        from: functions.config().email.user,
+                        from: process.env.EMAIL_USER || 'noreply@aesa.sk',
                         to: user.email,
                         subject: 'Pripomienka vyloženia - Transport Platform',
                         html: `
@@ -193,16 +207,79 @@ exports.checkTransportNotifications = functions.pubsub
                     });
                     // Aktualizujeme záznam
                     await doc.ref.update({
-                        unloadingReminderSent: true
+                        unloadingReminderSent: true,
+                        unloadingReminderSentAt: now
                     });
+                    console.log(`Pripomienka vyloženia bola úspešne odoslaná pre transport ${transport.orderNumber}`);
                 }
             }
         }
-        console.log('Transport notifications check completed successfully');
+        console.log('Kontrola transportových notifikácií bola úspešne dokončená');
         return null;
     }
     catch (error) {
-        console.error('Error checking transport notifications:', error);
+        console.error('Chyba pri kontrole transportových notifikácií:', error);
+        return null;
+    }
+});
+// Funkcia na kontrolu pripomienok obchodných prípadov
+exports.checkBusinessCaseReminders = functions.pubsub
+    .schedule('every 5 minutes')
+    .onRun(async (context) => {
+    const now = admin.firestore.Timestamp.now();
+    const db = admin.firestore();
+    try {
+        console.log('Začínam kontrolu pripomienok obchodných prípadov:', now.toDate().toISOString());
+        // Získame všetky neodoslané pripomienky, ktoré majú byť odoslané v najbližších 5 minútach
+        const fiveMinutesFromNow = new Date(now.toDate().getTime() + 5 * 60 * 1000);
+        const remindersSnapshot = await db.collection('reminders')
+            .where('reminderDateTime', '<=', admin.firestore.Timestamp.fromDate(fiveMinutesFromNow))
+            .where('sent', '==', false)
+            .get();
+        console.log(`Našiel som ${remindersSnapshot.size} pripomienok na odoslanie`);
+        for (const doc of remindersSnapshot.docs) {
+            const reminder = doc.data();
+            const userEmail = reminder.userEmail;
+            const reminderTime = reminder.reminderDateTime.toDate();
+            console.log(`Spracovávam pripomienku pre ${userEmail} na čas ${reminderTime.toISOString()}`);
+            if (!userEmail) {
+                console.log('Pripomienka nemá nastavený email, preskakujem');
+                continue;
+            }
+            // Pošleme email
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER || 'noreply@aesa.sk',
+                to: userEmail,
+                subject: 'Pripomienka obchodného prípadu - Transport Platform',
+                html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #1a1b2e;">Pripomienka obchodného prípadu</h2>
+              <p>Dobrý deň,</p>
+              <p>pripomíname Vám obchodný prípad:</p>
+              <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Firma:</strong> ${reminder.companyName}</p>
+                <p style="margin: 5px 0;"><strong>Kontaktná osoba:</strong> ${reminder.contactPerson.firstName} ${reminder.contactPerson.lastName}</p>
+                <p style="margin: 5px 0;"><strong>Telefón:</strong> ${reminder.contactPerson.phone}</p>
+                <p style="margin: 5px 0;"><strong>Email:</strong> ${reminder.contactPerson.email}</p>
+                ${reminder.reminderNote ? `<p style="margin: 5px 0;"><strong>Poznámka:</strong> ${reminder.reminderNote}</p>` : ''}
+                <p style="margin: 5px 0;"><strong>Čas pripomienky:</strong> ${reminderTime.toLocaleString('sk-SK')}</p>
+              </div>
+              <p style="color: #666;">S pozdravom,<br>Váš Transport Platform tím</p>
+            </div>
+          `
+            });
+            // Aktualizujeme záznam
+            await doc.ref.update({
+                sent: true,
+                sentAt: now
+            });
+            console.log(`Pripomienka bola úspešne odoslaná pre ${userEmail}`);
+        }
+        console.log('Kontrola pripomienok obchodných prípadov bola úspešne dokončená');
+        return null;
+    }
+    catch (error) {
+        console.error('Chyba pri kontrole pripomienok obchodných prípadov:', error);
         return null;
     }
 });

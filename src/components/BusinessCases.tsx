@@ -251,6 +251,7 @@ export default function BusinessCases() {
           reminderNote: formData.reminderNote || '',
           contactPerson: formData.contactPerson,
           createdAt: Timestamp.now(),
+          sent: false
         });
       }
 
@@ -346,7 +347,26 @@ export default function BusinessCases() {
         <AddButton
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setEditCase(null);
+            setFormData({
+              companyName: '',
+              vatNumber: '',
+              companyAddress: '',
+              contactPerson: {
+                firstName: '',
+                lastName: '',
+                phone: '',
+                email: '',
+              },
+              internalNote: '',
+              status: 'NOT_CALLED',
+              reminderDateTime: null,
+              reminderNote: '',
+            });
+            setSelectedCountry(euCountries[0]);
+            setOpen(true);
+          }}
         >
           Pridať prípad
         </AddButton>
