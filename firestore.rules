@@ -16,25 +16,20 @@ service cloud.firestore {
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
-    
-    function hasValidInvitation(invitationId) {
-      return exists(/databases/$(database)/documents/invitations/$(invitationId)) &&
-        get(/databases/$(database)/documents/invitations/$(invitationId)).data.status == 'pending';
-    }
 
     // Pravidlá pre používateľov
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow create: if true; // Povolíme vytvorenie nového používateľa
       allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
     }
 
     // Pravidlá pre pozvánky
     match /invitations/{invitationId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Povolíme čítanie pozvánok
       allow create: if isAdmin();
-      allow update: if isAdmin() || (isAuthenticated() && hasValidInvitation(invitationId));
+      allow update: if true; // Povolíme aktualizáciu pozvánok
       allow delete: if isAdmin();
     }
 
@@ -94,7 +89,8 @@ service cloud.firestore {
 
     // Pravidlá pre ostatné kolekcie
     match /{document=**} {
-      allow read, write: if true; // Povolíme všetky operácie pre všetkých
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
     }
   }
 } 

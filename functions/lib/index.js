@@ -67,17 +67,28 @@ exports.sendInvitationEmail = functions
     }
     try {
         const invitationRef = admin.firestore().collection('invitations').doc(data.invitationId);
-        await invitationRef.set({
-            email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            phone: data.phone,
-            companyId: data.companyId,
-            role: data.role,
-            status: 'pending',
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            createdBy: context.auth.uid
-        });
+        const invitationDoc = await invitationRef.get();
+        if (!invitationDoc.exists) {
+            // Vytvorenie novej pozvánky
+            await invitationRef.set({
+                email: data.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                phone: data.phone,
+                companyID: data.companyId,
+                role: data.role,
+                status: 'pending',
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                createdBy: context.auth.uid
+            });
+        }
+        else {
+            // Aktualizácia existujúcej pozvánky
+            await invitationRef.update({
+                lastSentAt: admin.firestore.FieldValue.serverTimestamp(),
+                status: 'pending'
+            });
+        }
         const invitationLink = `https://core-app-423c7.web.app/accept-invitation/${data.invitationId}`;
         const emailHtml = `
         <h2>Pozvánka do AESA Transport Platform</h2>

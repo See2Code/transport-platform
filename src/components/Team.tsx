@@ -546,6 +546,12 @@ function Team() {
         invitationId: invite.id
       });
 
+      // Aktualizujeme dátum odoslania v Firestore
+      await updateDoc(doc(db, 'invitations', invite.id), {
+        lastSentAt: new Date(),
+        status: 'pending'
+      });
+
       setSuccess('Pozvánka bola úspešne preposlená.');
     } catch (err: any) {
       console.error('Chyba pri preposielaní pozvánky:', err);
