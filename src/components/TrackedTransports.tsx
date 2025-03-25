@@ -172,9 +172,49 @@ const TransportCard = styled(Paper)({
 
 const TransportInfo = styled(Box)({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+  gridTemplateColumns: '1fr 400px',
   gap: '24px',
   marginBottom: '16px',
+  '@media (max-width: 900px)': {
+    gridTemplateColumns: '1fr',
+  }
+});
+
+const InfoContainer = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '24px'
+});
+
+const CreatorInfo = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  color: 'rgba(255, 255, 255, 0.5)',
+  fontSize: '0.9rem'
+});
+
+const MapContainer = styled(Box)({
+  width: '100%',
+  height: '300px',
+  borderRadius: '12px',
+  overflow: 'hidden',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': {
+    transform: 'scale(1.02)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+  }
+});
+
+const MapThumbnail = styled(Box)({
+  width: '100%',
+  height: '100%',
+  '& > div': {
+    width: '100% !important',
+    height: '100% !important',
+  }
 });
 
 const InfoSection = styled(Box)({
@@ -717,7 +757,7 @@ function TrackedTransports() {
                 </Box>
 
                 <TransportInfo>
-                  <InfoSection>
+                  <InfoContainer>
                     <Box>
                       <InfoLabel>Nakládka</InfoLabel>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -743,9 +783,7 @@ function TrackedTransports() {
                         </Typography>
                       </Box>
                     </Box>
-                  </InfoSection>
 
-                  <InfoSection>
                     <Box>
                       <InfoLabel>Vykládka</InfoLabel>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -771,40 +809,33 @@ function TrackedTransports() {
                         </Typography>
                       </Box>
                     </Box>
-                  </InfoSection>
+
+                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                      <CreatorInfo>
+                        <span>Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}</span>
+                        <span>Vytvorené: {format(
+                          transport.createdAt instanceof Timestamp ? 
+                            transport.createdAt.toDate() : 
+                            transport.createdAt instanceof Date ? 
+                              transport.createdAt : 
+                              new Date(transport.createdAt),
+                          'dd.MM.yyyy HH:mm',
+                          { locale: sk }
+                        )}</span>
+                      </CreatorInfo>
+                    </Typography>
+                  </InfoContainer>
+
+                  <MapContainer onClick={() => handleShowMap(transport.loadingAddress, transport.unloadingAddress)}>
+                    <MapThumbnail>
+                      <TransportMap
+                        origin={transport.loadingAddress}
+                        destination={transport.unloadingAddress}
+                        isThumbnail={true}
+                      />
+                    </MapThumbnail>
+                  </MapContainer>
                 </TransportInfo>
-
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)', mt: 2 }}>
-                  <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}</span>
-                    <span>Vytvorené: {format(
-                        transport.createdAt instanceof Timestamp ? 
-                          transport.createdAt.toDate() : 
-                          transport.createdAt instanceof Date ? 
-                            transport.createdAt : 
-                            new Date(transport.createdAt),
-                        'dd.MM.yyyy HH:mm',
-                        { locale: sk }
-                      )}
-                    </span>
-                  </Box>
-                </Typography>
-
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    onClick={() => handleShowMap(transport.loadingAddress, transport.unloadingAddress)}
-                    sx={{
-                      backgroundColor: colors.accent.main,
-                      color: '#ffffff',
-                      '&:hover': {
-                        backgroundColor: colors.accent.light
-                      }
-                    }}
-                  >
-                    Zobraziť mapu
-                  </Button>
-                </TableCell>
               </TransportCard>
             ))}
           </Box>
@@ -987,9 +1018,9 @@ function TrackedTransports() {
         }}>
           Trasa prepravy
         </DialogTitle>
-        <DialogContent sx={{ padding: '24px' }}>
+        <DialogContent sx={{ padding: '24px', minHeight: '600px' }}>
           {selectedTransport && (
-            <Box>
+            <Box sx={{ height: '100%' }}>
               <Box sx={{ mb: 2 }}>
                 <Typography sx={{ color: '#ffffff', mb: 1 }}>
                   <strong>Nakládka:</strong> {selectedTransport.loading}
@@ -998,10 +1029,12 @@ function TrackedTransports() {
                   <strong>Vykládka:</strong> {selectedTransport.unloading}
                 </Typography>
               </Box>
-              <TransportMap
-                origin={selectedTransport.loading}
-                destination={selectedTransport.unloading}
-              />
+              <Box sx={{ height: 'calc(100% - 80px)', minHeight: '500px' }}>
+                <TransportMap
+                  origin={selectedTransport.loading}
+                  destination={selectedTransport.unloading}
+                />
+              </Box>
             </Box>
           )}
         </DialogContent>

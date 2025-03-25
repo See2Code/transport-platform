@@ -1,17 +1,20 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, DirectionsService, DirectionsRenderer, Libraries } from '@react-google-maps/api';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 
 interface TransportMapProps {
   origin: string;
   destination: string;
+  isThumbnail?: boolean;
 }
 
-const containerStyle = {
+const libraries: Libraries = ['places'];
+
+const mapContainerStyle = {
   width: '100%',
-  height: '400px',
-  borderRadius: '12px',
-  overflow: 'hidden'
+  height: '100%',
+  minHeight: '400px',
+  borderRadius: '12px'
 };
 
 const defaultCenter = {
@@ -19,21 +22,28 @@ const defaultCenter = {
   lng: 17.1077
 };
 
-const libraries: Libraries = ['places'];
-
-export default function TransportMap({ origin, destination }: TransportMapProps) {
+export default function TransportMap({ origin, destination, isThumbnail = false }: TransportMapProps) {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
-    libraries
+    libraries,
+    version: "weekly"
   });
+
+  useEffect(() => {
+    console.log('TransportMap props:', { origin, destination, isThumbnail });
+    console.log('Google Maps loading status:', { isLoaded, loadError });
+    console.log('API Key:', process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
+  }, [origin, destination, isThumbnail, isLoaded, loadError]);
 
   const directionsCallback = useCallback(
     (result: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
+      console.log('Directions callback:', { status, result });
       if (status === 'OK' && result) {
         setDirections(result);
+        setError(null);
       } else {
         setError('Nepodarilo sa nájsť trasu');
       }
@@ -44,17 +54,20 @@ export default function TransportMap({ origin, destination }: TransportMapProps)
   if (loadError) {
     return (
       <Box sx={{
-        position: 'relative',
         width: '100%',
-        height: '400px',
-        backgroundColor: 'rgba(35, 35, 66, 0.7)',
-        borderRadius: '12px',
+        height: '100%',
+        minHeight: '400px',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#ff6b6b'
+        backgroundColor: 'rgba(35, 35, 66, 0.7)',
+        color: '#ff6b6b',
+        borderRadius: '12px',
+        padding: 2
       }}>
-        Chyba pri načítaní mapy
+        <Typography>Chyba pri načítaní mapy</Typography>
+        <Typography variant="caption">{loadError.toString()}</Typography>
       </Box>
     );
   }
@@ -62,14 +75,14 @@ export default function TransportMap({ origin, destination }: TransportMapProps)
   if (!isLoaded) {
     return (
       <Box sx={{
-        position: 'relative',
         width: '100%',
-        height: '400px',
-        backgroundColor: 'rgba(35, 35, 66, 0.7)',
-        borderRadius: '12px',
+        height: '100%',
+        minHeight: '400px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        backgroundColor: 'rgba(35, 35, 66, 0.7)',
+        borderRadius: '12px'
       }}>
         <CircularProgress sx={{ color: '#ff9f43' }} />
       </Box>
@@ -77,20 +90,18 @@ export default function TransportMap({ origin, destination }: TransportMapProps)
   }
 
   return (
-    <Box sx={{ 
-      position: 'relative',
+    <Box sx={{
       width: '100%',
-      height: '400px',
+      height: '100%',
+      minHeight: '400px',
+      position: 'relative',
       backgroundColor: 'rgba(35, 35, 66, 0.7)',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+      borderRadius: '12px'
     }}>
       <GoogleMap
-        mapContainerStyle={containerStyle}
+        mapContainerStyle={mapContainerStyle}
         center={defaultCenter}
-        zoom={6}
+        zoom={isThumbnail ? 4 : 6}
         options={{
           styles: [
             {
@@ -120,10 +131,15 @@ export default function TransportMap({ origin, destination }: TransportMapProps)
               elementType: 'labels.text.fill',
               stylers: [{ color: '#9ca5b3' }]
             }
-          ]
+          ],
+          disableDefaultUI: isThumbnail,
+          draggable: !isThumbnail,
+          zoomControl: !isThumbnail,
+          scrollwheel: !isThumbnail,
+          disableDoubleClickZoom: isThumbnail
         }}
       >
-        {origin && destination && (
+        {origin && destination && !directions && (
           <DirectionsService
             options={{
               origin,
@@ -140,7 +156,7 @@ export default function TransportMap({ origin, destination }: TransportMapProps)
               suppressMarkers: false,
               polylineOptions: {
                 strokeColor: '#ff9f43',
-                strokeWeight: 4
+                strokeWeight: isThumbnail ? 3 : 4
               }
             }}
           />
@@ -152,13 +168,14 @@ export default function TransportMap({ origin, destination }: TransportMapProps)
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          color: '#ff6b6b',
-          textAlign: 'center',
-          padding: '16px',
           backgroundColor: 'rgba(35, 35, 66, 0.9)',
-          borderRadius: '8px'
+          color: '#ff6b6b',
+          padding: '16px',
+          borderRadius: '8px',
+          textAlign: 'center',
+          zIndex: 1
         }}>
-          {error}
+          <Typography>{error}</Typography>
         </Box>
       )}
     </Box>
