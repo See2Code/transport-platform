@@ -92,8 +92,29 @@ interface Invitation {
 
 type DeleteableItem = TeamMember | Invitation;
 
+const colors = {
+  primary: {
+    main: '#1a1a2e',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  secondary: {
+    main: '#ff6b6b',
+    light: '#ff8787',
+    dark: '#fa5252',
+  },
+  accent: {
+    main: '#ff9f43',
+    light: '#ffbe76',
+    dark: '#f7b067',
+  }
+};
+
 const PageWrapper = styled('div')({
   padding: '24px',
+  '@media (max-width: 600px)': {
+    padding: '16px',
+  }
 });
 
 const PageHeader = styled(Box)({
@@ -101,6 +122,12 @@ const PageHeader = styled(Box)({
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: '32px',
+  flexWrap: 'wrap',
+  gap: '16px',
+  '@media (max-width: 600px)': {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  }
 });
 
 const PageTitle = styled(Typography)({
@@ -115,13 +142,16 @@ const PageTitle = styled(Typography)({
     left: 0,
     width: '60px',
     height: '4px',
-    backgroundColor: '#00b894',
+    backgroundColor: colors.accent.main,
     borderRadius: '2px',
+  },
+  '@media (max-width: 600px)': {
+    fontSize: '1.5rem',
   }
 });
 
 const AddButton = styled('button')({
-  backgroundColor: '#00b894',
+  backgroundColor: colors.accent.main,
   color: '#ffffff',
   padding: '12px 28px',
   borderRadius: '12px',
@@ -130,7 +160,7 @@ const AddButton = styled('button')({
   border: 'none',
   cursor: 'pointer',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  boxShadow: `0 4px 12px ${colors.accent.main}4D`,
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
@@ -147,9 +177,9 @@ const AddButton = styled('button')({
     transform: 'translateX(-100%)',
   },
   '&:hover': {
-    backgroundColor: '#00d2a0',
+    backgroundColor: colors.accent.light,
     transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+    boxShadow: `0 6px 16px ${colors.accent.main}66`,
     '&:before': {
       transform: 'translateX(100%)',
       transition: 'transform 0.8s',
@@ -157,12 +187,16 @@ const AddButton = styled('button')({
   },
   '&:active': {
     transform: 'translateY(0)',
-    boxShadow: '0 2px 8px rgba(0, 184, 148, 0.3)',
+    boxShadow: `0 2px 8px ${colors.accent.main}4D`,
+  },
+  '@media (max-width: 600px)': {
+    width: '100%',
+    justifyContent: 'center',
   }
 });
 
 const TeamCard = styled(Card)({
-  backgroundColor: 'rgba(35, 35, 66, 0.95)',
+  backgroundColor: colors.primary.light,
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
   padding: '24px',
@@ -174,14 +208,21 @@ const TeamCard = styled(Card)({
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+  },
+  '@media (max-width: 600px)': {
+    padding: '16px',
   }
 });
 
 const TeamInfo = styled(Box)({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
   gap: '24px',
   marginBottom: '16px',
+  '@media (max-width: 600px)': {
+    gridTemplateColumns: '1fr',
+    gap: '16px',
+  }
 });
 
 const InfoSection = styled(Box)({
@@ -212,16 +253,22 @@ const CardHeader = styled(Box)({
 const MemberName = styled(Typography)({
   fontSize: '1.1rem',
   fontWeight: 600,
-  color: '#00b894',
+  color: colors.accent.main,
+  '@media (max-width: 600px)': {
+    fontSize: '1rem',
+  }
 });
 
 const RoleChip = styled('span')({
-  backgroundColor: 'rgba(0, 184, 148, 0.2)',
-  color: '#00b894',
+  backgroundColor: `${colors.accent.main}33`,
+  color: colors.accent.main,
   padding: '4px 12px',
   borderRadius: '8px',
   fontSize: '0.85rem',
   fontWeight: 500,
+  '@media (max-width: 600px)': {
+    fontSize: '0.75rem',
+  }
 });
 
 const AnimatedTableRow = styled(motion.tr)({
@@ -602,8 +649,7 @@ function Team() {
       <PageHeader>
         <PageTitle>Tím</PageTitle>
         <AddButton onClick={() => setOpenInvite(true)}>
-          <AddIcon sx={{ fontSize: 20 }} />
-          Pridať člena
+          <AddIcon /> Pridať člena
         </AddButton>
       </PageHeader>
 
@@ -625,16 +671,26 @@ function Team() {
             <Typography variant="h6" gutterBottom>
               Členovia tímu
             </Typography>
-            <TableContainer>
+            <TableContainer 
+              component={Paper} 
+              sx={{ 
+                backgroundColor: 'transparent',
+                '@media (max-width: 960px)': {
+                  display: 'block',
+                  overflowX: 'auto',
+                  whiteSpace: 'nowrap',
+                }
+              }}
+            >
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Meno</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Telefón</TableCell>
-                    <TableCell>Rola</TableCell>
-                    <TableCell>Status</TableCell>
-                    {isAdmin && <TableCell>Akcie</TableCell>}
+                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Meno</TableCell>
+                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Email</TableCell>
+                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Telefón</TableCell>
+                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Rola</TableCell>
+                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Status</TableCell>
+                    {isAdmin && <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Akcie</TableCell>}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -807,193 +863,293 @@ function Team() {
       </Grid>
 
       {/* Dialóg pre pozvanie nového člena */}
-      <Dialog open={openInvite} onClose={() => setOpenInvite(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Pozvať nového člena do tímu</DialogTitle>
+      <Dialog
+        open={openInvite}
+        onClose={() => setOpenInvite(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: 'rgba(35, 35, 66, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          color: '#ffffff',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '24px',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+        }}>
+          Pridať nového člena tímu
+        </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Meno"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Priezvisko"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Select
-                  value={countryCode}
-                  onChange={handleCountryChange}
-                  sx={{ width: '200px' }}
-                >
-                  {countries.map((country) => (
-                    <MenuItem key={country.code} value={country.code}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <img
-                          loading="lazy"
-                          width="20"
-                          src={`https://flagcdn.com/${country.code}.svg`}
-                          alt={country.name}
-                        />
-                        <span>{country.name}</span>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
+          <Box sx={{ 
+            padding: '24px',
+            color: '#ffffff',
+          }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
                 <TextField
-                  label={`Mobil (${phonePrefix})`}
-                  placeholder="910 XXX XXX"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
                   fullWidth
+                  label="Meno"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   required
                 />
-              </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Priezvisko"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Krajina</InputLabel>
+                  <Select
+                    value={countryCode}
+                    onChange={handleCountryChange}
+                    label="Krajina"
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country.code} value={country.code}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <img
+                            loading="lazy"
+                            width="20"
+                            src={`https://flagcdn.com/${country.code}.svg`}
+                            alt={country.name}
+                          />
+                          <span>{country.name}</span>
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={8}>
+                <TextField
+                  fullWidth
+                  label="Telefón"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <Box component="span" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                        {phonePrefix}
+                      </Box>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Rola</InputLabel>
+                  <Select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    label="Rola"
+                    required
+                  >
+                    <MenuItem value="admin">Admin</MenuItem>
+                    <MenuItem value="manager">Manažér</MenuItem>
+                    <MenuItem value="user">Používateľ</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Rola</InputLabel>
-                <Select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  label="Rola"
-                >
-                  <MenuItem value="user">Používateľ</MenuItem>
-                  <MenuItem value="manager">Manažér</MenuItem>
-                  <MenuItem value="admin">Administrátor</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenInvite(false)} aria-label="Zrušiť pozvanie">
+        <DialogActions sx={{ 
+          padding: '24px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+          <Button onClick={() => setOpenInvite(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
             Zrušiť
           </Button>
           <Button 
-            onClick={handleInvite} 
-            variant="contained" 
-            disabled={loading}
-            aria-label="Pozvať nového člena do tímu"
+            onClick={handleInvite}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.accent.main,
+              color: '#ffffff',
+              fontWeight: 600,
+              padding: '8px 24px',
+              '&:hover': {
+                backgroundColor: colors.accent.light,
+              },
+              '&.Mui-disabled': {
+                backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                color: 'rgba(255, 255, 255, 0.3)',
+              }
+            }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Pozvať nového člena do tímu'}
+            {loading ? <CircularProgress size={24} /> : 'Pridať člena'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Dialóg pre úpravu */}
-      <Dialog open={openEdit} onClose={() => setOpenEdit(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingInvite && 'userId' in editingInvite ? 'Upraviť údaje člena tímu' : 'Upraviť údaje v pozvánke'}
+      <Dialog
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: 'rgba(35, 35, 66, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          color: '#ffffff',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '24px',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+        }}>
+          Upraviť údaje člena tímu
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Meno"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Priezvisko"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Select
-                  value={countryCode}
-                  onChange={handleCountryChange}
-                  sx={{ width: '200px' }}
-                >
-                  {countries.map((country) => (
-                    <MenuItem key={country.code} value={country.code}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <img
-                          loading="lazy"
-                          width="20"
-                          src={`https://flagcdn.com/${country.code}.svg`}
-                          alt={country.name}
-                        />
-                        <span>{country.name}</span>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
+          <Box sx={{ 
+            padding: '24px',
+            color: '#ffffff',
+          }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
                 <TextField
-                  label={`Mobil (${phonePrefix})`}
-                  placeholder="910 XXX XXX"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
                   fullWidth
+                  label="Meno"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   required
                 />
-              </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Priezvisko"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Krajina</InputLabel>
+                  <Select
+                    value={countryCode}
+                    onChange={handleCountryChange}
+                    label="Krajina"
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country.code} value={country.code}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <img
+                            loading="lazy"
+                            width="20"
+                            src={`https://flagcdn.com/${country.code}.svg`}
+                            alt={country.name}
+                          />
+                          <span>{country.name}</span>
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={8}>
+                <TextField
+                  fullWidth
+                  label="Telefón"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <Box component="span" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                        {phonePrefix}
+                      </Box>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Rola</InputLabel>
+                  <Select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    label="Rola"
+                    required
+                  >
+                    <MenuItem value="admin">Admin</MenuItem>
+                    <MenuItem value="manager">Manažér</MenuItem>
+                    <MenuItem value="user">Používateľ</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Rola</InputLabel>
-                <Select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  label="Rola"
-                >
-                  <MenuItem value="user">Používateľ</MenuItem>
-                  <MenuItem value="manager">Manažér</MenuItem>
-                  <MenuItem value="admin">Administrátor</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenEdit(false)} aria-label="Zrušiť úpravy">
+        <DialogActions sx={{ 
+          padding: '24px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+          <Button onClick={() => setOpenEdit(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
             Zrušiť
           </Button>
           <Button 
-            onClick={handleUpdate} 
-            variant="contained" 
-            disabled={loading}
-            aria-label={`Uložiť zmeny pre ${editingInvite && 'userId' in editingInvite ? 'člena tímu' : 'pozvánku'}`}
+            onClick={handleUpdate}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.accent.main,
+              color: '#ffffff',
+              fontWeight: 600,
+              padding: '8px 24px',
+              '&:hover': {
+                backgroundColor: colors.accent.light,
+              },
+              '&.Mui-disabled': {
+                backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                color: 'rgba(255, 255, 255, 0.3)',
+              }
+            }}
           >
-            {loading ? <CircularProgress size={24} /> : `Uložiť zmeny pre ${editingInvite && 'userId' in editingInvite ? 'člena tímu' : 'pozvánku'}`}
+            Uložiť zmeny
           </Button>
         </DialogActions>
       </Dialog>
