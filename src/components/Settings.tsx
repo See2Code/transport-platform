@@ -91,8 +91,29 @@ const euCountries = [
   { code: 'LU', name: 'Luxembursko', flag: '🇱🇺', prefix: '+352' }
 ];
 
+const colors = {
+  primary: {
+    main: '#1a1a2e',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  secondary: {
+    main: '#ff6b6b',
+    light: '#ff8787',
+    dark: '#fa5252',
+  },
+  accent: {
+    main: '#ff9f43',
+    light: '#ffbe76',
+    dark: '#f7b067',
+  }
+};
+
 const PageWrapper = styled('div')({
   padding: '24px',
+  '@media (max-width: 600px)': {
+    padding: '16px',
+  }
 });
 
 const PageHeader = styled(Box)({
@@ -100,6 +121,12 @@ const PageHeader = styled(Box)({
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: '32px',
+  flexWrap: 'wrap',
+  gap: '16px',
+  '@media (max-width: 600px)': {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  }
 });
 
 const PageTitle = styled(Typography)({
@@ -114,24 +141,31 @@ const PageTitle = styled(Typography)({
     left: 0,
     width: '60px',
     height: '4px',
-    backgroundColor: '#00b894',
+    backgroundColor: colors.accent.main,
     borderRadius: '2px',
+  },
+  '@media (max-width: 600px)': {
+    fontSize: '1.5rem',
   }
 });
 
 const SettingsCard = styled(Card)({
-  backgroundColor: 'rgba(35, 35, 66, 0.95)',
+  backgroundColor: colors.primary.light,
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
   padding: '24px',
   color: '#ffffff',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
   border: '1px solid rgba(255, 255, 255, 0.06)',
-  marginBottom: '16px',
+  marginBottom: '24px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+  },
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    marginBottom: '16px',
   }
 });
 
@@ -140,25 +174,42 @@ const CardHeader = styled(Box)({
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: '24px',
+  flexWrap: 'wrap',
+  gap: '16px',
+  '@media (max-width: 600px)': {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  }
 });
 
 const SectionTitle = styled(Typography)({
   fontSize: '1.1rem',
   fontWeight: 600,
-  color: '#00b894',
+  color: colors.accent.main,
+  '@media (max-width: 600px)': {
+    fontSize: '1rem',
+  }
 });
 
 const SettingsInfo = styled(Box)({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
   gap: '24px',
-  marginBottom: '16px',
+  marginBottom: '24px',
+  '@media (max-width: 600px)': {
+    gridTemplateColumns: '1fr',
+    gap: '16px',
+    marginBottom: '16px',
+  }
 });
 
 const InfoSection = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   gap: '16px',
+  '@media (max-width: 600px)': {
+    gap: '12px',
+  }
 });
 
 const InfoLabel = styled(Typography)({
@@ -166,15 +217,21 @@ const InfoLabel = styled(Typography)({
   color: 'rgba(255, 255, 255, 0.5)',
   textTransform: 'uppercase',
   letterSpacing: '0.5px',
+  '@media (max-width: 600px)': {
+    fontSize: '0.8rem',
+  }
 });
 
 const InfoValue = styled(Typography)({
   fontSize: '1rem',
   color: '#ffffff',
+  '@media (max-width: 600px)': {
+    fontSize: '0.95rem',
+  }
 });
 
 const SaveButton = styled(Button)({
-  backgroundColor: '#00b894',
+  backgroundColor: colors.accent.main,
   color: '#ffffff',
   padding: '8px 24px',
   borderRadius: '12px',
@@ -182,11 +239,19 @@ const SaveButton = styled(Button)({
   fontWeight: 600,
   textTransform: 'none',
   transition: 'all 0.2s ease-in-out',
-  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  boxShadow: `0 4px 12px ${colors.accent.main}4D`,
   '&:hover': {
-    backgroundColor: '#00d2a0',
+    backgroundColor: colors.accent.light,
     transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+    boxShadow: `0 6px 16px ${colors.accent.main}66`,
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+    boxShadow: `0 2px 8px ${colors.accent.main}4D`,
+  },
+  '@media (max-width: 600px)': {
+    width: '100%',
+    justifyContent: 'center',
   }
 });
 
@@ -385,452 +450,45 @@ function Settings() {
         </Alert>
       )}
 
-      <SettingsCard>
-        <CardHeader>
-          <SectionTitle>Údaje o firme</SectionTitle>
-          {isAdmin && (
-            <Box>
-              {isEditing ? (
-                <>
-                  <Tooltip title="Zrušiť úpravy">
-                    <IconButton onClick={handleCancel} sx={{ mr: 1 }}>
-                      <CancelIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Uložiť zmeny">
-                    <IconButton onClick={handleSave} color="primary">
-                      <SaveIcon />
-                    </IconButton>
-                  </Tooltip>
-                </>
-              ) : (
-                <Tooltip title="Upraviť údaje">
-                  <IconButton onClick={() => setIsEditing(true)} color="primary">
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </Box>
-          )}
-        </CardHeader>
-
-        <SettingsInfo>
-          <InfoSection>
-            <Box>
-              <InfoLabel>Názov firmy</InfoLabel>
-              <TextField
-                fullWidth
-                value={companyData?.companyName || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, companyName: e.target.value } : null)}
-                disabled={!isEditing}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-            <Box>
-              <InfoLabel>IČO</InfoLabel>
-              <TextField
-                fullWidth
-                value={companyData?.ico || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, ico: e.target.value } : null)}
-                disabled={!isEditing}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-          </InfoSection>
-
-          <InfoSection>
-            <Box>
-              <InfoLabel>DIČ</InfoLabel>
-              <TextField
-                fullWidth
-                value={companyData?.dic || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, dic: e.target.value } : null)}
-                disabled={!isEditing}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-            <Box>
-              <InfoLabel>IČ DPH</InfoLabel>
-              <TextField
-                fullWidth
-                value={companyData?.icDph || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, icDph: e.target.value } : null)}
-                disabled={!isEditing}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-          </InfoSection>
-
-          <InfoSection>
-            <Box>
-              <InfoLabel>Ulica</InfoLabel>
-              <TextField
-                fullWidth
-                value={companyData?.street || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, street: e.target.value } : null)}
-                disabled={!isEditing}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-            <Box>
-              <InfoLabel>PSČ</InfoLabel>
-              <TextField
-                fullWidth
-                value={companyData?.zipCode || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, zipCode: e.target.value } : null)}
-                disabled={!isEditing}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-          </InfoSection>
-
-          <InfoSection>
-            <Box>
-              <InfoLabel>Mesto</InfoLabel>
-              <TextField
-                fullWidth
-                value={companyData?.city || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, city: e.target.value } : null)}
-                disabled={!isEditing}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-            <Box>
-              <InfoLabel>Krajina</InfoLabel>
-              <FormControl fullWidth>
-                <Select
-                  value={companyData?.country || 'SK'}
-                  onChange={(e) => setCompanyData(prev => prev ? { ...prev, country: e.target.value } : null)}
-                  disabled={!isEditing}
-                  sx={{
-                    color: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00b894',
-                    },
-                    '& .MuiSelect-icon': {
-                      color: 'rgba(255, 255, 255, 0.5)',
-                    }
-                  }}
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <SettingsCard>
+            <CardHeader>
+              <SectionTitle>Profil používateľa</SectionTitle>
+              {!isEditingProfile ? (
+                <IconButton 
+                  onClick={() => setIsEditingProfile(true)}
+                  sx={{ color: colors.accent.main }}
                 >
-                  {euCountries.map((country) => (
-                    <MenuItem key={country.code} value={country.code}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span>{country.flag}</span>
-                        <span>{country.name}</span>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-          </InfoSection>
-        </SettingsInfo>
-      </SettingsCard>
-
-      <SettingsCard>
-        <CardHeader>
-          <SectionTitle>Profil</SectionTitle>
-          <Box>
-            {isEditingProfile ? (
-              <>
-                <Tooltip title="Zrušiť úpravy">
-                  <IconButton onClick={handleProfileCancel} sx={{ mr: 1 }}>
-                    <CancelIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Uložiť zmeny">
-                  <IconButton onClick={handleProfileSave} color="primary">
-                    <SaveIcon />
-                  </IconButton>
-                </Tooltip>
-              </>
-            ) : (
-              <Tooltip title="Upraviť profil">
-                <IconButton onClick={() => setIsEditingProfile(true)} color="primary">
                   <EditIcon />
                 </IconButton>
-              </Tooltip>
-            )}
-          </Box>
-        </CardHeader>
-
-        <SettingsInfo>
-          <InfoSection>
-            <Box>
-              <InfoLabel>Meno</InfoLabel>
-              <TextField
-                fullWidth
-                value={localUserData?.firstName || ''}
-                onChange={(e) => handleUserDataChange('firstName', e.target.value)}
-                disabled={!isEditingProfile}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-            <Box>
-              <InfoLabel>Priezvisko</InfoLabel>
-              <TextField
-                fullWidth
-                value={localUserData?.lastName || ''}
-                onChange={(e) => handleUserDataChange('lastName', e.target.value)}
-                disabled={!isEditingProfile}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-          </InfoSection>
-
-          <InfoSection>
-            <Box>
-              <InfoLabel>Email</InfoLabel>
-              <TextField
-                fullWidth
-                value={localUserData?.email || ''}
-                disabled
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                  },
-                }}
-              />
-            </Box>
-            <Box>
-              <InfoLabel>Telefón</InfoLabel>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <FormControl sx={{ minWidth: 120 }}>
-                  <Select
-                    value={selectedCountry.code}
-                    onChange={handleCountryChange}
-                    disabled={!isEditingProfile}
-                    sx={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      color: '#ffffff',
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#00b894',
-                      },
-                      '& .MuiSelect-icon': {
-                        color: 'rgba(255, 255, 255, 0.5)',
-                      }
-                    }}
+              ) : (
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <IconButton 
+                    onClick={handleProfileCancel}
+                    sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
                   >
-                    {euCountries.map((country) => (
-                      <MenuItem key={country.code} value={country.code}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <span>{country.flag}</span>
-                          <span>{country.prefix}</span>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                    <CancelIcon />
+                  </IconButton>
+                  <IconButton 
+                    onClick={handleProfileSave}
+                    sx={{ color: colors.accent.main }}
+                  >
+                    <SaveIcon />
+                  </IconButton>
+                </Box>
+              )}
+            </CardHeader>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  value={localUserData?.phone?.replace(selectedCountry.prefix, '') || ''}
-                  onChange={(e) => handleUserDataChange('phone', selectedCountry.prefix + e.target.value)}
+                  label="Meno"
+                  value={localUserData?.firstName || ''}
+                  onChange={(e) => handleUserDataChange('firstName', e.target.value)}
                   disabled={!isEditingProfile}
-                  variant="outlined"
-                  placeholder="9XX XXX XXX"
-                  helperText="Zadajte telefónne číslo"
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      color: '#ffffff',
                       '& fieldset': {
                         borderColor: 'rgba(255, 255, 255, 0.1)',
                       },
@@ -838,28 +496,395 @@ function Settings() {
                         borderColor: 'rgba(255, 255, 255, 0.2)',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#00b894',
+                        borderColor: colors.accent.main,
                       },
                     },
                     '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      '&.Mui-focused': {
-                        color: '#00b894',
-                      },
+                      color: 'rgba(255, 255, 255, 0.7)',
                     },
-                    '& .MuiFormHelperText-root': {
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: '0.75rem',
-                      marginLeft: 0,
-                      marginTop: '4px',
-                    }
+                    '& .MuiInputBase-input': {
+                      color: '#ffffff',
+                    },
                   }}
                 />
-              </Box>
-            </Box>
-          </InfoSection>
-        </SettingsInfo>
-      </SettingsCard>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Priezvisko"
+                  value={localUserData?.lastName || ''}
+                  onChange={(e) => handleUserDataChange('lastName', e.target.value)}
+                  disabled={!isEditingProfile}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: colors.accent.main,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                    '& .MuiInputBase-input': {
+                      color: '#ffffff',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  value={localUserData?.email || ''}
+                  disabled
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                    '& .MuiInputBase-input': {
+                      color: '#ffffff',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <FormControl sx={{ minWidth: 120 }}>
+                    <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Predvoľba</InputLabel>
+                    <Select
+                      value={selectedCountry.code}
+                      onChange={handleCountryChange}
+                      disabled={!isEditingProfile}
+                      sx={{
+                        color: '#ffffff',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: colors.accent.main,
+                        },
+                      }}
+                    >
+                      {euCountries.map((country) => (
+                        <MenuItem key={country.code} value={country.code}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span>{country.flag}</span>
+                            <span>{country.prefix}</span>
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    fullWidth
+                    label="Telefón"
+                    value={localUserData?.phone?.replace(selectedCountry.prefix, '') || ''}
+                    onChange={(e) => handleUserDataChange('phone', selectedCountry.prefix + e.target.value)}
+                    disabled={!isEditingProfile}
+                    placeholder="9XX XXX XXX"
+                    helperText="Zadajte telefónne číslo bez predvoľby"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: colors.accent.main,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                      '& .MuiInputBase-input': {
+                        color: '#ffffff',
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: 'rgba(255, 255, 255, 0.5)',
+                      },
+                    }}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
+          </SettingsCard>
+
+          {isAdmin && (
+            <SettingsCard>
+              <CardHeader>
+                <SectionTitle>Firemné údaje</SectionTitle>
+                {!isEditing ? (
+                  <IconButton 
+                    onClick={() => setIsEditing(true)}
+                    sx={{ color: colors.accent.main }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                ) : (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton 
+                      onClick={handleCancel}
+                      sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                    >
+                      <CancelIcon />
+                    </IconButton>
+                    <IconButton 
+                      onClick={handleSave}
+                      sx={{ color: colors.accent.main }}
+                    >
+                      <SaveIcon />
+                    </IconButton>
+                  </Box>
+                )}
+              </CardHeader>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Názov firmy"
+                    value={companyData?.companyName || ''}
+                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, companyName: e.target.value } : null)}
+                    disabled={!isEditing}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: colors.accent.main,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                      '& .MuiInputBase-input': {
+                        color: '#ffffff',
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="IČO"
+                    value={companyData?.ico || ''}
+                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, ico: e.target.value } : null)}
+                    disabled={!isEditing}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: colors.accent.main,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                      '& .MuiInputBase-input': {
+                        color: '#ffffff',
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="DIČ"
+                    value={companyData?.dic || ''}
+                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, dic: e.target.value } : null)}
+                    disabled={!isEditing}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: colors.accent.main,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                      '& .MuiInputBase-input': {
+                        color: '#ffffff',
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="IČ DPH"
+                    value={companyData?.icDph || ''}
+                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, icDph: e.target.value } : null)}
+                    disabled={!isEditing}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: colors.accent.main,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                      '& .MuiInputBase-input': {
+                        color: '#ffffff',
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Krajina</InputLabel>
+                    <Select
+                      value={companyData?.country || 'SK'}
+                      onChange={(e) => setCompanyData(prev => prev ? { ...prev, country: e.target.value } : null)}
+                      disabled={!isEditing}
+                      sx={{
+                        color: '#ffffff',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: colors.accent.main,
+                        },
+                      }}
+                    >
+                      {euCountries.map((country) => (
+                        <MenuItem key={country.code} value={country.code}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span>{country.flag}</span>
+                            <span>{country.name}</span>
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Ulica"
+                    value={companyData?.street || ''}
+                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, street: e.target.value } : null)}
+                    disabled={!isEditing}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: colors.accent.main,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                      '& .MuiInputBase-input': {
+                        color: '#ffffff',
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="PSČ"
+                    value={companyData?.zipCode || ''}
+                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, zipCode: e.target.value } : null)}
+                    disabled={!isEditing}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: colors.accent.main,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                      '& .MuiInputBase-input': {
+                        color: '#ffffff',
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Mesto"
+                    value={companyData?.city || ''}
+                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, city: e.target.value } : null)}
+                    disabled={!isEditing}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: colors.accent.main,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                      '& .MuiInputBase-input': {
+                        color: '#ffffff',
+                      },
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </SettingsCard>
+          )}
+        </Grid>
+      </Grid>
     </PageWrapper>
   );
 }
