@@ -110,32 +110,22 @@ interface BusinessCase {
   countryCode?: string;
 }
 
-const PageWrapper = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2),
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(2.5)
-  },
-  [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(3.75)
-  },
-  overflowX: 'hidden',
-  width: '100%',
-  maxWidth: '100%',
-  boxSizing: 'border-box'
-}));
+const PageWrapper = styled('div')({
+  padding: '24px',
+  position: 'relative'
+});
 
-const PageHeader = styled(Box)(({ theme }) => ({
+const PageHeader = styled(Box)({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: theme.spacing(3.75),
-  [theme.breakpoints.down('sm')]: {
-    flexDirection: 'column',
-    gap: theme.spacing(2)
-  }
-}));
+  marginBottom: '32px',
+  position: 'relative',
+  zIndex: 1,
+});
 
 const PageTitle = styled(Typography)({
+  fontSize: '1.75rem',
   fontWeight: 700,
   color: '#ffffff',
   position: 'relative',
@@ -144,13 +134,15 @@ const PageTitle = styled(Typography)({
     position: 'absolute',
     bottom: '-8px',
     left: 0,
+    width: '60px',
+    height: '4px',
     backgroundColor: colors.accent.main,
     borderRadius: '2px',
   }
 });
 
 const AddButton = styled(Button)({
-  backgroundColor: '#ff9f43',
+  backgroundColor: colors.accent.main,
   color: '#ffffff',
   padding: '8px 24px',
   borderRadius: '12px',
@@ -160,9 +152,20 @@ const AddButton = styled(Button)({
   transition: 'all 0.2s ease-in-out',
   boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
   '&:hover': {
-    backgroundColor: '#ffbe76',
+    backgroundColor: colors.accent.light,
     transform: 'translateY(-2px)',
     boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
+  }
+});
+
+const SearchWrapper = styled(Box)({
+  marginBottom: '24px',
+  position: 'relative',
+  zIndex: 1,
+  maxWidth: '600px',
+  width: '100%',
+  '@media (max-width: 600px)': {
+    maxWidth: '100%',
   }
 });
 
@@ -408,27 +411,7 @@ export default function BusinessCases() {
   return (
     <PageWrapper>
       <PageHeader>
-        <PageTitle sx={{
-          fontSize: {
-            xs: '1.25rem',
-            sm: '1.5rem',
-            md: '1.75rem'
-          },
-          '&::after': {
-            width: {
-              xs: '40px',
-              sm: '50px',
-              md: '60px'
-            },
-            height: {
-              xs: '3px',
-              sm: '4px'
-            }
-          },
-          mb: { xs: 2, sm: 0 }
-        }}>
-          Obchodné prípady
-        </PageTitle>
+        <PageTitle>Obchodné prípady</PageTitle>
         <AddButton
           variant="contained"
           startIcon={<AddIcon />}
@@ -459,29 +442,21 @@ export default function BusinessCases() {
         </AddButton>
       </PageHeader>
 
-      <Box sx={{ 
-        mb: 3,
-        position: 'relative',
-        zIndex: 1,
-        maxWidth: '600px',
-        width: '100%',
-        '@media (max-width: 600px)': {
-          maxWidth: '100%',
-        }
-      }}>
+      <SearchWrapper>
         <SearchField
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           label="Vyhľadať prípad"
         />
-      </Box>
+      </SearchWrapper>
 
       <TableContainer 
-        component={Paper}
-        sx={{
+        component={Paper} 
+        sx={{ 
+          mt: 2, 
+          backgroundColor: 'transparent',
           overflowX: 'auto',
           width: '100%',
-          backgroundColor: 'transparent',
           '& .MuiTable-root': {
             minWidth: {
               xs: '800px',
@@ -689,270 +664,214 @@ export default function BusinessCases() {
         fullWidth
         PaperProps={{
           sx: {
-            background: 'rgba(17, 25, 54, 0.6)',
-            backdropFilter: 'blur(12px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-            border: '1px solid rgba(255, 255, 255, 0.125)',
+            background: 'rgba(35, 35, 66, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-            borderRadius: '16px',
           }
         }}
       >
-        <DialogTitle sx={{
+        <DialogTitle sx={{ 
           color: '#ffffff',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '24px',
           fontSize: '1.5rem',
           fontWeight: 600,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          pb: 2
         }}>
           {editCase ? 'Upraviť obchodný prípad' : 'Nový obchodný prípad'}
         </DialogTitle>
-        <DialogContent sx={{ 
-          paddingTop: '42px',
-          '& .MuiTextField-root': {
-            '& .MuiOutlinedInput-root': {
-              color: '#ffffff',
-              '& fieldset': {
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                transition: 'all 0.2s ease-in-out',
-              },
-              '&:hover fieldset': {
-                borderColor: 'rgba(255, 159, 67, 0.5)',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#ff9f43',
-              },
-            },
-            '& .MuiInputLabel-root': {
-              color: 'rgba(255, 255, 255, 0.7)',
-              '&.Mui-focused': {
-                color: '#ff9f43',
-              },
-            },
-            '& .MuiFormHelperText-root': {
-              color: 'rgba(255, 255, 255, 0.5)',
-            }
-          },
-          '& .MuiFormControl-root': {
-            '& .MuiInputLabel-root': {
-              color: 'rgba(255, 255, 255, 0.7)',
-              '&.Mui-focused': {
-                color: '#ff9f43',
-              },
-            },
-            '& .MuiOutlinedInput-root': {
-              color: '#ffffff',
-              '& fieldset': {
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-              },
-              '&:hover fieldset': {
-                borderColor: 'rgba(255, 159, 67, 0.5)',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#ff9f43',
-              },
-            },
-          },
-          '& .MuiSelect-icon': {
-            color: 'rgba(255, 255, 255, 0.5)',
-          },
-          '& .MuiMenuItem-root': {
-            '&:hover': {
-              backgroundColor: 'rgba(255, 159, 67, 0.1)',
-            },
-            '&.Mui-selected': {
-              backgroundColor: 'rgba(255, 159, 67, 0.2)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 159, 67, 0.3)',
-              },
-            },
-          }
-        }}>
-          <Grid container spacing={2} sx={{ pt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Názov firmy"
-                value={formData.companyName}
-                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="IČ DPH"
-                value={formData.vatNumber}
-                onChange={(e) => setFormData({ ...formData, vatNumber: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Adresa spoločnosti"
-                value={formData.companyAddress}
-                onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Meno"
-                value={formData.contactPerson.firstName}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  contactPerson: { ...formData.contactPerson, firstName: e.target.value }
-                })}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Priezvisko"
-                value={formData.contactPerson.lastName}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  contactPerson: { ...formData.contactPerson, lastName: e.target.value }
-                })}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <FormControl sx={{ minWidth: 120 }}>
-                  <Select
-                    value={selectedCountry.code}
-                    onChange={handleCountryChange}
+        <DialogContent>
+          <Box sx={{ 
+            padding: '24px',
+            color: '#ffffff',
+          }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Názov firmy"
+                  value={formData.companyName}
+                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="IČ DPH"
+                  value={formData.vatNumber}
+                  onChange={(e) => setFormData({ ...formData, vatNumber: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Adresa spoločnosti"
+                  value={formData.companyAddress}
+                  onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Meno"
+                  value={formData.contactPerson.firstName}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    contactPerson: { ...formData.contactPerson, firstName: e.target.value }
+                  })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Priezvisko"
+                  value={formData.contactPerson.lastName}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    contactPerson: { ...formData.contactPerson, lastName: e.target.value }
+                  })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <FormControl sx={{ minWidth: 120 }}>
+                    <Select
+                      value={selectedCountry.code}
+                      onChange={handleCountryChange}
+                      sx={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        color: '#ffffff',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#ff9f43',
+                        },
+                        '& .MuiSelect-icon': {
+                          color: 'rgba(255, 255, 255, 0.5)',
+                        }
+                      }}
+                    >
+                      {euCountries.map((country) => (
+                        <MenuItem key={country.code} value={country.code}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span>{country.flag}</span>
+                            <span>{country.prefix}</span>
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    fullWidth
+                    label="Telefónne číslo"
+                    value={formData.contactPerson.phone?.replace(selectedCountry.prefix, '') || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      contactPerson: { ...formData.contactPerson, phone: selectedCountry.prefix + e.target.value }
+                    })}
+                    placeholder="9XX XXX XXX"
+                    helperText="Zadajte telefónne číslo"
+                    required
                     sx={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      color: '#ffffff',
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                      '& .MuiOutlinedInput-root': {
+                        color: '#ffffff',
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#ff9f43',
+                        },
                       },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#ff9f43',
-                      },
-                      '& .MuiSelect-icon': {
+                      '& .MuiInputLabel-root': {
                         color: 'rgba(255, 255, 255, 0.5)',
+                        '&.Mui-focused': {
+                          color: '#ff9f43',
+                        },
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: '0.75rem',
+                        marginLeft: 0,
+                        marginTop: '4px',
                       }
                     }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={formData.contactPerson.email}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    contactPerson: { ...formData.contactPerson, email: e.target.value }
+                  })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Interná poznámka"
+                  multiline
+                  rows={4}
+                  value={formData.internalNote}
+                  onChange={(e) => setFormData({ ...formData, internalNote: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={formData.status}
+                    label="Status"
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as keyof typeof caseStatuses })}
                   >
-                    {euCountries.map((country) => (
-                      <MenuItem key={country.code} value={country.code}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <span>{country.flag}</span>
-                          <span>{country.prefix}</span>
-                        </Box>
+                    {Object.entries(caseStatuses).map(([key, value]) => (
+                      <MenuItem key={key} value={key}>
+                        {value.label}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                  <DateTimePicker
+                    label="Dátum a čas pripomienky"
+                    value={formData.reminderDateTime}
+                    onChange={(newValue) => setFormData({ ...formData, reminderDateTime: newValue })}
+                    sx={{ width: '100%' }}
+                  />
+                </LocalizationProvider>
+              </Grid>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Telefónne číslo"
-                  value={formData.contactPerson.phone?.replace(selectedCountry.prefix, '') || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    contactPerson: { ...formData.contactPerson, phone: selectedCountry.prefix + e.target.value }
-                  })}
-                  placeholder="9XX XXX XXX"
-                  helperText="Zadajte telefónne číslo"
-                  required
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      color: '#ffffff',
-                      '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#ff9f43',
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      '&.Mui-focused': {
-                        color: '#ff9f43',
-                      },
-                    },
-                    '& .MuiFormHelperText-root': {
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: '0.75rem',
-                      marginLeft: 0,
-                      marginTop: '4px',
-                    }
-                  }}
+                  label="Poznámka k pripomienke"
+                  multiline
+                  rows={2}
+                  value={formData.reminderNote}
+                  onChange={(e) => setFormData({ ...formData, reminderNote: e.target.value })}
+                  placeholder="Zadajte text pripomienky, ktorý vám príde emailom"
+                  helperText="Tento text vám príde emailom v čase pripomienky"
                 />
-              </Box>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={formData.contactPerson.email}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  contactPerson: { ...formData.contactPerson, email: e.target.value }
-                })}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Interná poznámka"
-                multiline
-                rows={4}
-                value={formData.internalNote}
-                onChange={(e) => setFormData({ ...formData, internalNote: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={formData.status}
-                  label="Status"
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value as keyof typeof caseStatuses })}
-                >
-                  {Object.entries(caseStatuses).map(([key, value]) => (
-                    <MenuItem key={key} value={key}>
-                      {value.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                <DateTimePicker
-                  label="Dátum a čas pripomienky"
-                  value={formData.reminderDateTime}
-                  onChange={(newValue) => setFormData({ ...formData, reminderDateTime: newValue })}
-                  sx={{ width: '100%' }}
-                />
-              </LocalizationProvider>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Poznámka k pripomienke"
-                multiline
-                rows={2}
-                value={formData.reminderNote}
-                onChange={(e) => setFormData({ ...formData, reminderNote: e.target.value })}
-                placeholder="Zadajte text pripomienky, ktorý vám príde emailom"
-                helperText="Tento text vám príde emailom v čase pripomienky"
-              />
-            </Grid>
-          </Grid>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ 
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
