@@ -86,6 +86,13 @@ export const sendInvitationEmail = functions
       const invitationRef = admin.firestore().collection('invitations').doc(data.invitationId);
       const invitationDoc = await invitationRef.get();
 
+      // Získanie údajov o firme
+      const companyDoc = await admin.firestore().collection('companies').doc(data.companyId).get();
+      if (!companyDoc.exists) {
+        throw new Error('Firma nebola nájdená');
+      }
+      const companyData = companyDoc.data();
+
       if (!invitationDoc.exists) {
         // Vytvorenie novej pozvánky
         await invitationRef.set({
@@ -140,6 +147,12 @@ export const sendInvitationEmail = functions
               border-radius: 0 0 8px 8px;
               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
+            .company-info {
+              background-color: #f5f5f5;
+              padding: 20px;
+              border-radius: 4px;
+              margin: 20px 0;
+            }
             .button {
               display: inline-block;
               padding: 12px 24px;
@@ -165,7 +178,15 @@ export const sendInvitationEmail = functions
             </div>
             <div class="content">
               <h2>Dobrý deň ${data.firstName},</h2>
-              <p>Boli ste pozvaní do AESA Transport Platform - modernej platformy pre správu prepravy.</p>
+              <p>Boli ste pozvaní do AESA Transport Platform spoločnosťou <strong>${companyData?.companyName}</strong>.</p>
+              
+              <div class="company-info">
+                <h3>Informácie o spoločnosti:</h3>
+                <p><strong>Názov:</strong> ${companyData?.companyName}</p>
+                <p><strong>IČO:</strong> ${companyData?.ico || 'Neuvedené'}</p>
+                <p><strong>Adresa:</strong> ${companyData?.street}, ${companyData?.zipCode} ${companyData?.city}</p>
+              </div>
+
               <p>Pre dokončenie registrácie a prístup do platformy kliknite na nasledujúce tlačidlo:</p>
               <div style="text-align: center;">
                 <a href="${invitationLink}" class="button">Prijať pozvánku</a>
