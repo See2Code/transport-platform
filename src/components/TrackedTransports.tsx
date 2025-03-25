@@ -821,7 +821,16 @@ function TrackedTransports() {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
                             <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                              Pripomienka: {transport.loadingReminder} minút pred nakládkou
+                              Pripomienka: {transport.loadingReminder} minút pred nakládkou (
+                              {format(
+                                new Date(
+                                  (transport.loadingDateTime instanceof Timestamp ? 
+                                    transport.loadingDateTime.toDate() : 
+                                    transport.loadingDateTime).getTime() - transport.loadingReminder * 60000
+                                ),
+                                'dd.MM.yyyy HH:mm',
+                                { locale: sk }
+                              )})
                             </Typography>
                           </Box>
                         </Box>
@@ -847,7 +856,16 @@ function TrackedTransports() {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
                             <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                              Pripomienka: {transport.unloadingReminder} minút pred vykládkou
+                              Pripomienka: {transport.unloadingReminder} minút pred vykládkou (
+                              {format(
+                                new Date(
+                                  (transport.unloadingDateTime instanceof Timestamp ? 
+                                    transport.unloadingDateTime.toDate() : 
+                                    transport.unloadingDateTime).getTime() - transport.unloadingReminder * 60000
+                                ),
+                                'dd.MM.yyyy HH:mm',
+                                { locale: sk }
+                              )})
                             </Typography>
                           </Box>
                         </Box>
@@ -899,6 +917,67 @@ function TrackedTransports() {
           <Box sx={{ 
             padding: '24px',
             color: '#ffffff',
+            '& .MuiTextField-root': {
+              '& .MuiOutlinedInput-root': {
+                color: '#ffffff',
+                '& fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: colors.accent.main,
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: 'rgba(255, 255, 255, 0.5)',
+                '&.Mui-focused': {
+                  color: colors.accent.main,
+                },
+              },
+              '& .MuiFormHelperText-root': {
+                color: 'rgba(255, 255, 255, 0.5)',
+                fontSize: '0.75rem',
+                marginLeft: 0,
+                marginTop: '4px',
+              }
+            },
+            '& .MuiFormControl-root': {
+              '& .MuiInputLabel-root': {
+                color: 'rgba(255, 255, 255, 0.5)',
+                '&.Mui-focused': {
+                  color: colors.accent.main,
+                },
+              },
+              '& .MuiOutlinedInput-root': {
+                color: '#ffffff',
+                '& fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: colors.accent.main,
+                },
+              },
+            },
+            '& .MuiSelect-icon': {
+              color: 'rgba(255, 255, 255, 0.5)',
+            },
+            '& .MuiInputAdornment-root': {
+              color: 'rgba(255, 255, 255, 0.5)',
+            },
+            '& .MuiPickersLayout-root': {
+              backgroundColor: colors.primary.light,
+              color: '#ffffff',
+            },
+            '& .MuiPickersLayout-contentWrapper': {
+              '& .MuiDateTimePickerTabs-root': {
+                backgroundColor: colors.primary.light,
+              },
+            },
           }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>

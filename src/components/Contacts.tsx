@@ -757,7 +757,6 @@ const Contacts = () => {
       >
         <DialogTitle sx={{ 
           color: '#ffffff',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '24px',
           fontSize: '1.5rem',
           fontWeight: 600,
@@ -771,7 +770,6 @@ const Contacts = () => {
         </DialogContent>
         <DialogActions sx={{ 
           padding: '24px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
         }}>
           <Button 
             onClick={() => setDeleteConfirmOpen(false)} 
