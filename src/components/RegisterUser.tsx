@@ -201,20 +201,65 @@ function RegisterUser() {
           </Box>
         ) : (
           <>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
-              Registrácia užívateľa
+            <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ color: '#ffffff' }}>
+              Dokončenie registrácie
             </Typography>
 
-            <Typography variant="body1" gutterBottom>
+            <Typography variant="body1" gutterBottom sx={{ color: '#ffffff' }}>
               Vitajte {invitation.firstName} {invitation.lastName}!
             </Typography>
-            <Typography variant="body1" gutterBottom>
-              Pre dokončenie registrácie si prosím nastavte heslo.
-            </Typography>
+
+            {!companyLoading && company && (
+              <Box sx={{ 
+                bgcolor: 'rgba(255, 255, 255, 0.05)', 
+                p: 3, 
+                borderRadius: 2, 
+                mb: 4,
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#00b894', mb: 2 }}>
+                  Boli ste pozvaní spoločnosťou:
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                      Názov spoločnosti
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                      {company.companyName}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                      IČO
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                      {company.ico || 'Neuvedené'}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                      IČ DPH
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                      {company.icDph || 'Neuvedené'}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                      Adresa
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                      {company.street}, {company.zipCode} {company.city}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
 
             <Divider sx={{ my: 3 }} />
-            <Typography variant="h6" gutterBottom>
-              Nastavenie hesla
+            <Typography variant="h6" gutterBottom sx={{ color: '#ffffff' }}>
+              Pre dokončenie registrácie prosím nastavte svoje heslo
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12}>
@@ -226,6 +271,25 @@ function RegisterUser() {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#00b894',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                    '& .MuiInputBase-input': {
+                      color: '#ffffff',
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -237,64 +301,28 @@ function RegisterUser() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#00b894',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                    '& .MuiInputBase-input': {
+                      color: '#ffffff',
+                    },
+                  }}
                 />
               </Grid>
             </Grid>
-
-            {!companyLoading && company && (
-              <>
-                <Divider sx={{ my: 3 }} />
-                <Typography variant="h6" gutterBottom>
-                  Informácie o firme
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle1" color="text.secondary">
-                      Názov firmy
-                    </Typography>
-                    <Typography variant="body1">
-                      {company.name}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle1" color="text.secondary">
-                      IČO
-                    </Typography>
-                    <Typography variant="body1">
-                      {company.ico}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle1" color="text.secondary">
-                      Adresa
-                    </Typography>
-                    <Typography variant="body1">
-                      {company.address}
-                    </Typography>
-                  </Grid>
-                  {company.phone && (
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle1" color="text.secondary">
-                        Telefón
-                      </Typography>
-                      <Typography variant="body1">
-                        {company.phone}
-                      </Typography>
-                    </Grid>
-                  )}
-                  {company.email && (
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle1" color="text.secondary">
-                        Email
-                      </Typography>
-                      <Typography variant="body1">
-                        {company.email}
-                      </Typography>
-                    </Grid>
-                  )}
-                </Grid>
-              </>
-            )}
 
             {error && (
               <Alert severity="error" sx={{ mt: 2 }}>
@@ -305,10 +333,20 @@ function RegisterUser() {
             <Button
               fullWidth
               variant="contained"
-              color="primary"
               onClick={handleSubmit}
               disabled={loading}
-              sx={{ mt: 3 }}
+              sx={{
+                mt: 3,
+                mb: 2,
+                bgcolor: '#00b894',
+                color: '#ffffff',
+                '&:hover': {
+                  bgcolor: '#00a383',
+                },
+                height: '48px',
+                fontSize: '1rem',
+                textTransform: 'none',
+              }}
             >
               {loading ? <CircularProgress size={24} /> : 'Dokončiť registráciu'}
             </Button>

@@ -68,6 +68,12 @@ exports.sendInvitationEmail = functions
     try {
         const invitationRef = admin.firestore().collection('invitations').doc(data.invitationId);
         const invitationDoc = await invitationRef.get();
+        // Získanie údajov o firme
+        const companyDoc = await admin.firestore().collection('companies').doc(data.companyId).get();
+        if (!companyDoc.exists) {
+            throw new Error('Firma nebola nájdená');
+        }
+        const companyData = companyDoc.data();
         if (!invitationDoc.exists) {
             // Vytvorenie novej pozvánky
             await invitationRef.set({
@@ -122,6 +128,12 @@ exports.sendInvitationEmail = functions
               border-radius: 0 0 8px 8px;
               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
+            .company-info {
+              background-color: #f5f5f5;
+              padding: 20px;
+              border-radius: 4px;
+              margin: 20px 0;
+            }
             .button {
               display: inline-block;
               padding: 12px 24px;
@@ -147,7 +159,15 @@ exports.sendInvitationEmail = functions
             </div>
             <div class="content">
               <h2>Dobrý deň ${data.firstName},</h2>
-              <p>Boli ste pozvaní do AESA Transport Platform - modernej platformy pre správu prepravy.</p>
+              <p>Boli ste pozvaní do AESA Transport Platform spoločnosťou <strong>${companyData === null || companyData === void 0 ? void 0 : companyData.companyName}</strong>.</p>
+              
+              <div class="company-info">
+                <h3>Informácie o spoločnosti:</h3>
+                <p><strong>Názov:</strong> ${companyData === null || companyData === void 0 ? void 0 : companyData.companyName}</p>
+                <p><strong>IČO:</strong> ${(companyData === null || companyData === void 0 ? void 0 : companyData.ico) || 'Neuvedené'}</p>
+                <p><strong>Adresa:</strong> ${companyData === null || companyData === void 0 ? void 0 : companyData.street}, ${companyData === null || companyData === void 0 ? void 0 : companyData.zipCode} ${companyData === null || companyData === void 0 ? void 0 : companyData.city}</p>
+              </div>
+
               <p>Pre dokončenie registrácie a prístup do platformy kliknite na nasledujúce tlačidlo:</p>
               <div style="text-align: center;">
                 <a href="${invitationLink}" class="button">Prijať pozvánku</a>
@@ -187,25 +207,93 @@ exports.checkBusinessCaseReminders = functions
     const now = new Date();
     const db = admin.firestore();
     try {
-        const casesSnapshot = await db.collection('businessCases')
+        const remindersSnapshot = await db.collection('reminders')
             .where('reminderDateTime', '<=', now)
-            .where('reminderSent', '==', false)
+            .where('sent', '==', false)
             .get();
-        for (const doc of casesSnapshot.docs) {
-            const businessCase = doc.data();
-            const userDoc = await db.collection('users').doc(businessCase.userId).get();
-            const userData = userDoc.data();
-            if (userData && userData.email) {
+        for (const doc of remindersSnapshot.docs) {
+            const reminder = doc.data();
+            if (reminder.userEmail) {
                 const emailHtml = `
-            <h2>Pripomienka pre obchodný prípad</h2>
-            <p>Dobrý deň ${userData.firstName},</p>
-            <p>Máte pripomienku pre obchodný prípad "${businessCase.title}".</p>
-            <p>Dátum pripomienky: ${businessCase.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
-            <p>Pre zobrazenie detailov kliknite na nasledujúci odkaz:</p>
-            <a href="https://core-app-423c7.web.app/business-cases">Zobraziť obchodný prípad</a>
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  line-height: 1.6;
+                  color: #333;
+                  margin: 0;
+                  padding: 0;
+                }
+                .container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  background-color: #f9f9f9;
+                }
+                .header {
+                  background-color: #00b894;
+                  color: white;
+                  padding: 30px;
+                  text-align: center;
+                  border-radius: 8px 8px 0 0;
+                }
+                .content {
+                  background-color: white;
+                  padding: 30px;
+                  border-radius: 0 0 8px 8px;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .button {
+                  display: inline-block;
+                  padding: 12px 24px;
+                  background-color: #00b894;
+                  color: white;
+                  text-decoration: none;
+                  border-radius: 4px;
+                  margin: 20px 0;
+                  font-weight: bold;
+                }
+                .footer {
+                  text-align: center;
+                  margin-top: 20px;
+                  color: #666;
+                  font-size: 12px;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1 style="margin: 0;">AESA Transport Platform</h1>
+                </div>
+                <div class="content">
+                  <h2>Dobrý deň ${reminder.contactPerson.firstName},</h2>
+                  <p>Máte novú pripomienku pre obchodný prípad "${reminder.companyName}".</p>
+                  <p>Dátum pripomienky: ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
+                  <p>Text pripomienky: ${reminder.reminderNote || 'Bez poznámky'}</p>
+                  <p>Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
+                  <div style="text-align: center;">
+                    <a href="https://core-app-423c7.web.app/business-cases" class="button">Zobraziť obchodný prípad</a>
+                  </div>
+                </div>
+                <div class="footer">
+                  <p>Toto je automaticky generovaný email. Prosím neodpovedajte naň.</p>
+                  <p>&copy; ${new Date().getFullYear()} AESA Transport Platform. Všetky práva vyhradené.</p>
+                </div>
+              </div>
+            </body>
+            </html>
           `;
-                await sendEmail(userData.email, 'Pripomienka pre obchodný prípad', emailHtml);
-                await doc.ref.update({ reminderSent: true });
+                await sendEmail(reminder.userEmail, 'Pripomienka pre obchodný prípad', emailHtml);
+                await doc.ref.update({ sent: true });
+                // Aktualizujeme počítadlo metrík
+                const metricsRef = db.collection('functionMetrics').doc(now.toISOString().split('T')[0]);
+                await metricsRef.set({
+                    businessCaseReminders: admin.firestore.FieldValue.increment(1)
+                }, { merge: true });
             }
         }
     }
@@ -232,12 +320,76 @@ exports.checkTransportNotifications = functions
             const userData = userDoc.data();
             if (userData && userData.email) {
                 const emailHtml = `
-            <h2>Pripomienka pre sledovanú prepravu</h2>
-            <p>Dobrý deň ${userData.firstName},</p>
-            <p>Máte pripomienku pre sledovanú prepravu "${transport.title}".</p>
-            <p>Dátum pripomienky: ${transport.notificationDateTime.toDate().toLocaleString('sk-SK')}</p>
-            <p>Pre zobrazenie detailov kliknite na nasledujúci odkaz:</p>
-            <a href="https://core-app-423c7.web.app/tracked-transports">Zobraziť sledovanú prepravu</a>
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  line-height: 1.6;
+                  color: #333;
+                  margin: 0;
+                  padding: 0;
+                }
+                .container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  background-color: #f9f9f9;
+                }
+                .header {
+                  background-color: #00b894;
+                  color: white;
+                  padding: 30px;
+                  text-align: center;
+                  border-radius: 8px 8px 0 0;
+                }
+                .content {
+                  background-color: white;
+                  padding: 30px;
+                  border-radius: 0 0 8px 8px;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .button {
+                  display: inline-block;
+                  padding: 12px 24px;
+                  background-color: #00b894;
+                  color: white;
+                  text-decoration: none;
+                  border-radius: 4px;
+                  margin: 20px 0;
+                  font-weight: bold;
+                }
+                .footer {
+                  text-align: center;
+                  margin-top: 20px;
+                  color: #666;
+                  font-size: 12px;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1 style="margin: 0;">AESA Transport Platform</h1>
+                </div>
+                <div class="content">
+                  <h2>Dobrý deň ${userData.firstName},</h2>
+                  <p>Máte novú pripomienku pre sledovanú prepravu "${transport.title}".</p>
+                  <p>Dátum pripomienky: ${transport.notificationDateTime.toDate().toLocaleString('sk-SK')}</p>
+                  <p>Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
+                  <div style="text-align: center;">
+                    <a href="https://core-app-423c7.web.app/tracked-transports" class="button">Zobraziť sledovanú prepravu</a>
+                  </div>
+                </div>
+                <div class="footer">
+                  <p>Toto je automaticky generovaný email. Prosím neodpovedajte naň.</p>
+                  <p>&copy; ${new Date().getFullYear()} AESA Transport Platform. Všetky práva vyhradené.</p>
+                </div>
+              </div>
+            </body>
+            </html>
           `;
                 await sendEmail(userData.email, 'Pripomienka pre sledovanú prepravu', emailHtml);
                 await doc.ref.update({ notificationSent: true });

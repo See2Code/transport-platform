@@ -228,17 +228,15 @@ export const checkBusinessCaseReminders = functions
     const db = admin.firestore();
 
     try {
-      const casesSnapshot = await db.collection('businessCases')
+      const remindersSnapshot = await db.collection('reminders')
         .where('reminderDateTime', '<=', now)
-        .where('reminderSent', '==', false)
+        .where('sent', '==', false)
         .get();
 
-      for (const doc of casesSnapshot.docs) {
-        const businessCase = doc.data();
-        const userDoc = await db.collection('users').doc(businessCase.userId).get();
-        const userData = userDoc.data();
-
-        if (userData && userData.email) {
+      for (const doc of remindersSnapshot.docs) {
+        const reminder = doc.data();
+        
+        if (reminder.userEmail) {
           const emailHtml = `
             <!DOCTYPE html>
             <html>
@@ -295,9 +293,10 @@ export const checkBusinessCaseReminders = functions
                   <h1 style="margin: 0;">AESA Transport Platform</h1>
                 </div>
                 <div class="content">
-                  <h2>Dobrý deň ${userData.firstName},</h2>
-                  <p>Máte novú pripomienku pre obchodný prípad "${businessCase.title}".</p>
-                  <p>Dátum pripomienky: ${businessCase.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
+                  <h2>Dobrý deň ${reminder.contactPerson.firstName},</h2>
+                  <p>Máte novú pripomienku pre obchodný prípad "${reminder.companyName}".</p>
+                  <p>Dátum pripomienky: ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
+                  <p>Text pripomienky: ${reminder.reminderNote || 'Bez poznámky'}</p>
                   <p>Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
                   <div style="text-align: center;">
                     <a href="https://core-app-423c7.web.app/business-cases" class="button">Zobraziť obchodný prípad</a>
@@ -312,8 +311,14 @@ export const checkBusinessCaseReminders = functions
             </html>
           `;
 
-          await sendEmail(userData.email, 'Pripomienka pre obchodný prípad', emailHtml);
-          await doc.ref.update({ reminderSent: true });
+          await sendEmail(reminder.userEmail, 'Pripomienka pre obchodný prípad', emailHtml);
+          await doc.ref.update({ sent: true });
+          
+          // Aktualizujeme počítadlo metrík
+          const metricsRef = db.collection('functionMetrics').doc(now.toISOString().split('T')[0]);
+          await metricsRef.set({
+            businessCaseReminders: admin.firestore.FieldValue.increment(1)
+          }, { merge: true });
         }
       }
     } catch (error) {
