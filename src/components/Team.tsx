@@ -123,21 +123,41 @@ const PageTitle = styled(Typography)({
 const AddButton = styled('button')({
   backgroundColor: '#00b894',
   color: '#ffffff',
-  padding: '8px 24px',
+  padding: '12px 28px',
   borderRadius: '12px',
-  fontSize: '0.95rem',
+  fontSize: '1rem',
   fontWeight: 600,
   border: 'none',
   cursor: 'pointer',
-  transition: 'all 0.2s ease-in-out',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
+    transform: 'translateX(-100%)',
+  },
   '&:hover': {
     backgroundColor: '#00d2a0',
     transform: 'translateY(-2px)',
     boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+    '&:before': {
+      transform: 'translateX(100%)',
+      transition: 'transform 0.8s',
+    }
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+    boxShadow: '0 2px 8px rgba(0, 184, 148, 0.3)',
   }
 });
 
@@ -582,6 +602,7 @@ function Team() {
       <PageHeader>
         <PageTitle>Tím</PageTitle>
         <AddButton onClick={() => setOpenInvite(true)}>
+          <AddIcon sx={{ fontSize: 20 }} />
           Pridať člena
         </AddButton>
       </PageHeader>
