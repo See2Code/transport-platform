@@ -342,9 +342,14 @@ function TrackedTransports() {
         const loadingReminderTime = new Date(formData.loadingDateTime.getTime() - formData.loadingReminder * 60000);
         const unloadingReminderTime = new Date(formData.unloadingDateTime.getTime() - formData.unloadingReminder * 60000);
 
+        let hasLoadingReminder = false;
+        let hasUnloadingReminder = false;
+
+        // Aktualizácia existujúcich pripomienok
         remindersSnapshot.docs.forEach(async (reminderDoc) => {
           const reminderData = reminderDoc.data();
           if (reminderData.type === 'loading') {
+            hasLoadingReminder = true;
             await updateDoc(doc(db, 'reminders', reminderDoc.id), {
               reminderDateTime: loadingReminderTime,
               sent: false,
@@ -354,6 +359,7 @@ function TrackedTransports() {
               reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`
             });
           } else if (reminderData.type === 'unloading') {
+            hasUnloadingReminder = true;
             await updateDoc(doc(db, 'reminders', reminderDoc.id), {
               reminderDateTime: unloadingReminderTime,
               sent: false,
@@ -364,6 +370,49 @@ function TrackedTransports() {
             });
           }
         });
+
+        // Vytvorenie chýbajúcich pripomienok
+        if (!hasLoadingReminder) {
+          console.log('Vytváram novú pripomienku pre nakládku:', {
+            email: userData?.email,
+            time: loadingReminderTime,
+            orderNumber: formData.orderNumber
+          });
+          await addDoc(collection(db, 'reminders'), {
+            transportId: editingTransport.id,
+            type: 'loading',
+            reminderDateTime: loadingReminderTime,
+            message: `Pripomienka nakládky pre objednávku ${formData.orderNumber}`,
+            sent: false,
+            createdAt: new Date(),
+            userEmail: userData?.email || '',
+            orderNumber: formData.orderNumber,
+            address: formData.loadingAddress,
+            userId: auth.currentUser?.uid || '',
+            reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`
+          });
+        }
+
+        if (!hasUnloadingReminder) {
+          console.log('Vytváram novú pripomienku pre vykládku:', {
+            email: userData?.email,
+            time: unloadingReminderTime,
+            orderNumber: formData.orderNumber
+          });
+          await addDoc(collection(db, 'reminders'), {
+            transportId: editingTransport.id,
+            type: 'unloading',
+            reminderDateTime: unloadingReminderTime,
+            message: `Pripomienka vykládky pre objednávku ${formData.orderNumber}`,
+            sent: false,
+            createdAt: new Date(),
+            userEmail: userData?.email || '',
+            orderNumber: formData.orderNumber,
+            address: formData.unloadingAddress,
+            userId: auth.currentUser?.uid || '',
+            reminderNote: `Vykládka na adrese: ${formData.unloadingAddress}`
+          });
+        }
       } else {
         // Vytvorenie novej prepravy
         const transportDoc = await addDoc(collection(db, 'transports'), {
