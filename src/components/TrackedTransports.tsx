@@ -20,12 +20,17 @@ import {
   InputAdornment,
   Card,
   TableCell,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { sk } from 'date-fns/locale';
-import { collection, query, where, getDocs, addDoc, doc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, updateDoc, Timestamp, orderBy, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
@@ -36,6 +41,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SearchField from './common/SearchField';
+import TransportMap from './common/TransportMap';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -240,6 +246,20 @@ const SearchWrapper = styled(Box)({
   }
 });
 
+const MapDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    background: 'rgba(35, 35, 66, 0.7)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: '20px',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+    minWidth: '800px',
+    maxWidth: '90vw',
+    maxHeight: '80vh',
+    margin: '24px'
+  }
+}));
+
 function TrackedTransports() {
   const [transports, setTransports] = useState<Transport[]>([]);
   const [filteredTransports, setFilteredTransports] = useState<Transport[]>([]);
@@ -248,6 +268,8 @@ function TrackedTransports() {
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingTransport, setEditingTransport] = useState<Transport | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transportToDelete, setTransportToDelete] = useState<Transport | null>(null);
   const [formData, setFormData] = useState<TransportFormData>({
     orderNumber: '',
     loadingAddress: '',
@@ -258,6 +280,11 @@ function TrackedTransports() {
     unloadingReminder: 60,
   });
   const { userData } = useAuth();
+  const [mapDialogOpen, setMapDialogOpen] = useState(false);
+  const [selectedTransport, setSelectedTransport] = useState<{
+    loading: string;
+    unloading: string;
+  } | null>(null);
 
   const handleOpenDialog = (transport?: Transport) => {
     if (transport) {
@@ -538,12 +565,50 @@ function TrackedTransports() {
     fetchTransports();
   }, []);
 
-  const handleDelete = (id: string) => {
-    console.log('Delete transport:', id);
+  const handleDelete = async (transport: Transport) => {
+    setTransportToDelete(transport);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!transportToDelete) return;
+
+    try {
+      // Vymazanie prepravy
+      await deleteDoc(doc(db, 'transports', transportToDelete.id));
+
+      // Vymazanie súvisiacich pripomienok
+      const remindersQuery = query(
+        collection(db, 'reminders'),
+        where('transportId', '==', transportToDelete.id)
+      );
+      const remindersSnapshot = await getDocs(remindersQuery);
+      
+      const deletePromises = remindersSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+
+      // Aktualizácia UI
+      setTransports(prevTransports => 
+        prevTransports.filter(t => t.id !== transportToDelete.id)
+      );
+      setFilteredTransports(prevTransports => 
+        prevTransports.filter(t => t.id !== transportToDelete.id)
+      );
+
+      setDeleteDialogOpen(false);
+      setTransportToDelete(null);
+    } catch (err: any) {
+      setError('Nastala chyba pri vymazávaní prepravy: ' + err.message);
+    }
   };
 
   const handleMoreOptions = (id: string) => {
     console.log('More options for transport:', id);
+  };
+
+  const handleShowMap = (loading: string, unloading: string) => {
+    setSelectedTransport({ loading, unloading });
+    setMapDialogOpen(true);
   };
 
   if (loading) {
@@ -557,176 +622,194 @@ function TrackedTransports() {
   }
 
   return (
-    <PageWrapper>
-      <PageHeader>
-        <PageTitle>Sledované prepravy</PageTitle>
-        <AddButton
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          Pridať prepravu
-        </AddButton>
-      </PageHeader>
+    <>
+      <PageWrapper>
+        <PageHeader>
+          <PageTitle>Sledované prepravy</PageTitle>
+          <AddButton
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+          >
+            Pridať prepravu
+          </AddButton>
+        </PageHeader>
 
-      <SearchWrapper>
-        <SearchField
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          label="Vyhľadať prepravu"
-          placeholder="Zadajte číslo objednávky, adresu alebo meno"
-        />
-      </SearchWrapper>
+        <SearchWrapper>
+          <SearchField
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            label="Vyhľadať prepravu"
+            placeholder="Zadajte číslo objednávky, adresu alebo meno"
+          />
+        </SearchWrapper>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-          <CircularProgress />
-        </Box>
-      ) : filteredTransports.length === 0 ? (
-        <Alert severity="info" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>
-          {searchQuery ? 'Neboli nájdené žiadne prepravy zodpovedajúce vyhľadávaniu' : 'Zatiaľ nemáte žiadne sledované prepravy'}
-        </Alert>
-      ) : (
-        <Box>
-          {filteredTransports.map((transport) => (
-            <TransportCard key={transport.id}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Box>
-                  <Typography variant="h6" sx={{ mb: 1 }}>
-                    Objednávka: {transport.orderNumber}
-                  </Typography>
-                  <Chip
-                    label={transport.status}
-                    color={transport.status === 'Aktívna' ? 'success' : 'default'}
-                    size="small"
-                    sx={{ 
-                      mr: 1,
-                      backgroundColor: transport.status === 'Aktívna' ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 255, 255, 0.1)',
-                      color: transport.status === 'Aktívna' ? colors.accent.main : '#ffffff',
-                      '& .MuiChip-label': {
-                        fontSize: {
-                          xs: '0.7rem',
-                          sm: '0.8rem'
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : filteredTransports.length === 0 ? (
+          <Alert severity="info" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>
+            {searchQuery ? 'Neboli nájdené žiadne prepravy zodpovedajúce vyhľadávaniu' : 'Zatiaľ nemáte žiadne sledované prepravy'}
+          </Alert>
+        ) : (
+          <Box>
+            {filteredTransports.map((transport) => (
+              <TransportCard key={transport.id}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <Box>
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                      Objednávka: {transport.orderNumber}
+                    </Typography>
+                    <Chip
+                      label={transport.status}
+                      color={transport.status === 'Aktívna' ? 'success' : 'default'}
+                      size="small"
+                      sx={{ 
+                        mr: 1,
+                        backgroundColor: transport.status === 'Aktívna' ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 255, 255, 0.1)',
+                        color: transport.status === 'Aktívna' ? colors.accent.main : '#ffffff',
+                        '& .MuiChip-label': {
+                          fontSize: {
+                            xs: '0.7rem',
+                            sm: '0.8rem'
+                          }
                         }
+                      }}
+                    />
+                    {transport.isDelayed && (
+                      <Chip
+                        label="Meškanie"
+                        color="error"
+                        size="small"
+                      />
+                    )}
+                  </Box>
+                  <Box>
+                    <Tooltip title="Upraviť">
+                      <IconButton 
+                        onClick={() => handleOpenDialog(transport)}
+                        sx={{ 
+                          color: colors.accent.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                          }
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Vymazať">
+                      <IconButton 
+                        onClick={() => handleDelete(transport)}
+                        sx={{ 
+                          color: colors.secondary.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                          }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+
+                <TransportInfo>
+                  <InfoSection>
+                    <Box>
+                      <InfoLabel>Nakládka</InfoLabel>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <LocationOnIcon sx={{ color: colors.accent.main }} />
+                        <InfoValue>{transport.loadingAddress}</InfoValue>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                        <AccessTimeIcon sx={{ color: colors.accent.main }} />
+                        <InfoValue>
+                          {format(
+                            transport.loadingDateTime instanceof Timestamp ? 
+                              transport.loadingDateTime.toDate() : 
+                              transport.loadingDateTime,
+                            'dd.MM.yyyy HH:mm',
+                            { locale: sk }
+                          )}
+                        </InfoValue>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                        <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                          Pripomienka: {transport.loadingReminder} minút pred nakládkou
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </InfoSection>
+
+                  <InfoSection>
+                    <Box>
+                      <InfoLabel>Vykládka</InfoLabel>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <LocationOnIcon sx={{ color: colors.accent.main }} />
+                        <InfoValue>{transport.unloadingAddress}</InfoValue>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                        <AccessTimeIcon sx={{ color: colors.accent.main }} />
+                        <InfoValue>
+                          {format(
+                            transport.unloadingDateTime instanceof Timestamp ? 
+                              transport.unloadingDateTime.toDate() : 
+                              transport.unloadingDateTime,
+                            'dd.MM.yyyy HH:mm',
+                            { locale: sk }
+                          )}
+                        </InfoValue>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                        <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                          Pripomienka: {transport.unloadingReminder} minút pred vykládkou
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </InfoSection>
+                </TransportInfo>
+
+                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)', mt: 2 }}>
+                  <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}</span>
+                    <span>Vytvorené: {format(
+                        transport.createdAt instanceof Timestamp ? 
+                          transport.createdAt.toDate() : 
+                          transport.createdAt instanceof Date ? 
+                            transport.createdAt : 
+                            new Date(transport.createdAt),
+                        'dd.MM.yyyy HH:mm',
+                        { locale: sk }
+                      )}
+                    </span>
+                  </Box>
+                </Typography>
+
+                <TableCell>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleShowMap(transport.loadingAddress, transport.unloadingAddress)}
+                    sx={{
+                      backgroundColor: colors.accent.main,
+                      color: '#ffffff',
+                      '&:hover': {
+                        backgroundColor: colors.accent.light
                       }
                     }}
-                  />
-                  {transport.isDelayed && (
-                    <Chip
-                      label="Meškanie"
-                      color="error"
-                      size="small"
-                    />
-                  )}
-                </Box>
-                <Box>
-                  <Tooltip title="Upraviť">
-                    <IconButton 
-                      onClick={() => handleOpenDialog(transport)}
-                      sx={{ 
-                        color: colors.accent.main,
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                        }
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Vymazať">
-                    <IconButton 
-                      onClick={() => handleDelete(transport.id)}
-                      sx={{ 
-                        color: colors.secondary.main,
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 107, 107, 0.1)'
-                        }
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Box>
-
-              <TransportInfo>
-                <InfoSection>
-                  <Box>
-                    <InfoLabel>Nakládka</InfoLabel>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <LocationOnIcon sx={{ color: colors.accent.main }} />
-                      <InfoValue>{transport.loadingAddress}</InfoValue>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                      <AccessTimeIcon sx={{ color: colors.accent.main }} />
-                      <InfoValue>
-                        {format(
-                          transport.loadingDateTime instanceof Timestamp ? 
-                            transport.loadingDateTime.toDate() : 
-                            transport.loadingDateTime,
-                          'dd.MM.yyyy HH:mm',
-                          { locale: sk }
-                        )}
-                      </InfoValue>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                      <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                        Pripomienka: {transport.loadingReminder} minút pred nakládkou
-                      </Typography>
-                    </Box>
-                  </Box>
-                </InfoSection>
-
-                <InfoSection>
-                  <Box>
-                    <InfoLabel>Vykládka</InfoLabel>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <LocationOnIcon sx={{ color: colors.accent.main }} />
-                      <InfoValue>{transport.unloadingAddress}</InfoValue>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                      <AccessTimeIcon sx={{ color: colors.accent.main }} />
-                      <InfoValue>
-                        {format(
-                          transport.unloadingDateTime instanceof Timestamp ? 
-                            transport.unloadingDateTime.toDate() : 
-                            transport.unloadingDateTime,
-                          'dd.MM.yyyy HH:mm',
-                          { locale: sk }
-                        )}
-                      </InfoValue>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                      <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                        Pripomienka: {transport.unloadingReminder} minút pred vykládkou
-                      </Typography>
-                    </Box>
-                  </Box>
-                </InfoSection>
-              </TransportInfo>
-
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)', mt: 2 }}>
-                <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}</span>
-                  <span>Vytvorené: {format(
-                      transport.createdAt instanceof Timestamp ? 
-                        transport.createdAt.toDate() : 
-                        transport.createdAt instanceof Date ? 
-                          transport.createdAt : 
-                          new Date(transport.createdAt),
-                      'dd.MM.yyyy HH:mm',
-                      { locale: sk }
-                    )}
-                  </span>
-                </Box>
-              </Typography>
-            </TransportCard>
-          ))}
-        </Box>
-      )}
+                  >
+                    Zobraziť mapu
+                  </Button>
+                </TableCell>
+              </TransportCard>
+            ))}
+          </Box>
+        )}
+      </PageWrapper>
 
       <Dialog 
         open={openDialog} 
@@ -886,7 +969,141 @@ function TrackedTransports() {
           </Button>
         </DialogActions>
       </Dialog>
-    </PageWrapper>
+
+      <MapDialog
+        open={mapDialogOpen}
+        onClose={() => {
+          setMapDialogOpen(false);
+          setSelectedTransport(null);
+        }}
+        maxWidth={false}
+      >
+        <DialogTitle sx={{ 
+          color: '#ffffff',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '24px',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+        }}>
+          Trasa prepravy
+        </DialogTitle>
+        <DialogContent sx={{ padding: '24px' }}>
+          {selectedTransport && (
+            <Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography sx={{ color: '#ffffff', mb: 1 }}>
+                  <strong>Nakládka:</strong> {selectedTransport.loading}
+                </Typography>
+                <Typography sx={{ color: '#ffffff' }}>
+                  <strong>Vykládka:</strong> {selectedTransport.unloading}
+                </Typography>
+              </Box>
+              <TransportMap
+                origin={selectedTransport.loading}
+                destination={selectedTransport.unloading}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ 
+          padding: '24px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+          <Button 
+            onClick={() => {
+              setMapDialogOpen(false);
+              setSelectedTransport(null);
+            }}
+            sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+          >
+            Zavrieť
+          </Button>
+        </DialogActions>
+      </MapDialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setTransportToDelete(null);
+        }}
+        PaperProps={{
+          sx: {
+            background: 'rgba(35, 35, 66, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            minWidth: '400px',
+            padding: '24px'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          color: '#ffffff',
+          textAlign: 'center',
+          padding: '24px 24px 0 24px',
+          fontSize: '1.5rem',
+          fontWeight: 600
+        }}>
+          Vymazať prepravu
+        </DialogTitle>
+        <DialogContent sx={{ 
+          padding: '24px',
+          textAlign: 'center'
+        }}>
+          <Typography sx={{ color: '#ffffff', mb: 2 }}>
+            Naozaj chcete vymazať túto prepravu?
+          </Typography>
+          {transportToDelete && (
+            <Box sx={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '8px' }}>
+              <Typography sx={{ color: '#ffffff', fontWeight: 500 }}>
+                Objednávka: {transportToDelete.orderNumber}
+              </Typography>
+              <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9rem', mt: 1 }}>
+                Nakládka: {transportToDelete.loadingAddress}
+              </Typography>
+              <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9rem' }}>
+                Vykládka: {transportToDelete.unloadingAddress}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ 
+          padding: '0 24px 24px 24px',
+          justifyContent: 'center',
+          gap: '16px'
+        }}>
+          <Button 
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setTransportToDelete(null);
+            }}
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.7)',
+              minWidth: '120px'
+            }}
+          >
+            Zrušiť
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.secondary.main,
+              color: '#ffffff',
+              fontWeight: 600,
+              minWidth: '120px',
+              '&:hover': {
+                backgroundColor: colors.secondary.dark,
+              }
+            }}
+          >
+            Vymazať
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 
