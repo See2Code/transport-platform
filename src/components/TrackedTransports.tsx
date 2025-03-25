@@ -28,12 +28,13 @@ import {
   IconButton,
   Chip,
   Tooltip,
+  InputAdornment,
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { sk } from 'date-fns/locale';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
@@ -41,8 +42,9 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -67,13 +69,13 @@ interface Transport {
   id: string;
   orderNumber: string;
   loadingAddress: string;
-  loadingDateTime: Date;
+  loadingDateTime: Date | Timestamp;
   loadingReminder: number;
   unloadingAddress: string;
-  unloadingDateTime: Date;
+  unloadingDateTime: Date | Timestamp;
   unloadingReminder: number;
   status: string;
-  createdAt: Date;
+  createdAt: Date | Timestamp;
   createdBy: {
     firstName: string;
     lastName: string;
@@ -236,82 +238,206 @@ const StatusChip = styled(Chip)({
   }
 });
 
+const SearchWrapper = styled(Box)({
+  marginBottom: '24px',
+});
+
+const SearchField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '12px',
+    '& fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#00b894',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  '& .MuiInputBase-input': {
+    color: '#ffffff',
+  },
+});
+
 function TrackedTransports() {
   const [transports, setTransports] = useState<Transport[]>([]);
+  const [filteredTransports, setFilteredTransports] = useState<Transport[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
+  const [editingTransport, setEditingTransport] = useState<Transport | null>(null);
   const [formData, setFormData] = useState<TransportFormData>({
     orderNumber: '',
     loadingAddress: '',
     loadingDateTime: null,
-    loadingReminder: 2,
+    loadingReminder: 60,
     unloadingAddress: '',
     unloadingDateTime: null,
-    unloadingReminder: 2,
+    unloadingReminder: 60,
   });
-  const [success, setSuccess] = useState('');
   const { userData } = useAuth();
 
-  const reminderOptions = Array.from({ length: 12 }, (_, i) => i + 1);
-
-  const handleOpenDialog = () => {
+  const handleOpenDialog = (transport?: Transport) => {
+    if (transport) {
+      setEditingTransport(transport);
+      setFormData({
+        orderNumber: transport.orderNumber,
+        loadingAddress: transport.loadingAddress,
+        loadingDateTime: transport.loadingDateTime instanceof Timestamp ? 
+          transport.loadingDateTime.toDate() : transport.loadingDateTime,
+        loadingReminder: transport.loadingReminder,
+        unloadingAddress: transport.unloadingAddress,
+        unloadingDateTime: transport.unloadingDateTime instanceof Timestamp ? 
+          transport.unloadingDateTime.toDate() : transport.unloadingDateTime,
+        unloadingReminder: transport.unloadingReminder,
+      });
+    } else {
+      setEditingTransport(null);
+      setFormData({
+        orderNumber: '',
+        loadingAddress: '',
+        loadingDateTime: null,
+        loadingReminder: 60,
+        unloadingAddress: '',
+        unloadingDateTime: null,
+        unloadingReminder: 60,
+      });
+    }
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setFormData({
-      orderNumber: '',
-      loadingAddress: '',
-      loadingDateTime: null,
-      loadingReminder: 2,
-      unloadingAddress: '',
-      unloadingDateTime: null,
-      unloadingReminder: 2,
-    });
-    setError('');
-    setSuccess('');
+    setEditingTransport(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!auth.currentUser) {
-      setError('Nie ste prihlásený');
-      return;
-    }
-
-    if (!formData.loadingDateTime || !formData.unloadingDateTime) {
+    if (!formData.orderNumber || !formData.loadingAddress || !formData.loadingDateTime || 
+        !formData.unloadingAddress || !formData.unloadingDateTime) {
       setError('Prosím vyplňte všetky povinné polia');
       return;
     }
 
     try {
-      const transportData = {
-        ...formData,
-        userId: auth.currentUser.uid,
-        createdAt: new Date(),
-        status: 'active',
-        loadingReminderSent: false,
-        unloadingReminderSent: false,
-        createdBy: {
-          firstName: userData?.firstName || '',
-          lastName: userData?.lastName || '',
-        },
-        isDelayed: false,
-      };
+      if (editingTransport) {
+        // Aktualizácia existujúcej prepravy
+        const transportRef = doc(db, 'transports', editingTransport.id);
+        await updateDoc(transportRef, {
+          orderNumber: formData.orderNumber,
+          loadingAddress: formData.loadingAddress,
+          loadingDateTime: formData.loadingDateTime,
+          loadingReminder: formData.loadingReminder,
+          unloadingAddress: formData.unloadingAddress,
+          unloadingDateTime: formData.unloadingDateTime,
+          unloadingReminder: formData.unloadingReminder,
+          updatedAt: new Date(),
+        });
 
-      await addDoc(collection(db, 'transports'), transportData);
-      
-      setSuccess('Preprava bola úspešne vytvorená');
+        // Aktualizácia pripomienok
+        const remindersQuery = query(
+          collection(db, 'reminders'),
+          where('transportId', '==', editingTransport.id)
+        );
+        const remindersSnapshot = await getDocs(remindersQuery);
+        
+        // Aktualizácia alebo vytvorenie pripomienok
+        const loadingReminderTime = new Date(formData.loadingDateTime.getTime() - formData.loadingReminder * 60000);
+        const unloadingReminderTime = new Date(formData.unloadingDateTime.getTime() - formData.unloadingReminder * 60000);
+
+        remindersSnapshot.docs.forEach(async (reminderDoc) => {
+          const reminderData = reminderDoc.data();
+          if (reminderData.type === 'loading') {
+            await updateDoc(doc(db, 'reminders', reminderDoc.id), {
+              reminderDateTime: loadingReminderTime,
+              sent: false,
+            });
+          } else if (reminderData.type === 'unloading') {
+            await updateDoc(doc(db, 'reminders', reminderDoc.id), {
+              reminderDateTime: unloadingReminderTime,
+              sent: false,
+            });
+          }
+        });
+      } else {
+        // Vytvorenie novej prepravy
+        const transportDoc = await addDoc(collection(db, 'transports'), {
+          orderNumber: formData.orderNumber,
+          loadingAddress: formData.loadingAddress,
+          loadingDateTime: formData.loadingDateTime,
+          loadingReminder: formData.loadingReminder,
+          unloadingAddress: formData.unloadingAddress,
+          unloadingDateTime: formData.unloadingDateTime,
+          unloadingReminder: formData.unloadingReminder,
+          status: 'Aktívna',
+          createdAt: new Date(),
+          createdBy: {
+            firstName: userData?.firstName || '',
+            lastName: userData?.lastName || '',
+          },
+          isDelayed: false,
+        });
+
+        // Vytvorenie pripomienok pre nakládku a vykládku
+        const loadingReminderTime = new Date(formData.loadingDateTime.getTime() - formData.loadingReminder * 60000);
+        await addDoc(collection(db, 'reminders'), {
+          transportId: transportDoc.id,
+          type: 'loading',
+          reminderDateTime: loadingReminderTime,
+          message: `Pripomienka nakládky pre objednávku ${formData.orderNumber}`,
+          sent: false,
+          createdAt: new Date(),
+        });
+
+        const unloadingReminderTime = new Date(formData.unloadingDateTime.getTime() - formData.unloadingReminder * 60000);
+        await addDoc(collection(db, 'reminders'), {
+          transportId: transportDoc.id,
+          type: 'unloading',
+          reminderDateTime: unloadingReminderTime,
+          message: `Pripomienka vykládky pre objednávku ${formData.orderNumber}`,
+          sent: false,
+          createdAt: new Date(),
+        });
+      }
+
       handleCloseDialog();
-      // Aktualizujeme zoznam preprav
       fetchTransports();
-    } catch (err: any) {
-      setError(err.message || 'Nastala chyba pri vytváraní prepravy');
+    } catch (error) {
+      console.error('Error saving transport:', error);
+      setError('Nastala chyba pri ukladaní prepravy');
     }
   };
+
+  const filterTransports = (query: string) => {
+    if (!query.trim()) {
+      setFilteredTransports(transports);
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase().trim();
+    const filtered = transports.filter((transport) => {
+      return (
+        transport.orderNumber.toLowerCase().includes(lowerQuery) ||
+        transport.loadingAddress.toLowerCase().includes(lowerQuery) ||
+        transport.unloadingAddress.toLowerCase().includes(lowerQuery) ||
+        (transport.createdBy?.firstName + ' ' + transport.createdBy?.lastName)
+          .toLowerCase()
+          .includes(lowerQuery)
+      );
+    });
+    setFilteredTransports(filtered);
+  };
+
+  useEffect(() => {
+    filterTransports(searchQuery);
+  }, [transports, searchQuery]);
 
   const fetchTransports = async () => {
     if (!auth.currentUser) {
@@ -322,19 +448,32 @@ function TrackedTransports() {
 
     try {
       const transportsRef = collection(db, 'transports');
-      const q = query(transportsRef, where('userId', '==', auth.currentUser.uid));
+      const q = query(transportsRef);
       const querySnapshot = await getDocs(q);
       
-      const transportsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        loadingDateTime: doc.data().loadingDateTime.toDate(),
-        unloadingDateTime: doc.data().unloadingDateTime.toDate(),
-        createdAt: doc.data().createdAt.toDate(),
-        isDelayed: doc.data().isDelayed,
-      })) as Transport[];
+      const transportsData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          orderNumber: data.orderNumber || '',
+          loadingAddress: data.loadingAddress || '',
+          loadingDateTime: data.loadingDateTime instanceof Timestamp ? data.loadingDateTime.toDate() : data.loadingDateTime,
+          loadingReminder: data.loadingReminder || 60,
+          unloadingAddress: data.unloadingAddress || '',
+          unloadingDateTime: data.unloadingDateTime instanceof Timestamp ? data.unloadingDateTime.toDate() : data.unloadingDateTime,
+          unloadingReminder: data.unloadingReminder || 60,
+          status: data.status || 'Aktívna',
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt || new Date(),
+          createdBy: {
+            firstName: data.createdBy?.firstName || '',
+            lastName: data.createdBy?.lastName || ''
+          },
+          isDelayed: data.isDelayed || false,
+        };
+      }) as Transport[];
 
       setTransports(transportsData);
+      setFilteredTransports(transportsData);
     } catch (err: any) {
       setError(err.message || 'Nastala chyba pri načítaní preprav');
     } finally {
@@ -369,117 +508,122 @@ function TrackedTransports() {
       <PageHeader>
         <PageTitle>Sledované prepravy</PageTitle>
         <AddButton
-          variant="contained"
-          onClick={handleOpenDialog}
           startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
         >
-          Pridať sledovanie
+          Pridať prepravu
         </AddButton>
       </PageHeader>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+      <SearchWrapper>
+        <SearchField
+          fullWidth
+          label="Vyhľadať prepravu"
+          variant="outlined"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Zadajte číslo objednávky, adresu alebo meno"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </SearchWrapper>
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          {success}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />
         </Box>
-      ) : transports.length === 0 ? (
-        <Alert severity="info">
-          Zatiaľ nemáte žiadne sledované prepravy
+      ) : filteredTransports.length === 0 ? (
+        <Alert severity="info" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>
+          {searchQuery ? 'Neboli nájdené žiadne prepravy zodpovedajúce vyhľadávaniu' : 'Zatiaľ nemáte žiadne sledované prepravy'}
         </Alert>
       ) : (
-        <div>
-          {transports.map((transport) => (
+        <Box>
+          {filteredTransports.map((transport) => (
             <TransportCard key={transport.id}>
-              <CardHeader>
-                <OrderNumber>{transport.orderNumber}</OrderNumber>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <StatusChip
-                    icon={<LocalShippingIcon />}
-                    label={transport.status === 'active' ? 'Aktívna' : 'Ukončená'}
-                    className={transport.status !== 'active' ? 'delayed' : ''}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box>
+                  <Typography variant="h6" sx={{ mb: 1 }}>
+                    Objednávka: {transport.orderNumber}
+                  </Typography>
+                  <Chip
+                    label={transport.status}
+                    color={transport.status === 'Aktívna' ? 'primary' : 'default'}
+                    size="small"
+                    sx={{ mr: 1 }}
                   />
+                  {transport.isDelayed && (
+                    <Chip
+                      label="Meškanie"
+                      color="error"
+                      size="small"
+                    />
+                  )}
+                </Box>
+                <Box>
+                  <Tooltip title="Upraviť">
+                    <IconButton onClick={() => handleOpenDialog(transport)} sx={{ color: '#ffffff' }}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip title="Vymazať">
-                    <IconButton onClick={() => handleDelete(transport.id)} size="small">
+                    <IconButton onClick={() => handleDelete(transport.id)} sx={{ color: '#ffffff' }}>
                       <DeleteIcon />
                     </IconButton>
                   </Tooltip>
                 </Box>
-              </CardHeader>
+              </Box>
 
               <TransportInfo>
                 <InfoSection>
                   <Box>
-                    <InfoLabel>Naloženie</InfoLabel>
-                    <LocationInfo>
+                    <InfoLabel>Nakládka</InfoLabel>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <LocationOnIcon sx={{ color: colors.accent.main }} />
                       <InfoValue>{transport.loadingAddress}</InfoValue>
-                    </LocationInfo>
-                    <TimeInfo>
-                      <AccessTimeIcon fontSize="small" />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                      <AccessTimeIcon sx={{ color: colors.accent.main }} />
                       <InfoValue>
-                        {format(transport.loadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
+                        {transport.loadingDateTime instanceof Timestamp ? 
+                          format(transport.loadingDateTime.toDate(), 'dd.MM.yyyy HH:mm', { locale: sk }) :
+                          format(transport.loadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
                       </InfoValue>
-                    </TimeInfo>
-                  </Box>
-                  <Box>
-                    <InfoLabel>Pripomienka</InfoLabel>
-                    <InfoValue>
-                      {transport.loadingReminder} {transport.loadingReminder === 1 ? 'hodinu' : transport.loadingReminder < 5 ? 'hodiny' : 'hodín'} pred
-                    </InfoValue>
+                    </Box>
                   </Box>
                 </InfoSection>
 
                 <InfoSection>
                   <Box>
-                    <InfoLabel>Vyloženie</InfoLabel>
-                    <LocationInfo>
-                      <LocationOnIcon sx={{ color: colors.secondary.main }} />
+                    <InfoLabel>Vykládka</InfoLabel>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LocationOnIcon sx={{ color: colors.accent.main }} />
                       <InfoValue>{transport.unloadingAddress}</InfoValue>
-                    </LocationInfo>
-                    <TimeInfo>
-                      <AccessTimeIcon fontSize="small" />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                      <AccessTimeIcon sx={{ color: colors.accent.main }} />
                       <InfoValue>
-                        {format(transport.unloadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
+                        {transport.unloadingDateTime instanceof Timestamp ? 
+                          format(transport.unloadingDateTime.toDate(), 'dd.MM.yyyy HH:mm', { locale: sk }) :
+                          format(transport.unloadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
                       </InfoValue>
-                    </TimeInfo>
-                  </Box>
-                  <Box>
-                    <InfoLabel>Pripomienka</InfoLabel>
-                    <InfoValue>
-                      {transport.unloadingReminder} {transport.unloadingReminder === 1 ? 'hodinu' : transport.unloadingReminder < 5 ? 'hodiny' : 'hodín'} pred
-                    </InfoValue>
-                  </Box>
-                </InfoSection>
-
-                <InfoSection>
-                  <Box>
-                    <InfoLabel>Vytvoril</InfoLabel>
-                    <InfoValue>
-                      {transport.createdBy?.firstName} {transport.createdBy?.lastName}
-                    </InfoValue>
-                  </Box>
-                  <Box>
-                    <InfoLabel>Dátum vytvorenia</InfoLabel>
-                    <InfoValue>
-                      {format(transport.createdAt, 'dd.MM.yyyy HH:mm', { locale: sk })}
-                    </InfoValue>
+                    </Box>
                   </Box>
                 </InfoSection>
               </TransportInfo>
+
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}
+              </Typography>
             </TransportCard>
           ))}
-        </div>
+        </Box>
       )}
 
       <Dialog 
@@ -488,130 +632,92 @@ function TrackedTransports() {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle sx={{ 
-          background: 'linear-gradient(135deg, #00b894 0%, #ffa502 100%)',
-          color: 'white',
-          fontWeight: 'bold',
-        }}>
-          Nová preprava
+        <DialogTitle>
+          {editingTransport ? 'Upraviť prepravu' : 'Pridať novú prepravu'}
         </DialogTitle>
         <DialogContent>
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Číslo objednávky"
-                  value={formData.orderNumber}
-                  onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                  Naloženie
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Adresa naloženia"
-                  value={formData.loadingAddress}
-                  onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={8}>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                  <DateTimePicker
-                    label="Dátum a čas naloženia"
-                    value={formData.loadingDateTime}
-                    onChange={(newValue: Date | null) => setFormData({ ...formData, loadingDateTime: newValue })}
-                    sx={{ width: '100%' }}
-                  />
-                </LocalizationProvider>
-              </Grid>
-
-              <Grid item xs={12} sm={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Pripomienka pred</InputLabel>
-                  <Select
-                    value={formData.loadingReminder}
-                    onChange={(e) => setFormData({ ...formData, loadingReminder: Number(e.target.value) })}
-                    label="Pripomienka pred"
-                  >
-                    {reminderOptions.map((hours) => (
-                      <MenuItem key={hours} value={hours}>
-                        {hours} {hours === 1 ? 'hodinu' : hours < 5 ? 'hodiny' : 'hodín'}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                  Vyloženie
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Adresa vyloženia"
-                  value={formData.unloadingAddress}
-                  onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={8}>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                  <DateTimePicker
-                    label="Dátum a čas vyloženia"
-                    value={formData.unloadingDateTime}
-                    onChange={(newValue: Date | null) => setFormData({ ...formData, unloadingDateTime: newValue })}
-                    sx={{ width: '100%' }}
-                  />
-                </LocalizationProvider>
-              </Grid>
-
-              <Grid item xs={12} sm={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Pripomienka pred</InputLabel>
-                  <Select
-                    value={formData.unloadingReminder}
-                    onChange={(e) => setFormData({ ...formData, unloadingReminder: Number(e.target.value) })}
-                    label="Pripomienka pred"
-                  >
-                    {reminderOptions.map((hours) => (
-                      <MenuItem key={hours} value={hours}>
-                        {hours} {hours === 1 ? 'hodinu' : hours < 5 ? 'hodiny' : 'hodín'}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Číslo objednávky"
+                value={formData.orderNumber}
+                onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                required
+              />
             </Grid>
-          </form>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Adresa nakládky"
+                value={formData.loadingAddress}
+                onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                <DateTimePicker
+                  label="Dátum a čas nakládky"
+                  value={formData.loadingDateTime}
+                  onChange={(newValue) => setFormData({ ...formData, loadingDateTime: newValue })}
+                  sx={{ width: '100%' }}
+                />
+              </LocalizationProvider>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Pripomienka pred nakládkou (minúty)"
+                value={formData.loadingReminder}
+                onChange={(e) => setFormData({ ...formData, loadingReminder: parseInt(e.target.value) })}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Adresa vykládky"
+                value={formData.unloadingAddress}
+                onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                <DateTimePicker
+                  label="Dátum a čas vykládky"
+                  value={formData.unloadingDateTime}
+                  onChange={(newValue) => setFormData({ ...formData, unloadingDateTime: newValue })}
+                  sx={{ width: '100%' }}
+                />
+              </LocalizationProvider>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Pripomienka pred vykládkou (minúty)"
+                value={formData.unloadingReminder}
+                onChange={(e) => setFormData({ ...formData, unloadingReminder: parseInt(e.target.value) })}
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Zrušiť</Button>
           <Button 
             onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(135deg, #00b894 0%, #00d2a0 100%)',
-              color: 'white',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #00a884 0%, #00c290 100%)',
-              },
-            }}
+            variant="contained" 
+            color="primary"
           >
-            Vytvoriť prepravu
+            {editingTransport ? 'Uložiť zmeny' : 'Pridať prepravu'}
           </Button>
         </DialogActions>
       </Dialog>
