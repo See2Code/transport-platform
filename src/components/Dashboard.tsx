@@ -59,7 +59,7 @@ const PageTitle = styled(Typography)(({ theme }) => ({
     left: 0,
     width: '60px',
     height: '4px',
-    backgroundColor: '#00b894',
+    backgroundColor: '#ff9f43',
     borderRadius: '2px',
   }
 }));
@@ -73,14 +73,14 @@ const StatsCard = styled(motion(Card))(({ theme }) => ({
   transition: 'all 0.3s ease',
   '&:hover': {
     transform: 'translateY(-5px)',
-    boxShadow: '0 8px 24px rgba(0, 184, 148, 0.2)',
+    boxShadow: '0 8px 24px rgba(255, 159, 67, 0.2)',
   },
   [theme.breakpoints.down('sm')]: {
     borderRadius: '12px',
   }
 }));
 
-const COLORS = ['#00b894', '#00cec9', '#0984e3', '#6c5ce7', '#fd79a8'];
+const COLORS = ['#ff9f43', '#ffd43b', '#ff6b6b', '#ff9ff3', '#48dbfb'];
 const RADIAN = Math.PI / 180;
 
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, isActive }: any) => {
@@ -385,7 +385,7 @@ export default function Dashboard() {
                 mb: { xs: 1, sm: 2 } 
               }}>
                 <BusinessIcon sx={{ 
-                  color: '#00b894', 
+                  color: '#ff9f43', 
                   fontSize: { xs: 32, sm: 40 } 
                 }} />
                 <Typography variant="h4" sx={{
@@ -425,7 +425,7 @@ export default function Dashboard() {
                 mb: { xs: 1, sm: 2 } 
               }}>
                 <PersonIcon sx={{ 
-                  color: '#00cec9', 
+                  color: '#ffd43b', 
                   fontSize: { xs: 32, sm: 40 } 
                 }} />
                 <Typography variant="h4" sx={{
@@ -465,7 +465,7 @@ export default function Dashboard() {
                 mb: { xs: 1, sm: 2 } 
               }}>
                 <NotificationsIcon sx={{ 
-                  color: '#0984e3', 
+                  color: '#ff6b6b', 
                   fontSize: { xs: 32, sm: 40 } 
                 }} />
                 <Typography variant="h4" sx={{
@@ -505,7 +505,7 @@ export default function Dashboard() {
                 mb: { xs: 1, sm: 2 } 
               }}>
                 <PersonIcon sx={{ 
-                  color: '#6c5ce7', 
+                  color: '#ff9ff3', 
                   fontSize: { xs: 32, sm: 40 } 
                 }} />
                 <Typography variant="h4" sx={{
