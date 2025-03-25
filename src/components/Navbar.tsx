@@ -103,6 +103,7 @@ const DrawerHeader = styled('div')({
   justifyContent: 'flex-start',
   height: '88px',
   borderBottom: `1px solid rgba(255, 255, 255, 0.06)`,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&.drawer-closed': {
     justifyContent: 'center',
     padding: '28px 12px',
@@ -147,7 +148,11 @@ const ToggleButton = styled(IconButton)(({ theme }) => ({
 const ListItemIconStyled = styled(ListItemIcon)({
   minWidth: 48,
   color: 'rgba(255, 255, 255, 0.7)',
-  transition: 'all 0.3s ease-in-out',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  display: 'flex',
+  justifyContent: 'center',
+  width: '100%',
+  margin: 0,
 });
 
 interface UserData {
@@ -171,6 +176,7 @@ const MinimizedMenuItem = styled(MenuItem)(({ theme }) => ({
   justifyContent: 'center',
   padding: '12px 0',
   minWidth: '60px',
+  margin: '0 auto',
   '& .MuiSvgIcon-root': {
     fontSize: '1.5rem',
     marginBottom: '4px',
@@ -185,10 +191,71 @@ const MinimizedMenuList = styled(MenuList)({
   flexDirection: 'column',
   alignItems: 'center',
   padding: '8px 0',
+  width: '100%',
   '& > *': {
     width: '100%',
     textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
   }
+});
+
+const SideNav = styled('nav')(({ theme }) => ({
+  width: drawerWidth,
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(20px)',
+  borderRight: '1px solid rgba(255, 255, 255, 0.06)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'fixed',
+  height: '100vh',
+  zIndex: 1200,
+  boxShadow: '4px 0 24px rgba(0, 0, 0, 0.15)',
+  overflowX: 'hidden',
+  transform: 'translateX(0)',
+  '&.drawer-closed': {
+    width: miniDrawerWidth,
+    transform: 'translateX(0)',
+    '& .MuiListItemText-root': {
+      opacity: 0,
+      transform: 'translateX(-10px)',
+      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    },
+    '& .MuiListItemIcon-root': {
+      minWidth: 0,
+      marginRight: 0,
+      justifyContent: 'center',
+    },
+    '& .MuiListItem-root': {
+      padding: '12px 0',
+    }
+  },
+  '& .MuiListItemText-root': {
+    opacity: 1,
+    transform: 'translateX(0)',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    whiteSpace: 'nowrap'
+  },
+  '& .MuiListItem-root': {
+    transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  }
+}));
+
+const MainWrapper = styled('div')({
+  flexGrow: 1,
+  marginLeft: drawerWidth,
+  minHeight: '100vh',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&.drawer-closed': {
+    marginLeft: miniDrawerWidth,
+  }
+});
+
+const ContentWrapper = styled('div')({
+  padding: '16px',
+  minHeight: '100vh',
+  backgroundColor: colors.primary.main,
+  position: 'relative',
+  overflowX: 'hidden'
 });
 
 const Navbar = () => {
@@ -241,49 +308,6 @@ const Navbar = () => {
     backgroundColor: colors.primary.main,
   });
 
-  const SideNav = styled('nav')(({ theme }) => ({
-    width: drawerWidth,
-    backgroundColor: colors.primary.light,
-    backdropFilter: 'blur(20px)',
-    borderRight: '1px solid rgba(255, 255, 255, 0.06)',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    position: 'fixed',
-    height: '100vh',
-    zIndex: 1200,
-    boxShadow: '4px 0 24px rgba(0, 0, 0, 0.15)',
-    overflowX: 'hidden',
-    '&.drawer-closed': {
-      width: miniDrawerWidth,
-      '& .MuiListItemText-root': {
-        opacity: 0,
-        width: 0,
-      },
-      '& .MuiListItemIcon-root': {
-        minWidth: 0,
-        marginRight: 0,
-        justifyContent: 'center',
-      }
-    }
-  }));
-
-  const MainWrapper = styled('div')({
-    flexGrow: 1,
-    marginLeft: drawerWidth,
-    minHeight: '100vh',
-    transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    '&.drawer-closed': {
-      marginLeft: miniDrawerWidth,
-    }
-  });
-
-  const ContentWrapper = styled('div')({
-    padding: '16px',
-    minHeight: '100vh',
-    backgroundColor: colors.primary.main,
-    position: 'relative',
-    overflowX: 'hidden'
-  });
-
   const drawer = (
     <>
       <DrawerHeader className={!mobileOpen ? 'drawer-closed' : ''}>
@@ -308,10 +332,11 @@ const Navbar = () => {
             sx={{
               minHeight: 48,
               justifyContent: mobileOpen ? 'initial' : 'center',
-              px: 2.5,
+              px: mobileOpen ? 2.5 : '8px',
               borderRadius: '12px',
-              margin: '4px 8px',
-              transition: 'all 0.2s ease-in-out',
+              margin: '4px auto',
+              width: !mobileOpen ? 'calc(100% - 16px)' : 'auto',
+              transition: 'all 0.3s ease-in-out',
               position: 'relative',
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -356,9 +381,13 @@ const Navbar = () => {
             <ListItemIconStyled
               sx={{
                 minWidth: 0,
-                mr: mobileOpen ? 3 : 'auto',
+                mr: mobileOpen ? 3 : 0,
                 justifyContent: 'center',
-                transition: 'all 0.2s ease-in-out',
+                transition: 'all 0.3s ease-in-out',
+                width: !mobileOpen ? '100%' : 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                padding: !mobileOpen ? '0' : undefined,
               }}
             >
               {item.icon}
@@ -367,12 +396,13 @@ const Navbar = () => {
               primary={item.text} 
               sx={{ 
                 opacity: mobileOpen ? 1 : 0,
-                transition: 'all 0.3s ease-in-out',
+                visibility: mobileOpen ? 'visible' : 'hidden',
+                transition: 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out',
                 '& .MuiTypography-root': {
                   fontSize: '0.95rem',
                   fontWeight: 500,
                   color: 'rgba(255, 255, 255, 0.7)',
-                  transition: 'all 0.2s ease-in-out',
+                  transition: 'all 0.3s ease-in-out',
                 }
               }} 
             />
@@ -389,9 +419,10 @@ const Navbar = () => {
               sx={{
                 minHeight: 48,
                 justifyContent: mobileOpen ? 'initial' : 'center',
-                px: 2.5,
+                px: mobileOpen ? 2.5 : '8px',
                 borderRadius: '12px',
-                margin: '4px 8px',
+                margin: '4px auto',
+                width: !mobileOpen ? 'calc(100% - 16px)' : 'auto',
                 transition: 'all 0.2s ease-in-out',
                 position: 'relative',
                 '&:hover': {
@@ -424,9 +455,13 @@ const Navbar = () => {
               <ListItemIconStyled
                 sx={{
                   minWidth: 0,
-                  mr: mobileOpen ? 3 : 'auto',
+                  mr: mobileOpen ? 3 : 0,
                   justifyContent: 'center',
                   transition: 'all 0.2s ease-in-out',
+                  width: !mobileOpen ? '100%' : 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: !mobileOpen ? '0' : undefined,
                 }}
               >
                 <LogoutIcon />

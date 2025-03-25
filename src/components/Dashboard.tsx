@@ -21,7 +21,7 @@ import {
 import { collection, query, getDocs, where, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { PieChart, Pie, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 const PageWrapper = styled(Box)({
   padding: '30px',
@@ -65,6 +65,58 @@ const StatsCard = styled(Card)({
 });
 
 const COLORS = ['#00b894', '#00cec9', '#0984e3', '#6c5ce7', '#fd79a8'];
+const RADIAN = Math.PI / 180;
+
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, isActive }: any) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? 'start' : 'end';
+
+  return (
+    <g style={{ 
+      opacity: isActive ? 1 : 0.9,
+      transition: 'all 0.3s ease-in-out'
+    }}>
+      <path
+        d={`M${x},${y}L${mx},${my}L${ex},${ey}`}
+        stroke={COLORS[index % COLORS.length]}
+        fill="none"
+        strokeWidth={isActive ? 2 : 1}
+      />
+      <circle cx={ex} cy={ey} r={2} fill={COLORS[index % COLORS.length]} stroke="none" />
+      <text
+        x={ex + (cos >= 0 ? 1 : -1) * 12}
+        y={ey}
+        textAnchor={textAnchor}
+        fill="#FFFFFF"
+        style={{ 
+          fontSize: isActive ? '15px' : '14px', 
+          fontWeight: isActive ? 600 : 500,
+          transition: 'all 0.3s ease-in-out'
+        }}
+      >{`${name}: ${value}`}</text>
+      <text
+        x={ex + (cos >= 0 ? 1 : -1) * 12}
+        y={ey}
+        dy={18}
+        textAnchor={textAnchor}
+        fill="#FFFFFF"
+        style={{ 
+          fontSize: isActive ? '13px' : '12px', 
+          opacity: isActive ? 0.8 : 0.7,
+          transition: 'all 0.3s ease-in-out'
+        }}
+      >{`(${(percent * 100).toFixed(1)}%)`}</text>
+    </g>
+  );
+};
 
 interface BusinessCase {
   id: string;
@@ -84,15 +136,20 @@ interface Reminder {
 
 export default function Dashboard() {
   const { userData } = useAuth();
+  const [activeIndex, setActiveIndex] = useState(0);
   const [stats, setStats] = useState({
     totalBusinessCases: 0,
     totalContacts: 0,
     totalReminders: 0,
     totalTeamMembers: 0,
-    statusDistribution: [] as { name: string; value: number }[],
+    statusDistribution: [] as { name: string; value: number; total?: number }[],
     recentBusinessCases: [] as BusinessCase[],
     upcomingReminders: [] as Reminder[],
   });
+
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -125,14 +182,21 @@ export default function Dashboard() {
 
         // Calculate status distribution
         const statusCounts: { [key: string]: number } = {};
+        let maxValue = 0;
         businessCases.forEach(bc => {
           statusCounts[bc.status] = (statusCounts[bc.status] || 0) + 1;
+          if (statusCounts[bc.status] > maxValue) maxValue = statusCounts[bc.status];
         });
 
-        const statusDistribution = Object.entries(statusCounts).map(([name, value]) => ({
-          name,
-          value
-        }));
+        const total = businessCases.length;
+        const statusDistribution = Object.entries(statusCounts)
+          .map(([name, value], index) => ({
+            name,
+            value,
+            fill: COLORS[index % COLORS.length],
+            total
+          }))
+          .sort((a, b) => b.value - a.value);
 
         setStats({
           totalBusinessCases: businessCasesSnapshot.size,
@@ -214,26 +278,76 @@ export default function Dashboard() {
         <Grid item xs={12} md={6}>
           <StatsCard>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>Rozdelenie podľa statusu</Typography>
-              <Box sx={{ height: 300 }}>
+              <Typography variant="h6" sx={{ mb: 2, color: '#ffffff' }}>Rozdelenie podľa statusu</Typography>
+              <Box sx={{ 
+                height: 400, 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                position: 'relative',
+                perspective: '1000px'
+              }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
+                    <defs>
+                      {COLORS.map((color, index) => (
+                        <React.Fragment key={`defs-${index}`}>
+                          <linearGradient 
+                            id={`gradient-${index}`} 
+                            x1="0" 
+                            y1="0" 
+                            x2="1" 
+                            y2="1"
+                          >
+                            <stop offset="0%" stopColor={color} stopOpacity={1} />
+                            <stop offset="50%" stopColor={color} stopOpacity={0.9} />
+                            <stop offset="100%" stopColor={color} stopOpacity={0.8} />
+                          </linearGradient>
+                          <filter id={`shadow-${index}`} x="-50%" y="-50%" width="200%" height="200%">
+                            <feOffset result="offOut" in="SourceGraphic" dx="2" dy="2" />
+                            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5" />
+                            <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+                            <feComponentTransfer>
+                              <feFuncA type="linear" slope="0.7"/>
+                            </feComponentTransfer>
+                          </filter>
+                        </React.Fragment>
+                      ))}
+                    </defs>
                     <Pie
                       data={stats.statusDistribution}
-                      dataKey="value"
-                      nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={100}
-                      fill="#8884d8"
-                      label
+                      labelLine={false}
+                      label={(props) => renderCustomizedLabel({ ...props, isActive: props.index === activeIndex })}
+                      outerRadius={130}
+                      innerRadius={70}
+                      paddingAngle={8}
+                      dataKey="value"
+                      startAngle={90}
+                      endAngle={450}
+                      onMouseEnter={onPieEnter}
                     >
                       {stats.statusDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={`url(#gradient-${index % COLORS.length})`}
+                          stroke={COLORS[index % COLORS.length]}
+                          strokeWidth={3}
+                          style={{
+                            filter: index === activeIndex 
+                              ? `url(#shadow-${index}) drop-shadow(0 4px 8px rgba(0,0,0,0.3))` 
+                              : `url(#shadow-${index})`,
+                            transform: index === activeIndex 
+                              ? 'scale(1.05) translateY(-5px)' 
+                              : 'scale(1) translateY(0)',
+                            transformOrigin: 'center',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            opacity: index === activeIndex ? 1 : 0.85
+                          }}
+                        />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </Box>
