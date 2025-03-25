@@ -342,18 +342,29 @@ exports.checkTransportNotifications = functions
     .pubsub.schedule('every 1 minutes')
     .timeZone('Europe/Bratislava')
     .onRun(async (context) => {
+    var _a, _b;
     const now = new Date();
     const db = admin.firestore();
+    console.log('Spustená kontrola pripomienok prepráv:', now.toISOString());
     try {
-        const transportsSnapshot = await db.collection('trackedTransports')
-            .where('notificationDateTime', '<=', now)
-            .where('notificationSent', '==', false)
+        console.log('Hľadám pripomienky na odoslanie...');
+        const remindersSnapshot = await db.collection('reminders')
+            .where('reminderDateTime', '<=', now)
+            .where('sent', '==', false)
+            .where('transportId', '!=', null)
             .get();
-        for (const doc of transportsSnapshot.docs) {
-            const transport = doc.data();
-            const userDoc = await db.collection('users').doc(transport.userId).get();
-            const userData = userDoc.data();
-            if (userData && userData.email) {
+        console.log('Počet nájdených pripomienok:', remindersSnapshot.size);
+        for (const doc of remindersSnapshot.docs) {
+            const reminder = doc.data();
+            console.log('Spracovávam pripomienku:', {
+                id: doc.id,
+                reminderDateTime: (_b = (_a = reminder.reminderDateTime) === null || _a === void 0 ? void 0 : _a.toDate) === null || _b === void 0 ? void 0 : _b.call(_a),
+                userEmail: reminder.userEmail,
+                type: reminder.type,
+                orderNumber: reminder.orderNumber,
+                transportId: reminder.transportId
+            });
+            if (reminder.userEmail && reminder.transportId) {
                 const emailHtml = `
             <!DOCTYPE html>
             <html>
@@ -410,12 +421,15 @@ exports.checkTransportNotifications = functions
                   <h1 style="margin: 0;">AESA Transport Platform</h1>
                 </div>
                 <div class="content">
-                  <h2>Dobrý deň ${userData.firstName},</h2>
-                  <p>Máte novú pripomienku pre sledovanú prepravu "${transport.title}".</p>
-                  <p>Dátum pripomienky: ${transport.notificationDateTime.toDate().toLocaleString('sk-SK')}</p>
+                  <h2>Dobrý deň,</h2>
+                  <p>Máte novú pripomienku pre prepravu s číslom objednávky "${reminder.orderNumber}".</p>
+                  <p>Typ: ${reminder.type === 'loading' ? 'Nakládka' : 'Vykládka'}</p>
+                  <p>Adresa: ${reminder.address}</p>
+                  <p>Dátum a čas: ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
+                  <p>${reminder.reminderNote || ''}</p>
                   <p>Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
                   <div style="text-align: center;">
-                    <a href="https://core-app-423c7.web.app/tracked-transports" class="button">Zobraziť sledovanú prepravu</a>
+                    <a href="https://core-app-423c7.web.app/tracked-transports" class="button">Zobraziť prepravu</a>
                   </div>
                 </div>
                 <div class="footer">
@@ -426,13 +440,42 @@ exports.checkTransportNotifications = functions
             </body>
             </html>
           `;
-                await sendEmail(userData.email, 'Pripomienka pre sledovanú prepravu', emailHtml);
-                await doc.ref.update({ notificationSent: true });
+                try {
+                    console.log('Pokus o odoslanie pripomienky na:', reminder.userEmail);
+                    await sendEmail(reminder.userEmail, `Pripomienka prepravy - ${reminder.type === 'loading' ? 'Nakládka' : 'Vykládka'}`, emailHtml);
+                    // Vymazanie pripomienky po úspešnom odoslaní
+                    await doc.ref.delete();
+                    console.log('Pripomienka úspešne odoslaná a vymazaná:', {
+                        id: doc.id,
+                        email: reminder.userEmail,
+                        orderNumber: reminder.orderNumber
+                    });
+                    // Aktualizujeme počítadlo metrík
+                    const metricsRef = db.collection('functionMetrics').doc(now.toISOString().split('T')[0]);
+                    await metricsRef.set({
+                        transportNotifications: admin.firestore.FieldValue.increment(1)
+                    }, { merge: true });
+                }
+                catch (error) {
+                    console.error('Chyba pri odosielaní pripomienky:', {
+                        error: error,
+                        reminderID: doc.id,
+                        userEmail: reminder.userEmail,
+                        orderNumber: reminder.orderNumber
+                    });
+                }
+            }
+            else {
+                console.warn('Pripomienka nemá nastavený email alebo transportId:', {
+                    id: doc.id,
+                    hasEmail: !!reminder.userEmail,
+                    hasTransportId: !!reminder.transportId
+                });
             }
         }
     }
     catch (error) {
-        console.error('Chyba pri kontrole notifikácií:', error);
+        console.error('Chyba pri kontrole pripomienok:', error);
     }
 });
 // Funkcia na logovanie metrík

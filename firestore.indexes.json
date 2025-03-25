@@ -11,6 +11,10 @@
         {
           "fieldPath": "reminderDateTime",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "transportId",
+          "order": "ASCENDING"
         }
       ]
     }

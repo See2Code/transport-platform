@@ -18,6 +18,7 @@ import {
   AppBar,
   useMediaQuery,
   useTheme,
+  MenuList,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
@@ -162,6 +163,33 @@ interface MenuItem {
   onClick?: () => void;
   hidden?: boolean;
 }
+
+const MinimizedMenuItem = styled(MenuItem)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '12px 0',
+  minWidth: '60px',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.5rem',
+    marginBottom: '4px',
+  },
+  '& .MuiTypography-root': {
+    fontSize: '0.75rem',
+  }
+}));
+
+const MinimizedMenuList = styled(MenuList)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  padding: '8px 0',
+  '& > *': {
+    width: '100%',
+    textAlign: 'center',
+  }
+});
 
 const Navbar = () => {
   const { currentUser, userData, logout } = useAuth();

@@ -4,12 +4,6 @@ import {
   Paper,
   Typography,
   Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   styled,
   CircularProgress,
   Alert,
@@ -19,16 +13,12 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Grid,
-  Card,
   IconButton,
   Chip,
   Tooltip,
   InputAdornment,
+  Card,
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -38,7 +28,6 @@ import { collection, query, where, getDocs, addDoc, doc, updateDoc, Timestamp, o
 import { db, auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -158,7 +147,7 @@ const AddButton = styled(Button)({
   }
 });
 
-const TransportCard = styled(Card)({
+const TransportCard = styled(Paper)({
   backgroundColor: colors.primary.light,
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
@@ -359,11 +348,19 @@ function TrackedTransports() {
             await updateDoc(doc(db, 'reminders', reminderDoc.id), {
               reminderDateTime: loadingReminderTime,
               sent: false,
+              userEmail: userData?.email || '',
+              orderNumber: formData.orderNumber,
+              address: formData.loadingAddress,
+              reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`
             });
           } else if (reminderData.type === 'unloading') {
             await updateDoc(doc(db, 'reminders', reminderDoc.id), {
               reminderDateTime: unloadingReminderTime,
               sent: false,
+              userEmail: userData?.email || '',
+              orderNumber: formData.orderNumber,
+              address: formData.unloadingAddress,
+              reminderNote: `Vykládka na adrese: ${formData.unloadingAddress}`
             });
           }
         });
@@ -388,6 +385,11 @@ function TrackedTransports() {
 
         // Vytvorenie pripomienok pre nakládku a vykládku
         const loadingReminderTime = new Date(formData.loadingDateTime.getTime() - formData.loadingReminder * 60000);
+        console.log('Vytváram pripomienku pre nakládku:', {
+          email: userData?.email,
+          time: loadingReminderTime,
+          orderNumber: formData.orderNumber
+        });
         await addDoc(collection(db, 'reminders'), {
           transportId: transportDoc.id,
           type: 'loading',
@@ -395,9 +397,19 @@ function TrackedTransports() {
           message: `Pripomienka nakládky pre objednávku ${formData.orderNumber}`,
           sent: false,
           createdAt: new Date(),
+          userEmail: userData?.email || '',
+          orderNumber: formData.orderNumber,
+          address: formData.loadingAddress,
+          userId: auth.currentUser?.uid || '',
+          reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`
         });
 
         const unloadingReminderTime = new Date(formData.unloadingDateTime.getTime() - formData.unloadingReminder * 60000);
+        console.log('Vytváram pripomienku pre vykládku:', {
+          email: userData?.email,
+          time: unloadingReminderTime,
+          orderNumber: formData.orderNumber
+        });
         await addDoc(collection(db, 'reminders'), {
           transportId: transportDoc.id,
           type: 'unloading',
@@ -405,6 +417,11 @@ function TrackedTransports() {
           message: `Pripomienka vykládky pre objednávku ${formData.orderNumber}`,
           sent: false,
           createdAt: new Date(),
+          userEmail: userData?.email || '',
+          orderNumber: formData.orderNumber,
+          address: formData.unloadingAddress,
+          userId: auth.currentUser?.uid || '',
+          reminderNote: `Vykládka na adrese: ${formData.unloadingAddress}`
         });
       }
 
@@ -649,21 +666,19 @@ function TrackedTransports() {
                 </InfoSection>
               </TransportInfo>
 
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)', mt: 2 }}>
+                <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}</span>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <span>Vytvorené: {format(
-                        transport.createdAt instanceof Timestamp ? 
-                          transport.createdAt.toDate() : 
-                          transport.createdAt instanceof Date ? 
-                            transport.createdAt : 
-                            new Date(transport.createdAt),
-                        'dd.MM.yyyy HH:mm',
-                        { locale: sk }
-                      )}
-                    </span>
-                  </Box>
+                  <span>Vytvorené: {format(
+                      transport.createdAt instanceof Timestamp ? 
+                        transport.createdAt.toDate() : 
+                        transport.createdAt instanceof Date ? 
+                          transport.createdAt : 
+                          new Date(transport.createdAt),
+                      'dd.MM.yyyy HH:mm',
+                      { locale: sk }
+                    )}
+                  </span>
                 </Box>
               </Typography>
             </TransportCard>
@@ -725,8 +740,11 @@ function TrackedTransports() {
                 fullWidth
                 type="number"
                 label="Pripomienka (minúty)"
-                value={formData.loadingReminder}
-                onChange={(e) => setFormData({ ...formData, loadingReminder: parseInt(e.target.value) })}
+                value={formData.loadingReminder || ''}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
+                  setFormData({ ...formData, loadingReminder: value });
+                }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">min</InputAdornment>,
                 }}
@@ -766,8 +784,11 @@ function TrackedTransports() {
                 fullWidth
                 type="number"
                 label="Pripomienka (minúty)"
-                value={formData.unloadingReminder}
-                onChange={(e) => setFormData({ ...formData, unloadingReminder: parseInt(e.target.value) })}
+                value={formData.unloadingReminder || ''}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
+                  setFormData({ ...formData, unloadingReminder: value });
+                }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">min</InputAdornment>,
                 }}
