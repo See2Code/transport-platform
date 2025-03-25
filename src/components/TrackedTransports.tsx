@@ -19,6 +19,7 @@ import {
   Tooltip,
   InputAdornment,
   Card,
+  TableCell,
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -33,8 +34,8 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import SearchField from './common/SearchField';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -230,28 +231,13 @@ const StatusChip = styled(Chip)({
 
 const SearchWrapper = styled(Box)({
   marginBottom: '24px',
-});
-
-const SearchField = styled(TextField)({
-  '& .MuiOutlinedInput-root': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: '12px',
-    '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.1)',
-    },
-    '&:hover fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.2)',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#00b894',
-    },
-  },
-  '& .MuiInputLabel-root': {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  '& .MuiInputBase-input': {
-    color: '#ffffff',
-  },
+  position: 'relative',
+  zIndex: 1,
+  maxWidth: '600px',
+  width: '100%',
+  '@media (max-width: 600px)': {
+    maxWidth: '100%',
+  }
 });
 
 function TrackedTransports() {
@@ -584,19 +570,10 @@ function TrackedTransports() {
 
       <SearchWrapper>
         <SearchField
-          fullWidth
-          label="Vyhľadať prepravu"
-          variant="outlined"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          label="Vyhľadať prepravu"
           placeholder="Zadajte číslo objednávky, adresu alebo meno"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-              </InputAdornment>
-            ),
-          }}
         />
       </SearchWrapper>
 
@@ -625,9 +602,14 @@ function TrackedTransports() {
                     size="small"
                     sx={{ 
                       mr: 1,
-                      backgroundColor: transport.status === 'Aktívna' ? '#00ff00' : 'inherit',
-                      color: transport.status === 'Aktívna' ? '#000000' : 'inherit',
-                      fontWeight: 500,
+                      backgroundColor: transport.status === 'Aktívna' ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 255, 255, 0.1)',
+                      color: transport.status === 'Aktívna' ? colors.accent.main : '#ffffff',
+                      '& .MuiChip-label': {
+                        fontSize: {
+                          xs: '0.7rem',
+                          sm: '0.8rem'
+                        }
+                      }
                     }}
                   />
                   {transport.isDelayed && (
@@ -640,12 +622,28 @@ function TrackedTransports() {
                 </Box>
                 <Box>
                   <Tooltip title="Upraviť">
-                    <IconButton onClick={() => handleOpenDialog(transport)} sx={{ color: '#ffffff' }}>
+                    <IconButton 
+                      onClick={() => handleOpenDialog(transport)}
+                      sx={{ 
+                        color: colors.accent.main,
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                        }
+                      }}
+                    >
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Vymazať">
-                    <IconButton onClick={() => handleDelete(transport.id)} sx={{ color: '#ffffff' }}>
+                    <IconButton 
+                      onClick={() => handleDelete(transport.id)}
+                      sx={{ 
+                        color: colors.secondary.main,
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                        }
+                      }}
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </Tooltip>

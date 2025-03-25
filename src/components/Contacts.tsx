@@ -30,6 +30,7 @@ import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot, getDo
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
+import SearchField from './common/SearchField';
 
 interface Country {
   code: string;
@@ -187,28 +188,18 @@ const SearchWrapper = styled(Box)({
   marginBottom: '24px',
   position: 'relative',
   zIndex: 1,
+  maxWidth: '600px',
+  width: '100%',
+  '@media (max-width: 600px)': {
+    maxWidth: '100%',
+  }
 });
 
-const SearchField = styled(TextField)({
-  '& .MuiOutlinedInput-root': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: '12px',
-    '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.1)',
-    },
-    '&:hover fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.2)',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: colors.accent.main,
-    },
-  },
-  '& .MuiInputLabel-root': {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  '& .MuiInputBase-input': {
-    color: '#ffffff',
-  },
+const SearchLabel = styled(Typography)({
+  color: colors.accent.main,
+  fontSize: '1rem',
+  marginBottom: '8px',
+  fontWeight: 500,
 });
 
 const Contacts = () => {
@@ -450,40 +441,76 @@ const Contacts = () => {
 
       <SearchWrapper>
         <SearchField
-          fullWidth
-          label="Vyhľadať kontakt"
-          variant="outlined"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          label="Vyhľadať kontakt"
         />
       </SearchWrapper>
 
-      <TableContainer component={Paper} sx={{ mt: 2, backgroundColor: 'transparent' }}>
+      <TableContainer 
+        component={Paper} 
+        sx={{ 
+          mt: 2, 
+          backgroundColor: 'transparent',
+          overflowX: 'auto',
+          width: '100%',
+          '& .MuiTable-root': {
+            minWidth: {
+              xs: '800px',
+              md: '100%'
+            }
+          },
+          '& .MuiTableCell-root': {
+            padding: {
+              xs: '12px 8px',
+              sm: '16px'
+            },
+            fontSize: {
+              xs: '0.8rem',
+              sm: '0.875rem'
+            },
+            whiteSpace: 'nowrap',
+            color: '#ffffff',
+            backgroundColor: colors.primary.light,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+          },
+          '& .MuiTableHead-root': {
+            '& .MuiTableCell-root': {
+              fontWeight: 600,
+              backgroundColor: colors.primary.light,
+              borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
+            }
+          },
+          '& .MuiTableBody-root': {
+            '& .MuiTableRow-root': {
+              '&:hover': {
+                '& .MuiTableCell-root': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                }
+              }
+            }
+          }
+        }}
+      >
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Spoločnosť</TableCell>
-              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Kontaktná osoba</TableCell>
-              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Mobil</TableCell>
-              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Email</TableCell>
-              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Vytvoril</TableCell>
-              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Dátum vytvorenia</TableCell>
-              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Poznámka</TableCell>
-              <TableCell sx={{ height: '60px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Akcie</TableCell>
+              <TableCell>Spoločnosť</TableCell>
+              <TableCell>Kontaktná osoba</TableCell>
+              <TableCell>Mobil</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Vytvoril</TableCell>
+              <TableCell>Dátum vytvorenia</TableCell>
+              <TableCell>Poznámka</TableCell>
+              <TableCell>Akcie</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredContacts.map((contact) => (
-              <TableRow 
-                key={contact.id} 
-                sx={{ 
-                  '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
-                  height: '60px'
-                }}
-              >
-                <TableCell sx={{ height: '60px' }}>{contact.company}</TableCell>
-                <TableCell sx={{ height: '60px' }}>{contact.firstName} {contact.lastName}</TableCell>
-                <TableCell sx={{ height: '60px' }}>
+              <TableRow key={contact.id}>
+                <TableCell>{contact.company}</TableCell>
+                <TableCell>{contact.firstName} {contact.lastName}</TableCell>
+                <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <img
                       loading="lazy"
@@ -494,9 +521,9 @@ const Contacts = () => {
                     {contact.phonePrefix} {contact.phoneNumber}
                   </Box>
                 </TableCell>
-                <TableCell sx={{ height: '60px' }}>{contact.email}</TableCell>
-                <TableCell sx={{ height: '60px' }}>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
-                <TableCell sx={{ height: '60px', whiteSpace: 'nowrap' }}>
+                <TableCell>{contact.email}</TableCell>
+                <TableCell>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   {contact.createdAt?.toDate().toLocaleString('sk-SK', {
                     day: '2-digit',
                     month: '2-digit',
@@ -505,22 +532,30 @@ const Contacts = () => {
                     minute: '2-digit'
                   })}
                 </TableCell>
-                <TableCell sx={{ height: '60px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <TableCell sx={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {contact.notes || ''}
                 </TableCell>
-                <TableCell sx={{ height: '60px' }}>
+                <TableCell>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <IconButton 
                       onClick={() => handleEdit(contact)} 
-                      color="primary"
-                      sx={{ padding: '8px' }}
+                      sx={{ 
+                        color: colors.accent.main,
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                        }
+                      }}
                     >
                       <EditIcon />
                     </IconButton>
                     <IconButton 
                       onClick={() => contact.id && handleDelete(contact.id)} 
-                      color="error"
-                      sx={{ padding: '8px' }}
+                      sx={{ 
+                        color: colors.secondary.main,
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                        }
+                      }}
                     >
                       <DeleteIcon />
                     </IconButton>

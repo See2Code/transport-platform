@@ -45,6 +45,7 @@ import { useAuth } from '../contexts/AuthContext';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/material.css';
 import { useNavigate } from 'react-router-dom';
+import SearchField from './common/SearchField';
 
 const euCountries = [
   { code: 'SK', name: 'Slovensko', flag: '🇸🇰', prefix: '+421' },
@@ -54,6 +55,24 @@ const euCountries = [
   { code: 'AT', name: 'Rakúsko', flag: '🇦🇹', prefix: '+43' },
   { code: 'DE', name: 'Nemecko', flag: '🇩🇪', prefix: '+49' },
 ];
+
+const colors = {
+  primary: {
+    main: '#1a1a2e',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  secondary: {
+    main: '#ff6b6b',
+    light: '#ff8787',
+    dark: '#fa5252',
+  },
+  accent: {
+    main: '#ff9f43',
+    light: '#ffbe76',
+    dark: '#f7b067',
+  }
+};
 
 // Definícia stavov obchodného prípadu
 const caseStatuses = {
@@ -423,14 +442,22 @@ export default function BusinessCases() {
         </AddButton>
       </PageHeader>
 
-      <TextField
-        fullWidth
-        label="Vyhľadať prípad"
-        variant="outlined"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        sx={{ mb: 3 }}
-      />
+      <Box sx={{ 
+        mb: 3,
+        position: 'relative',
+        zIndex: 1,
+        maxWidth: '600px',
+        width: '100%',
+        '@media (max-width: 600px)': {
+          maxWidth: '100%',
+        }
+      }}>
+        <SearchField
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          label="Vyhľadať prípad"
+        />
+      </Box>
 
       <TableContainer 
         component={Paper}
@@ -453,19 +480,24 @@ export default function BusinessCases() {
               xs: '0.8rem',
               sm: '0.875rem'
             },
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            color: '#ffffff',
+            backgroundColor: colors.primary.light,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
           },
           '& .MuiTableHead-root': {
             '& .MuiTableCell-root': {
               fontWeight: 600,
-              backgroundColor: 'rgba(45, 45, 45, 0.95)',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              backgroundColor: colors.primary.light,
+              borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
             }
           },
           '& .MuiTableBody-root': {
             '& .MuiTableRow-root': {
               '&:hover': {
-                backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                '& .MuiTableCell-root': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                }
               }
             }
           }
@@ -578,29 +610,33 @@ export default function BusinessCases() {
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  <Box sx={{ 
-                    display: 'flex', 
-                    gap: 1, 
-                    justifyContent: 'flex-end',
-                    '& .MuiIconButton-root': {
-                      padding: {
-                        xs: '4px',
-                        sm: '8px'
-                      }
-                    },
-                    '& .MuiSvgIcon-root': {
-                      fontSize: {
-                        xs: '1.25rem',
-                        sm: '1.5rem'
-                      }
-                    }
-                  }}>
-                    <IconButton onClick={() => handleEdit(businessCase)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(businessCase.id || '')}>
-                      <DeleteIcon />
-                    </IconButton>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Tooltip title="Upraviť">
+                      <IconButton 
+                        onClick={() => handleEdit(businessCase)}
+                        sx={{ 
+                          color: colors.accent.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                          }
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Vymazať">
+                      <IconButton 
+                        onClick={() => handleDelete(businessCase.id || '')}
+                        sx={{ 
+                          color: colors.secondary.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                          }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
                 </TableCell>
               </TableRow>

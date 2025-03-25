@@ -675,6 +675,44 @@ function Team() {
               component={Paper} 
               sx={{ 
                 backgroundColor: 'transparent',
+                overflowX: 'auto',
+                width: '100%',
+                '& .MuiTable-root': {
+                  minWidth: {
+                    xs: '800px',
+                    md: '100%'
+                  }
+                },
+                '& .MuiTableCell-root': {
+                  padding: {
+                    xs: '12px 8px',
+                    sm: '16px'
+                  },
+                  fontSize: {
+                    xs: '0.8rem',
+                    sm: '0.875rem'
+                  },
+                  whiteSpace: 'nowrap',
+                  color: '#ffffff',
+                  backgroundColor: colors.primary.light,
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                },
+                '& .MuiTableHead-root': {
+                  '& .MuiTableCell-root': {
+                    fontWeight: 600,
+                    backgroundColor: colors.primary.light,
+                    borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
+                  }
+                },
+                '& .MuiTableBody-root': {
+                  '& .MuiTableRow-root': {
+                    '&:hover': {
+                      '& .MuiTableCell-root': {
+                        backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                      }
+                    }
+                  }
+                },
                 '@media (max-width: 960px)': {
                   display: 'block',
                   overflowX: 'auto',
@@ -685,12 +723,12 @@ function Team() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Meno</TableCell>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Email</TableCell>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Telefón</TableCell>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Rola</TableCell>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Status</TableCell>
-                    {isAdmin && <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>Akcie</TableCell>}
+                    <TableCell>Meno</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Telefón</TableCell>
+                    <TableCell>Rola</TableCell>
+                    <TableCell>Status</TableCell>
+                    {isAdmin && <TableCell>Akcie</TableCell>}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -712,6 +750,16 @@ function Team() {
                             label={member.role} 
                             color={member.role === 'admin' ? 'primary' : 'default'} 
                             size="small"
+                            sx={{
+                              backgroundColor: member.role === 'admin' ? colors.accent.main : 'rgba(255, 255, 255, 0.1)',
+                              color: '#ffffff',
+                              '& .MuiChip-label': {
+                                fontSize: {
+                                  xs: '0.7rem',
+                                  sm: '0.8rem'
+                                }
+                              }
+                            }}
                           />
                         </TableCell>
                         <TableCell>
@@ -719,47 +767,44 @@ function Team() {
                             label={member.status} 
                             color={member.status === 'active' ? 'success' : 'warning'} 
                             size="small"
+                            sx={{
+                              backgroundColor: member.status === 'active' ? 'rgba(46, 213, 115, 0.15)' : 'rgba(255, 159, 67, 0.15)',
+                              color: member.status === 'active' ? '#2ed573' : colors.accent.main,
+                              '& .MuiChip-label': {
+                                fontSize: {
+                                  xs: '0.7rem',
+                                  sm: '0.8rem'
+                                }
+                              }
+                            }}
                           />
                         </TableCell>
                         {isAdmin && (
-                          <TableCell align="right">
-                            <Tooltip title="Upraviť údaje člena tímu">
-                              <span>
-                                <IconButton
-                                  onClick={() => handleEdit(member)}
-                                  disabled={loading}
-                                  aria-label="Upraviť údaje člena tímu"
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
-                            {member.status === 'pending' && (
-                              <Tooltip title="Overiť status člena tímu">
-                                <span>
-                                  <IconButton 
-                                    size="small" 
-                                    onClick={() => handleVerifyStatus(member)}
-                                    disabled={member.role === 'admin' || loading}
-                                    aria-label="Overiť status člena tímu"
-                                  >
-                                    <CheckCircleIcon color="success" />
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                            )}
-                            <Tooltip title="Vymazať člena z tímu">
-                              <span>
-                                <IconButton
-                                  onClick={() => handleDeleteClick(member)}
-                                  disabled={loading}
-                                  aria-label="Vymazať člena z tímu"
-                                  color="error"
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <IconButton 
+                                onClick={() => handleEdit(member)}
+                                sx={{ 
+                                  color: colors.accent.main,
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                                  }
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton 
+                                onClick={() => handleDeleteClick(member)}
+                                sx={{ 
+                                  color: colors.secondary.main,
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                                  }
+                                }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
                           </TableCell>
                         )}
                       </AnimatedTableRow>
@@ -772,7 +817,55 @@ function Team() {
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
               Čakajúce pozvánky
             </Typography>
-            <TableContainer>
+            <TableContainer 
+              component={Paper} 
+              sx={{ 
+                backgroundColor: 'transparent',
+                overflowX: 'auto',
+                width: '100%',
+                '& .MuiTable-root': {
+                  minWidth: {
+                    xs: '800px',
+                    md: '100%'
+                  }
+                },
+                '& .MuiTableCell-root': {
+                  padding: {
+                    xs: '12px 8px',
+                    sm: '16px'
+                  },
+                  fontSize: {
+                    xs: '0.8rem',
+                    sm: '0.875rem'
+                  },
+                  whiteSpace: 'nowrap',
+                  color: '#ffffff',
+                  backgroundColor: colors.primary.light,
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                },
+                '& .MuiTableHead-root': {
+                  '& .MuiTableCell-root': {
+                    fontWeight: 600,
+                    backgroundColor: colors.primary.light,
+                    borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
+                  }
+                },
+                '& .MuiTableBody-root': {
+                  '& .MuiTableRow-root': {
+                    '&:hover': {
+                      '& .MuiTableCell-root': {
+                        backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                      }
+                    }
+                  }
+                },
+                '@media (max-width: 960px)': {
+                  display: 'block',
+                  overflowX: 'auto',
+                  whiteSpace: 'nowrap',
+                }
+              }}
+            >
               <Table>
                 <TableHead>
                   <TableRow>
@@ -803,6 +896,16 @@ function Team() {
                             label={invite.role} 
                             color={invite.role === 'admin' ? 'primary' : 'default'} 
                             size="small"
+                            sx={{
+                              backgroundColor: invite.role === 'admin' ? colors.accent.main : 'rgba(255, 255, 255, 0.1)',
+                              color: '#ffffff',
+                              '& .MuiChip-label': {
+                                fontSize: {
+                                  xs: '0.7rem',
+                                  sm: '0.8rem'
+                                }
+                              }
+                            }}
                           />
                         </TableCell>
                         <TableCell>
@@ -810,46 +913,62 @@ function Team() {
                             label={invite.status} 
                             color={invite.status === 'pending' ? 'warning' : invite.status === 'accepted' ? 'success' : 'error'} 
                             size="small"
+                            sx={{
+                              backgroundColor: invite.status === 'pending' ? 'rgba(255, 159, 67, 0.15)' : 
+                                           invite.status === 'accepted' ? 'rgba(46, 213, 115, 0.15)' : 
+                                           'rgba(255, 107, 107, 0.15)',
+                              color: invite.status === 'pending' ? colors.accent.main : 
+                                    invite.status === 'accepted' ? '#2ed573' : 
+                                    colors.secondary.main,
+                              '& .MuiChip-label': {
+                                fontSize: {
+                                  xs: '0.7rem',
+                                  sm: '0.8rem'
+                                }
+                              }
+                            }}
                           />
                         </TableCell>
                         {isAdmin && (
-                          <TableCell align="right">
-                            <Tooltip title="Upraviť údaje v pozvánke">
-                              <span>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <IconButton 
+                                onClick={() => handleEdit(invite)}
+                                sx={{ 
+                                  color: colors.accent.main,
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                                  }
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              {invite.status === 'pending' && (
                                 <IconButton 
-                                  size="small" 
-                                  onClick={() => handleEdit(invite)}
-                                  aria-label="Upraviť údaje v pozvánke"
+                                  onClick={() => handleResendInvitation(invite)}
+                                  disabled={loading}
+                                  sx={{ 
+                                    color: colors.accent.main,
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                                    }
+                                  }}
                                 >
-                                  <EditIcon />
+                                  <SendIcon />
                                 </IconButton>
-                              </span>
-                            </Tooltip>
-                            {invite.status === 'pending' && (
-                              <Tooltip title="Preposlať pozvánku">
-                                <span>
-                                  <IconButton 
-                                    size="small" 
-                                    onClick={() => handleResendInvitation(invite)}
-                                    disabled={loading}
-                                    aria-label="Preposlať pozvánku"
-                                  >
-                                    <SendIcon color="primary" />
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                            )}
-                            <Tooltip title="Zrušiť pozvánku">
-                              <span>
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => handleDeleteClick(invite)}
-                                  aria-label="Zrušiť pozvánku"
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
+                              )}
+                              <IconButton 
+                                onClick={() => handleDeleteClick(invite)}
+                                sx={{ 
+                                  color: colors.secondary.main,
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                                  }
+                                }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
                           </TableCell>
                         )}
                       </AnimatedTableRow>
