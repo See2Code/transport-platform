@@ -24,6 +24,8 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
+import CountUp from 'react-countup';
+import { motion } from 'framer-motion';
 
 const PageWrapper = styled(Box)(({ theme }) => ({
   padding: '30px',
@@ -62,7 +64,7 @@ const PageTitle = styled(Typography)(({ theme }) => ({
   }
 }));
 
-const StatsCard = styled(Card)(({ theme }) => ({
+const StatsCard = styled(motion(Card))(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.05)',
   borderRadius: '16px',
   backdropFilter: 'blur(10px)',
@@ -229,6 +231,37 @@ const ProgressBarTooltip = styled(Box)({
   backdropFilter: 'blur(8px)',
 });
 
+// Add animation variants
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      when: "beforeChildren",
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5 }
+  }
+};
+
+const progressVariants = {
+  hidden: { width: 0 },
+  visible: (percentage: number) => ({
+    width: `${percentage}%`,
+    transition: { duration: 1, ease: "easeOut" }
+  })
+};
+
 export default function Dashboard() {
   const { userData } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -334,7 +367,13 @@ export default function Dashboard() {
       <Grid container spacing={{ xs: 2, sm: 3 }}>
         {/* Štatistické karty */}
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard>
+          <StatsCard
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
             <CardContent sx={{ 
               p: { xs: 2, sm: 3 },
               '&:last-child': { pb: { xs: 2, sm: 3 } }
@@ -351,7 +390,13 @@ export default function Dashboard() {
                 }} />
                 <Typography variant="h4" sx={{
                   fontSize: { xs: '1.5rem', sm: '2rem' }
-                }}>{stats.totalBusinessCases}</Typography>
+                }}>
+                  <CountUp
+                    end={stats.totalBusinessCases}
+                    duration={2.5}
+                    separator=" "
+                  />
+                </Typography>
               </Box>
               <Typography variant="body1" sx={{ 
                 opacity: 0.7,
@@ -362,7 +407,13 @@ export default function Dashboard() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard>
+          <StatsCard
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
             <CardContent sx={{ 
               p: { xs: 2, sm: 3 },
               '&:last-child': { pb: { xs: 2, sm: 3 } }
@@ -379,7 +430,13 @@ export default function Dashboard() {
                 }} />
                 <Typography variant="h4" sx={{
                   fontSize: { xs: '1.5rem', sm: '2rem' }
-                }}>{stats.totalContacts}</Typography>
+                }}>
+                  <CountUp
+                    end={stats.totalContacts}
+                    duration={2.5}
+                    separator=" "
+                  />
+                </Typography>
               </Box>
               <Typography variant="body1" sx={{ 
                 opacity: 0.7,
@@ -390,7 +447,13 @@ export default function Dashboard() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard>
+          <StatsCard
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
             <CardContent sx={{ 
               p: { xs: 2, sm: 3 },
               '&:last-child': { pb: { xs: 2, sm: 3 } }
@@ -407,7 +470,13 @@ export default function Dashboard() {
                 }} />
                 <Typography variant="h4" sx={{
                   fontSize: { xs: '1.5rem', sm: '2rem' }
-                }}>{stats.totalReminders}</Typography>
+                }}>
+                  <CountUp
+                    end={stats.totalReminders}
+                    duration={2.5}
+                    separator=" "
+                  />
+                </Typography>
               </Box>
               <Typography variant="body1" sx={{ 
                 opacity: 0.7,
@@ -418,7 +487,13 @@ export default function Dashboard() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard>
+          <StatsCard
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
             <CardContent sx={{ 
               p: { xs: 2, sm: 3 },
               '&:last-child': { pb: { xs: 2, sm: 3 } }
@@ -435,7 +510,13 @@ export default function Dashboard() {
                 }} />
                 <Typography variant="h4" sx={{
                   fontSize: { xs: '1.5rem', sm: '2rem' }
-                }}>{stats.totalTeamMembers}</Typography>
+                }}>
+                  <CountUp
+                    end={stats.totalTeamMembers}
+                    duration={2.5}
+                    separator=" "
+                  />
+                </Typography>
               </Box>
               <Typography variant="body1" sx={{ 
                 opacity: 0.7,
@@ -492,18 +573,21 @@ export default function Dashboard() {
                   {stats.statusDistribution.map((item, index) => {
                     const percentage = (item.value / (item.total || 1)) * 100;
                     return (
-                      <Box
+                      <motion.div
                         key={item.name}
-                        sx={{
-                          width: `${percentage}%`,
+                        style={{
                           height: '100%',
                           backgroundColor: COLORS[index % COLORS.length],
-                          transition: 'all 0.3s ease',
                           position: 'relative',
-                          '&:hover': {
-                            filter: 'brightness(1.1)',
-                          },
                           borderRight: index !== stats.statusDistribution.length - 1 ? '2px solid rgba(0,0,0,0.1)' : 'none'
+                        }}
+                        variants={progressVariants}
+                        initial="hidden"
+                        animate="visible"
+                        custom={percentage}
+                        whileHover={{
+                          filter: 'brightness(1.1)',
+                          transition: { duration: 0.2 }
                         }}
                         onMouseEnter={(e) => {
                           if (!containerRef.current) return;
@@ -534,38 +618,53 @@ export default function Dashboard() {
                   })}
                 </Box>
 
-                {/* Legend */}
-                <Box sx={{ 
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: { xs: 1, sm: 2 },
-                  mt: { xs: 0.5, sm: 1 }
-                }}>
+                {/* Legend with animation */}
+                <Box
+                  component={motion.div}
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  sx={{ 
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: { xs: 1, sm: 2 },
+                    mt: { xs: 0.5, sm: 1 }
+                  }}
+                >
                   {stats.statusDistribution.map((item, index) => (
-                    <Box
+                    <motion.div
                       key={item.name}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        flexBasis: { xs: '45%', sm: 'auto' }
-                      }}
+                      variants={cardVariants}
+                      whileHover={{ x: 5, transition: { duration: 0.2 } }}
                     >
                       <Box
                         sx={{
-                          width: { xs: '10px', sm: '12px' },
-                          height: { xs: '10px', sm: '12px' },
-                          borderRadius: '3px',
-                          backgroundColor: COLORS[index % COLORS.length]
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          flexBasis: { xs: '45%', sm: 'auto' }
                         }}
-                      />
-                      <Typography sx={{ 
-                        color: '#fff',
-                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                      }}>
-                        {`${item.name}: ${item.value} (${((item.value / (item.total || 1)) * 100).toFixed(1)}%)`}
-                      </Typography>
-                    </Box>
+                      >
+                        <Box
+                          sx={{
+                            width: { xs: '10px', sm: '12px' },
+                            height: { xs: '10px', sm: '12px' },
+                            borderRadius: '3px',
+                            backgroundColor: COLORS[index % COLORS.length]
+                          }}
+                        />
+                        <Typography sx={{ 
+                          color: '#fff',
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                        }}>
+                          {item.name}: <CountUp
+                            end={item.value}
+                            duration={2}
+                            separator=" "
+                          /> ({((item.value / (item.total || 1)) * 100).toFixed(1)}%)
+                        </Typography>
+                      </Box>
+                    </motion.div>
                   ))}
                 </Box>
 
