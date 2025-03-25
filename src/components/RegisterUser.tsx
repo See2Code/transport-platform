@@ -249,37 +249,49 @@ function RegisterUser() {
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Názov firmy"
-                      value={company?.companyName || ''}
-                      disabled
-                    />
+                    <Typography variant="subtitle1" color="text.secondary">
+                      Názov firmy
+                    </Typography>
+                    <Typography variant="body1">
+                      {company.name}
+                    </Typography>
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Ulica"
-                      value={company?.street || ''}
-                      disabled
-                    />
+                    <Typography variant="subtitle1" color="text.secondary">
+                      IČO
+                    </Typography>
+                    <Typography variant="body1">
+                      {company.ico}
+                    </Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="PSČ"
-                      value={company?.zipCode || ''}
-                      disabled
-                    />
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" color="text.secondary">
+                      Adresa
+                    </Typography>
+                    <Typography variant="body1">
+                      {company.address}
+                    </Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Mesto"
-                      value={company?.city || ''}
-                      disabled
-                    />
-                  </Grid>
+                  {company.phone && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" color="text.secondary">
+                        Telefón
+                      </Typography>
+                      <Typography variant="body1">
+                        {company.phone}
+                      </Typography>
+                    </Grid>
+                  )}
+                  {company.email && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" color="text.secondary">
+                        Email
+                      </Typography>
+                      <Typography variant="body1">
+                        {company.email}
+                      </Typography>
+                    </Grid>
+                  )}
                 </Grid>
               </>
             )}

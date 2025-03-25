@@ -24,7 +24,7 @@ const app = initializeApp(firebaseConfig);
 // Get Firebase services
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app);
+const functions = getFunctions(app, 'europe-west1');
 
 // Nastavenie regiónu pre Firestore
 if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_FIREBASE_EMULATOR === 'true') {
