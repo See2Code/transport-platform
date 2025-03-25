@@ -25,22 +25,31 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
 
-const PageWrapper = styled(Box)({
+const PageWrapper = styled(Box)(({ theme }) => ({
   padding: '30px',
-});
+  [theme.breakpoints.down('sm')]: {
+    padding: '16px',
+  }
+}));
 
-const PageHeader = styled(Box)({
+const PageHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: '30px',
-});
+  [theme.breakpoints.down('sm')]: {
+    marginBottom: '20px',
+  }
+}));
 
-const PageTitle = styled(Typography)({
+const PageTitle = styled(Typography)(({ theme }) => ({
   fontSize: '1.75rem',
   fontWeight: 700,
   color: '#ffffff',
   position: 'relative',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '1.5rem',
+  },
   '&::after': {
     content: '""',
     position: 'absolute',
@@ -51,9 +60,9 @@ const PageTitle = styled(Typography)({
     backgroundColor: '#00b894',
     borderRadius: '2px',
   }
-});
+}));
 
-const StatsCard = styled(Card)({
+const StatsCard = styled(Card)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.05)',
   borderRadius: '16px',
   backdropFilter: 'blur(10px)',
@@ -63,8 +72,11 @@ const StatsCard = styled(Card)({
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: '0 8px 24px rgba(0, 184, 148, 0.2)',
+  },
+  [theme.breakpoints.down('sm')]: {
+    borderRadius: '12px',
   }
-});
+}));
 
 const COLORS = ['#00b894', '#00cec9', '#0984e3', '#6c5ce7', '#fd79a8'];
 const RADIAN = Math.PI / 180;
@@ -319,61 +331,129 @@ export default function Dashboard() {
         <PageTitle>Dashboard</PageTitle>
       </PageHeader>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         {/* Štatistické karty */}
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <BusinessIcon sx={{ color: '#00b894', fontSize: 40 }} />
-                <Typography variant="h4">{stats.totalBusinessCases}</Typography>
+            <CardContent sx={{ 
+              p: { xs: 2, sm: 3 },
+              '&:last-child': { pb: { xs: 2, sm: 3 } }
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: { xs: 1, sm: 2 }, 
+                mb: { xs: 1, sm: 2 } 
+              }}>
+                <BusinessIcon sx={{ 
+                  color: '#00b894', 
+                  fontSize: { xs: 32, sm: 40 } 
+                }} />
+                <Typography variant="h4" sx={{
+                  fontSize: { xs: '1.5rem', sm: '2rem' }
+                }}>{stats.totalBusinessCases}</Typography>
               </Box>
-              <Typography variant="body1" sx={{ opacity: 0.7 }}>Obchodné prípady</Typography>
+              <Typography variant="body1" sx={{ 
+                opacity: 0.7,
+                fontSize: { xs: '0.9rem', sm: '1rem' }
+              }}>Obchodné prípady</Typography>
             </CardContent>
           </StatsCard>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <PersonIcon sx={{ color: '#00cec9', fontSize: 40 }} />
-                <Typography variant="h4">{stats.totalContacts}</Typography>
+            <CardContent sx={{ 
+              p: { xs: 2, sm: 3 },
+              '&:last-child': { pb: { xs: 2, sm: 3 } }
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: { xs: 1, sm: 2 }, 
+                mb: { xs: 1, sm: 2 } 
+              }}>
+                <PersonIcon sx={{ 
+                  color: '#00cec9', 
+                  fontSize: { xs: 32, sm: 40 } 
+                }} />
+                <Typography variant="h4" sx={{
+                  fontSize: { xs: '1.5rem', sm: '2rem' }
+                }}>{stats.totalContacts}</Typography>
               </Box>
-              <Typography variant="body1" sx={{ opacity: 0.7 }}>Kontakty</Typography>
+              <Typography variant="body1" sx={{ 
+                opacity: 0.7,
+                fontSize: { xs: '0.9rem', sm: '1rem' }
+              }}>Kontakty</Typography>
             </CardContent>
           </StatsCard>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <NotificationsIcon sx={{ color: '#0984e3', fontSize: 40 }} />
-                <Typography variant="h4">{stats.totalReminders}</Typography>
+            <CardContent sx={{ 
+              p: { xs: 2, sm: 3 },
+              '&:last-child': { pb: { xs: 2, sm: 3 } }
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: { xs: 1, sm: 2 }, 
+                mb: { xs: 1, sm: 2 } 
+              }}>
+                <NotificationsIcon sx={{ 
+                  color: '#0984e3', 
+                  fontSize: { xs: 32, sm: 40 } 
+                }} />
+                <Typography variant="h4" sx={{
+                  fontSize: { xs: '1.5rem', sm: '2rem' }
+                }}>{stats.totalReminders}</Typography>
               </Box>
-              <Typography variant="body1" sx={{ opacity: 0.7 }}>Aktívne pripomienky</Typography>
+              <Typography variant="body1" sx={{ 
+                opacity: 0.7,
+                fontSize: { xs: '0.9rem', sm: '1rem' }
+              }}>Aktívne pripomienky</Typography>
             </CardContent>
           </StatsCard>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <PersonIcon sx={{ color: '#6c5ce7', fontSize: 40 }} />
-                <Typography variant="h4">{stats.totalTeamMembers}</Typography>
+            <CardContent sx={{ 
+              p: { xs: 2, sm: 3 },
+              '&:last-child': { pb: { xs: 2, sm: 3 } }
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: { xs: 1, sm: 2 }, 
+                mb: { xs: 1, sm: 2 } 
+              }}>
+                <PersonIcon sx={{ 
+                  color: '#6c5ce7', 
+                  fontSize: { xs: 32, sm: 40 } 
+                }} />
+                <Typography variant="h4" sx={{
+                  fontSize: { xs: '1.5rem', sm: '2rem' }
+                }}>{stats.totalTeamMembers}</Typography>
               </Box>
-              <Typography variant="body1" sx={{ opacity: 0.7 }}>Členovia tímu</Typography>
+              <Typography variant="body1" sx={{ 
+                opacity: 0.7,
+                fontSize: { xs: '0.9rem', sm: '1rem' }
+              }}>Členovia tímu</Typography>
             </CardContent>
           </StatsCard>
         </Grid>
 
         {/* Grafy */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
           <StatsCard>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 3, color: '#ffffff' }}>
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ 
+                mb: { xs: 2, sm: 3 }, 
+                color: '#ffffff',
+                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+              }}>
                 Rozdelenie podľa statusu
               </Typography>
               <Box 
@@ -382,7 +462,7 @@ export default function Dashboard() {
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 2,
+                gap: { xs: 1.5, sm: 2 },
                 position: 'relative'
               }}>
                 {tooltipData.show && (
@@ -403,8 +483,8 @@ export default function Dashboard() {
                 {/* Progress Bar Container */}
                 <Box sx={{ 
                   width: '100%',
-                  height: '24px',
-                  borderRadius: '12px',
+                  height: { xs: '20px', sm: '24px' },
+                  borderRadius: { xs: '10px', sm: '12px' },
                   overflow: 'hidden',
                   display: 'flex',
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -458,8 +538,8 @@ export default function Dashboard() {
                 <Box sx={{ 
                   display: 'flex',
                   flexWrap: 'wrap',
-                  gap: 2,
-                  mt: 1
+                  gap: { xs: 1, sm: 2 },
+                  mt: { xs: 0.5, sm: 1 }
                 }}>
                   {stats.statusDistribution.map((item, index) => (
                     <Box
@@ -467,20 +547,21 @@ export default function Dashboard() {
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 1
+                        gap: 1,
+                        flexBasis: { xs: '45%', sm: 'auto' }
                       }}
                     >
                       <Box
                         sx={{
-                          width: '12px',
-                          height: '12px',
+                          width: { xs: '10px', sm: '12px' },
+                          height: { xs: '10px', sm: '12px' },
                           borderRadius: '3px',
                           backgroundColor: COLORS[index % COLORS.length]
                         }}
                       />
                       <Typography sx={{ 
                         color: '#fff',
-                        fontSize: '0.9rem'
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
                       }}>
                         {`${item.name}: ${item.value} (${((item.value / (item.total || 1)) * 100).toFixed(1)}%)`}
                       </Typography>
@@ -491,8 +572,8 @@ export default function Dashboard() {
                 {/* Total */}
                 <Typography sx={{ 
                   color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: '0.9rem',
-                  mt: 1
+                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                  mt: { xs: 0.5, sm: 1 }
                 }}>
                   Celkom: {stats.statusDistribution.reduce((acc, curr) => acc + curr.value, 0)}
                 </Typography>
@@ -502,25 +583,52 @@ export default function Dashboard() {
         </Grid>
 
         {/* Najnovšie obchodné prípady */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
           <StatsCard>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>Najnovšie obchodné prípady</Typography>
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ 
+                mb: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+              }}>Najnovšie obchodné prípady</Typography>
               <TableContainer>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Firma</TableCell>
-                      <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Status</TableCell>
-                      <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Dátum</TableCell>
+                      <TableCell sx={{ 
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        padding: { xs: '8px', sm: '16px' },
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                      }}>Firma</TableCell>
+                      <TableCell sx={{ 
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        padding: { xs: '8px', sm: '16px' },
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                      }}>Status</TableCell>
+                      <TableCell sx={{ 
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        padding: { xs: '8px', sm: '16px' },
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                      }}>Dátum</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {stats.recentBusinessCases.map((bc: BusinessCase) => (
                       <TableRow key={bc.id}>
-                        <TableCell sx={{ color: '#ffffff' }}>{bc.companyName}</TableCell>
-                        <TableCell sx={{ color: '#ffffff' }}>{bc.status}</TableCell>
-                        <TableCell sx={{ color: '#ffffff' }}>
+                        <TableCell sx={{ 
+                          color: '#ffffff',
+                          padding: { xs: '8px', sm: '16px' },
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                        }}>{bc.companyName}</TableCell>
+                        <TableCell sx={{ 
+                          color: '#ffffff',
+                          padding: { xs: '8px', sm: '16px' },
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                        }}>{bc.status}</TableCell>
+                        <TableCell sx={{ 
+                          color: '#ffffff',
+                          padding: { xs: '8px', sm: '16px' },
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                        }}>
                           {bc.createdAt instanceof Timestamp ? 
                             bc.createdAt.toDate().toLocaleDateString('sk-SK') :
                             new Date(bc.createdAt).toLocaleDateString('sk-SK')}
@@ -537,23 +645,50 @@ export default function Dashboard() {
         {/* Nadchádzajúce pripomienky */}
         <Grid item xs={12}>
           <StatsCard>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>Nadchádzajúce pripomienky</Typography>
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ 
+                mb: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+              }}>Nadchádzajúce pripomienky</Typography>
               <TableContainer>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Firma</TableCell>
-                      <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Poznámka</TableCell>
-                      <TableCell sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Dátum a čas</TableCell>
+                      <TableCell sx={{ 
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        padding: { xs: '8px', sm: '16px' },
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                      }}>Firma</TableCell>
+                      <TableCell sx={{ 
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        padding: { xs: '8px', sm: '16px' },
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                      }}>Poznámka</TableCell>
+                      <TableCell sx={{ 
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        padding: { xs: '8px', sm: '16px' },
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                      }}>Dátum a čas</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {stats.upcomingReminders.map((reminder: Reminder) => (
                       <TableRow key={reminder.id}>
-                        <TableCell sx={{ color: '#ffffff' }}>{reminder.companyName}</TableCell>
-                        <TableCell sx={{ color: '#ffffff' }}>{reminder.reminderNote}</TableCell>
-                        <TableCell sx={{ color: '#ffffff' }}>
+                        <TableCell sx={{ 
+                          color: '#ffffff',
+                          padding: { xs: '8px', sm: '16px' },
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                        }}>{reminder.companyName}</TableCell>
+                        <TableCell sx={{ 
+                          color: '#ffffff',
+                          padding: { xs: '8px', sm: '16px' },
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                        }}>{reminder.reminderNote}</TableCell>
+                        <TableCell sx={{ 
+                          color: '#ffffff',
+                          padding: { xs: '8px', sm: '16px' },
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                        }}>
                           {reminder.reminderDateTime instanceof Timestamp ? 
                             reminder.reminderDateTime.toDate().toLocaleString('sk-SK') :
                             new Date(reminder.reminderDateTime).toLocaleString('sk-SK')}
