@@ -34,7 +34,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { sk } from 'date-fns/locale';
-import { collection, query, where, getDocs, addDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
@@ -45,6 +45,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -448,7 +449,7 @@ function TrackedTransports() {
 
     try {
       const transportsRef = collection(db, 'transports');
-      const q = query(transportsRef);
+      const q = query(transportsRef, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       
       const transportsData = querySnapshot.docs.map(doc => {
@@ -596,6 +597,21 @@ function TrackedTransports() {
                           format(transport.loadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
                       </InfoValue>
                     </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                      <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Pripomienka: {transport.loadingReminder} minút pred nakládkou
+                        ({format(
+                          new Date(
+                            (transport.loadingDateTime instanceof Timestamp ? 
+                              transport.loadingDateTime.toDate() : 
+                              transport.loadingDateTime).getTime() - transport.loadingReminder * 60000
+                          ),
+                          'dd.MM.yyyy HH:mm',
+                          { locale: sk }
+                        )})
+                      </Typography>
+                    </Box>
                   </Box>
                 </InfoSection>
 
@@ -614,12 +630,41 @@ function TrackedTransports() {
                           format(transport.unloadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
                       </InfoValue>
                     </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                      <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Pripomienka: {transport.unloadingReminder} minút pred vykládkou
+                        ({format(
+                          new Date(
+                            (transport.unloadingDateTime instanceof Timestamp ? 
+                              transport.unloadingDateTime.toDate() : 
+                              transport.unloadingDateTime).getTime() - transport.unloadingReminder * 60000
+                          ),
+                          'dd.MM.yyyy HH:mm',
+                          { locale: sk }
+                        )})
+                      </Typography>
+                    </Box>
                   </Box>
                 </InfoSection>
               </TransportInfo>
 
               <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                  <span>Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}</span>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <span>Vytvorené: {format(
+                        transport.createdAt instanceof Timestamp ? 
+                          transport.createdAt.toDate() : 
+                          transport.createdAt instanceof Date ? 
+                            transport.createdAt : 
+                            new Date(transport.createdAt),
+                        'dd.MM.yyyy HH:mm',
+                        { locale: sk }
+                      )}
+                    </span>
+                  </Box>
+                </Box>
               </Typography>
             </TransportCard>
           ))}
@@ -647,7 +692,14 @@ function TrackedTransports() {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            {/* Nakládka sekcia */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                Nakládka
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Adresa nakládky"
@@ -657,7 +709,7 @@ function TrackedTransports() {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={8}>
               <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
                 <DateTimePicker
                   label="Dátum a čas nakládky"
@@ -668,17 +720,27 @@ function TrackedTransports() {
               </LocalizationProvider>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 type="number"
-                label="Pripomienka pred nakládkou (minúty)"
+                label="Pripomienka (minúty)"
                 value={formData.loadingReminder}
                 onChange={(e) => setFormData({ ...formData, loadingReminder: parseInt(e.target.value) })}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">min</InputAdornment>,
+                }}
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            {/* Vykládka sekcia */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                Vykládka
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Adresa vykládky"
@@ -688,7 +750,7 @@ function TrackedTransports() {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={8}>
               <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
                 <DateTimePicker
                   label="Dátum a čas vykládky"
@@ -699,13 +761,16 @@ function TrackedTransports() {
               </LocalizationProvider>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 type="number"
-                label="Pripomienka pred vykládkou (minúty)"
+                label="Pripomienka (minúty)"
                 value={formData.unloadingReminder}
                 onChange={(e) => setFormData({ ...formData, unloadingReminder: parseInt(e.target.value) })}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">min</InputAdornment>,
+                }}
               />
             </Grid>
           </Grid>
