@@ -42,6 +42,7 @@ import AddIcon from '@mui/icons-material/Add';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SearchField from './common/SearchField';
 import TransportMap from './common/TransportMap';
+import PersonIcon from '@mui/icons-material/Person';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -172,7 +173,7 @@ const TransportCard = styled(Paper)({
 
 const TransportInfo = styled(Box)({
   display: 'grid',
-  gridTemplateColumns: '1fr 600px',
+  gridTemplateColumns: '1fr 500px',
   gap: '32px',
   '@media (max-width: 1200px)': {
     gridTemplateColumns: '1fr',
@@ -197,7 +198,7 @@ const CreatorInfo = styled(Box)({
 
 const MapContainer = styled(Box)({
   width: '100%',
-  height: '400px',
+  height: '350px',
   borderRadius: '12px',
   overflow: 'hidden',
   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -716,33 +717,83 @@ function TrackedTransports() {
                     }}>
                       Objednávka: {transport.orderNumber}
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                      <Chip
-                        label={transport.status}
-                        color={transport.status === 'Aktívna' ? 'success' : 'default'}
-                        size="small"
-                        sx={{ 
-                          backgroundColor: transport.status === 'Aktívna' ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 255, 255, 0.1)',
-                          color: transport.status === 'Aktívna' ? colors.accent.main : '#ffffff',
-                          '& .MuiChip-label': {
-                            fontSize: '0.85rem',
-                            fontWeight: 500
-                          }
-                        }}
-                      />
-                      {transport.isDelayed && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PersonIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                          Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AccessTimeIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                          Vytvorené: {format(
+                            transport.createdAt instanceof Timestamp ? 
+                              transport.createdAt.toDate() : 
+                              transport.createdAt instanceof Date ? 
+                                transport.createdAt : 
+                                new Date(transport.createdAt),
+                            'dd.MM.yyyy HH:mm',
+                            { locale: sk }
+                          )}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                         <Chip
-                          label="Meškanie"
-                          color="error"
+                          label={transport.status}
+                          color={transport.status === 'Aktívna' ? 'success' : 'default'}
                           size="small"
-                          sx={{
+                          sx={{ 
+                            backgroundColor: transport.status === 'Aktívna' ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 255, 255, 0.1)',
+                            color: transport.status === 'Aktívna' ? colors.accent.main : '#ffffff',
                             '& .MuiChip-label': {
                               fontSize: '0.85rem',
                               fontWeight: 500
                             }
                           }}
                         />
-                      )}
+                        {transport.isDelayed && (
+                          <Chip
+                            label="Meškanie"
+                            color="error"
+                            size="small"
+                            sx={{
+                              '& .MuiChip-label': {
+                                fontSize: '0.85rem',
+                                fontWeight: 500
+                              }
+                            }}
+                          />
+                        )}
+                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                          <IconButton 
+                            onClick={() => handleOpenDialog(transport)}
+                            sx={{ 
+                              color: colors.accent.main,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                              }
+                            }}
+                          >
+                            <Tooltip title="Upraviť">
+                              <EditIcon />
+                            </Tooltip>
+                          </IconButton>
+                          <IconButton 
+                            onClick={() => handleDelete(transport)}
+                            sx={{ 
+                              color: colors.secondary.main,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                              }
+                            }}
+                          >
+                            <Tooltip title="Vymazať">
+                              <DeleteIcon />
+                            </Tooltip>
+                          </IconButton>
+                        </Box>
+                      </Box>
                     </Box>
                   </Box>
 
@@ -799,55 +850,6 @@ function TrackedTransports() {
                               Pripomienka: {transport.unloadingReminder} minút pred vykládkou
                             </Typography>
                           </Box>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-end',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                        paddingTop: 3
-                      }}>
-                        <CreatorInfo>
-                          <span>Vytvoril: {transport.createdBy?.firstName || ''} {transport.createdBy?.lastName || ''}</span>
-                          <span>Vytvorené: {format(
-                            transport.createdAt instanceof Timestamp ? 
-                              transport.createdAt.toDate() : 
-                              transport.createdAt instanceof Date ? 
-                                transport.createdAt : 
-                                new Date(transport.createdAt),
-                            'dd.MM.yyyy HH:mm',
-                            { locale: sk }
-                          )}</span>
-                        </CreatorInfo>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <IconButton 
-                            onClick={() => handleOpenDialog(transport)}
-                            sx={{ 
-                              color: colors.accent.main,
-                              '&:hover': {
-                                backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                              }
-                            }}
-                          >
-                            <Tooltip title="Upraviť">
-                              <EditIcon />
-                            </Tooltip>
-                          </IconButton>
-                          <IconButton 
-                            onClick={() => handleDelete(transport)}
-                            sx={{ 
-                              color: colors.secondary.main,
-                              '&:hover': {
-                                backgroundColor: 'rgba(255, 107, 107, 0.1)'
-                              }
-                            }}
-                          >
-                            <Tooltip title="Vymazať">
-                              <DeleteIcon />
-                            </Tooltip>
-                          </IconButton>
                         </Box>
                       </Box>
                     </InfoContainer>
