@@ -22,6 +22,104 @@ const defaultCenter = {
   lng: 17.1077
 };
 
+const mapStyles = [
+  {
+    featureType: 'all',
+    elementType: 'geometry',
+    stylers: [{ color: '#1a1a2e' }]
+  },
+  {
+    featureType: 'all',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#ffffff' }]
+  },
+  {
+    featureType: 'all',
+    elementType: 'labels.text.stroke',
+    stylers: [{ color: '#1a1a2e', weight: 2 }]
+  },
+  {
+    featureType: 'administrative.country',
+    elementType: 'geometry.stroke',
+    stylers: [
+      { color: '#ffffff' },
+      { weight: 0.5 },
+      { opacity: 0.3 }
+    ]
+  },
+  {
+    featureType: 'water',
+    elementType: 'geometry',
+    stylers: [
+      { color: '#12121f' }
+    ]
+  },
+  {
+    featureType: 'landscape',
+    elementType: 'geometry',
+    stylers: [
+      { color: '#1a1a2e' }
+    ]
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry',
+    stylers: [
+      { color: '#2a2a4e' }
+    ]
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry.stroke',
+    stylers: [
+      { color: '#212a37' }
+    ]
+  },
+  {
+    featureType: 'road',
+    elementType: 'labels.text.fill',
+    stylers: [
+      { color: '#ffffff' }
+    ]
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry',
+    stylers: [
+      { color: '#3a3a6e' }
+    ]
+  },
+  {
+    featureType: 'poi',
+    elementType: 'geometry',
+    stylers: [
+      { visibility: 'off' }
+    ]
+  },
+  {
+    featureType: 'transit',
+    elementType: 'geometry',
+    stylers: [
+      { visibility: 'off' }
+    ]
+  },
+  {
+    featureType: 'administrative.locality',
+    elementType: 'labels.text.fill',
+    stylers: [
+      { color: '#ffffff' }
+    ]
+  },
+  {
+    featureType: 'administrative.locality',
+    elementType: 'labels.text.stroke',
+    stylers: [
+      { color: '#1a1a2e' },
+      { weight: 2 }
+    ]
+  }
+];
+
 export default function TransportMap({ origin, destination, isThumbnail = false }: TransportMapProps) {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -103,40 +201,13 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
         center={defaultCenter}
         zoom={isThumbnail ? 4 : 6}
         options={{
-          styles: [
-            {
-              elementType: 'geometry',
-              stylers: [{ color: '#242f3e' }]
-            },
-            {
-              elementType: 'labels.text.stroke',
-              stylers: [{ color: '#242f3e' }]
-            },
-            {
-              elementType: 'labels.text.fill',
-              stylers: [{ color: '#746855' }]
-            },
-            {
-              featureType: 'road',
-              elementType: 'geometry',
-              stylers: [{ color: '#38414e' }]
-            },
-            {
-              featureType: 'road',
-              elementType: 'geometry.stroke',
-              stylers: [{ color: '#212a37' }]
-            },
-            {
-              featureType: 'road',
-              elementType: 'labels.text.fill',
-              stylers: [{ color: '#9ca5b3' }]
-            }
-          ],
+          styles: mapStyles,
           disableDefaultUI: isThumbnail,
           draggable: !isThumbnail,
           zoomControl: !isThumbnail,
           scrollwheel: !isThumbnail,
-          disableDoubleClickZoom: isThumbnail
+          disableDoubleClickZoom: isThumbnail,
+          backgroundColor: '#1a1a2e'
         }}
       >
         {origin && destination && !directions && (
@@ -156,7 +227,8 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
               suppressMarkers: false,
               polylineOptions: {
                 strokeColor: '#ff9f43',
-                strokeWeight: isThumbnail ? 3 : 4
+                strokeWeight: isThumbnail ? 3 : 4,
+                strokeOpacity: 0.8
               }
             }}
           />
