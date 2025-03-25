@@ -91,16 +91,30 @@ interface BusinessCase {
   countryCode?: string;
 }
 
-const PageWrapper = styled(Box)({
-  padding: '30px',
-});
+const PageWrapper = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  [theme.breakpoints.up('sm')]: {
+    padding: theme.spacing(2.5)
+  },
+  [theme.breakpoints.up('md')]: {
+    padding: theme.spacing(3.75)
+  },
+  overflowX: 'hidden',
+  width: '100%',
+  maxWidth: '100%',
+  boxSizing: 'border-box'
+}));
 
-const PageHeader = styled(Box)({
+const PageHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: '30px',
-});
+  marginBottom: theme.spacing(3.75),
+  [theme.breakpoints.down('sm')]: {
+    flexDirection: 'column',
+    gap: theme.spacing(2)
+  }
+}));
 
 const PageTitle = styled(Typography)({
   fontSize: '1.75rem',
@@ -418,26 +432,64 @@ export default function BusinessCases() {
         sx={{ mb: 3 }}
       />
 
-      <TableContainer component={Paper}>
-        <Table sx={{ whiteSpace: 'nowrap' }}>
+      <TableContainer 
+        component={Paper}
+        sx={{
+          overflowX: 'auto',
+          width: '100%',
+          backgroundColor: 'transparent',
+          '& .MuiTable-root': {
+            minWidth: {
+              xs: '800px',
+              md: '100%'
+            }
+          },
+          '& .MuiTableCell-root': {
+            padding: {
+              xs: '12px 8px',
+              sm: '16px'
+            },
+            fontSize: {
+              xs: '0.8rem',
+              sm: '0.875rem'
+            },
+            whiteSpace: 'nowrap'
+          },
+          '& .MuiTableHead-root': {
+            '& .MuiTableCell-root': {
+              fontWeight: 600,
+              backgroundColor: 'rgba(45, 45, 45, 0.95)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            }
+          },
+          '& .MuiTableBody-root': {
+            '& .MuiTableRow-root': {
+              '&:hover': {
+                backgroundColor: 'rgba(255, 159, 67, 0.1)'
+              }
+            }
+          }
+        }}
+      >
+        <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Dátum vytvorenia</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Status</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Firma</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>IČ DPH</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Kontaktná osoba</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Telefón</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Email</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Vytvoril</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Pripomienka</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>Akcie</TableCell>
+              <TableCell>Dátum vytvorenia</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Firma</TableCell>
+              <TableCell>IČ DPH</TableCell>
+              <TableCell>Kontaktná osoba</TableCell>
+              <TableCell>Telefón</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Vytvoril</TableCell>
+              <TableCell>Pripomienka</TableCell>
+              <TableCell align="right">Akcie</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredCases.map((businessCase) => (
-              <TableRow key={businessCase.id} sx={{ '& td': { whiteSpace: 'nowrap' } }}>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+              <TableRow key={businessCase.id}>
+                <TableCell>
                   {businessCase.createdAt instanceof Timestamp ? 
                     businessCase.createdAt.toDate().toLocaleString('sk-SK', {
                       day: '2-digit',
@@ -454,43 +506,66 @@ export default function BusinessCases() {
                       minute: '2-digit'
                     }).replace(',', '')}
                 </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                <TableCell>
                   <Chip
                     label={caseStatuses[businessCase.status].label}
                     color={caseStatuses[businessCase.status].color}
                     size="small"
+                    sx={{
+                      fontSize: {
+                        xs: '0.7rem',
+                        sm: '0.8rem'
+                      },
+                      height: {
+                        xs: '24px',
+                        sm: '32px'
+                      }
+                    }}
                   />
                 </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {businessCase.companyName}
-                </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {businessCase.vatNumber}
-                </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, whiteSpace: 'nowrap' }}>
-                    <PersonIcon fontSize="small" />
+                <TableCell>{businessCase.companyName}</TableCell>
+                <TableCell>{businessCase.vatNumber}</TableCell>
+                <TableCell>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    '& .MuiSvgIcon-root': {
+                      fontSize: {
+                        xs: '1rem',
+                        sm: '1.25rem'
+                      }
+                    }
+                  }}>
+                    <PersonIcon />
                     {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}
                   </Box>
                 </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, whiteSpace: 'nowrap' }}>
+                <TableCell>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    '& img': {
+                      width: {
+                        xs: '16px',
+                        sm: '20px'
+                      }
+                    }
+                  }}>
                     <img
                       loading="lazy"
-                      width="20"
                       src={`https://flagcdn.com/${businessCase.countryCode?.toLowerCase()}.svg`}
                       alt=""
                     />
                     {businessCase.contactPerson.phone}
                   </Box>
                 </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {businessCase.contactPerson.email}
-                </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                <TableCell>{businessCase.contactPerson.email}</TableCell>
+                <TableCell>
                   {businessCase.createdBy?.firstName} {businessCase.createdBy?.lastName}
                 </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                <TableCell>
                   {businessCase.reminderDateTime && (
                     typeof businessCase.reminderDateTime === 'object' && 'toLocaleString' in businessCase.reminderDateTime ?
                     businessCase.reminderDateTime.toLocaleString('sk-SK', {
@@ -502,13 +577,31 @@ export default function BusinessCases() {
                     }).replace(',', '') : ''
                   )}
                 </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  <IconButton onClick={() => handleEdit(businessCase)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(businessCase.id || '')}>
-                    <DeleteIcon />
-                  </IconButton>
+                <TableCell align="right">
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 1, 
+                    justifyContent: 'flex-end',
+                    '& .MuiIconButton-root': {
+                      padding: {
+                        xs: '4px',
+                        sm: '8px'
+                      }
+                    },
+                    '& .MuiSvgIcon-root': {
+                      fontSize: {
+                        xs: '1.25rem',
+                        sm: '1.5rem'
+                      }
+                    }
+                  }}>
+                    <IconButton onClick={() => handleEdit(businessCase)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(businessCase.id || '')}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
