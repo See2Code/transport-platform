@@ -136,7 +136,6 @@ const PageHeader = styled(Box)(({ theme }) => ({
 }));
 
 const PageTitle = styled(Typography)({
-  fontSize: '1.75rem',
   fontWeight: 700,
   color: '#ffffff',
   position: 'relative',
@@ -145,9 +144,7 @@ const PageTitle = styled(Typography)({
     position: 'absolute',
     bottom: '-8px',
     left: 0,
-    width: '60px',
-    height: '4px',
-    backgroundColor: '#ff9f43',
+    backgroundColor: colors.accent.main,
     borderRadius: '2px',
   }
 });
@@ -411,7 +408,27 @@ export default function BusinessCases() {
   return (
     <PageWrapper>
       <PageHeader>
-        <PageTitle>Obchodné prípady</PageTitle>
+        <PageTitle sx={{
+          fontSize: {
+            xs: '1.25rem',
+            sm: '1.5rem',
+            md: '1.75rem'
+          },
+          '&::after': {
+            width: {
+              xs: '40px',
+              sm: '50px',
+              md: '60px'
+            },
+            height: {
+              xs: '3px',
+              sm: '4px'
+            }
+          },
+          mb: { xs: 2, sm: 0 }
+        }}>
+          Obchodné prípady
+        </PageTitle>
         <AddButton
           variant="contained"
           startIcon={<AddIcon />}
