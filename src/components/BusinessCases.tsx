@@ -112,7 +112,9 @@ interface BusinessCase {
 
 const PageWrapper = styled('div')({
   padding: '24px',
-  position: 'relative'
+  position: 'relative',
+  maxWidth: '100%',
+  overflowX: 'hidden'
 });
 
 const PageHeader = styled(Box)({
@@ -122,6 +124,11 @@ const PageHeader = styled(Box)({
   marginBottom: '32px',
   position: 'relative',
   zIndex: 1,
+  backgroundColor: colors.primary.main,
+  '@media (max-width: 600px)': {
+    flexDirection: 'column',
+    gap: '16px'
+  }
 });
 
 const PageTitle = styled(Typography)({
@@ -151,6 +158,10 @@ const AddButton = styled(Button)({
   textTransform: 'none',
   transition: 'all 0.2s ease-in-out',
   boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
+  whiteSpace: 'nowrap',
+  '@media (max-width: 600px)': {
+    width: '100%'
+  },
   '&:hover': {
     backgroundColor: colors.accent.light,
     transform: 'translateY(-2px)',
@@ -173,6 +184,8 @@ export default function BusinessCases() {
   const [cases, setCases] = useState<BusinessCase[]>([]);
   const [open, setOpen] = useState(false);
   const [editCase, setEditCase] = useState<BusinessCase | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [caseToDelete, setCaseToDelete] = useState<string | null>(null);
   const { currentUser, userData } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -350,23 +363,31 @@ export default function BusinessCases() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Naozaj chcete vymazať tento obchodný prípad?')) {
-      try {
-        await deleteDoc(doc(db, 'businessCases', id));
-        setSnackbar({
-          open: true,
-          message: 'Prípad bol úspešne vymazaný',
-          severity: 'success'
-        });
-        fetchCases();
-      } catch (error) {
-        console.error('Error deleting case:', error);
-        setSnackbar({
-          open: true,
-          message: 'Nastala chyba pri mazaní prípadu',
-          severity: 'error'
-        });
-      }
+    setCaseToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!caseToDelete) return;
+    
+    try {
+      await deleteDoc(doc(db, 'businessCases', caseToDelete));
+      setSnackbar({
+        open: true,
+        message: 'Prípad bol úspešne vymazaný',
+        severity: 'success'
+      });
+      fetchCases();
+    } catch (error) {
+      console.error('Error deleting case:', error);
+      setSnackbar({
+        open: true,
+        message: 'Nastala chyba pri mazaní prípadu',
+        severity: 'error'
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setCaseToDelete(null);
     }
   };
 
@@ -445,7 +466,7 @@ export default function BusinessCases() {
       <SearchWrapper>
         <SearchField
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           label="Vyhľadať prípad"
         />
       </SearchWrapper>
@@ -457,10 +478,11 @@ export default function BusinessCases() {
           backgroundColor: 'transparent',
           overflowX: 'auto',
           width: '100%',
+          position: 'relative',
           '& .MuiTable-root': {
-            minWidth: {
-              xs: '800px',
-              md: '100%'
+            minWidth: '1200px',
+            '@media (max-width: 1200px)': {
+              minWidth: '800px'
             }
           },
           '& .MuiTableCell-root': {
@@ -475,20 +497,74 @@ export default function BusinessCases() {
             whiteSpace: 'nowrap',
             color: '#ffffff',
             backgroundColor: colors.primary.light,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            '&:nth-of-type(1)': { // Dátum vytvorenia
+              width: '140px',
+              minWidth: '140px'
+            },
+            '&:nth-of-type(2)': { // Status
+              width: '120px',
+              minWidth: '120px'
+            },
+            '&:nth-of-type(3)': { // Firma
+              width: '200px',
+              minWidth: '200px'
+            },
+            '&:nth-of-type(4)': { // IČ DPH
+              width: '130px',
+              minWidth: '130px'
+            },
+            '&:nth-of-type(5)': { // Kontaktná osoba
+              width: '180px',
+              minWidth: '180px'
+            },
+            '&:nth-of-type(6)': { // Telefón
+              width: '150px',
+              minWidth: '150px'
+            },
+            '&:nth-of-type(7)': { // Email
+              width: '200px',
+              minWidth: '200px'
+            },
+            '&:nth-of-type(8)': { // Vytvoril
+              width: '150px',
+              minWidth: '150px'
+            },
+            '&:nth-of-type(9)': { // Pripomienka
+              width: '140px',
+              minWidth: '140px'
+            },
+            '&:last-child': { // Akcie
+              position: 'sticky',
+              right: 0,
+              width: '100px',
+              minWidth: '100px',
+              backgroundColor: colors.primary.light,
+              boxShadow: '-5px 0 10px rgba(0,0,0,0.2)'
+            }
           },
           '& .MuiTableHead-root': {
             '& .MuiTableCell-root': {
               fontWeight: 600,
               backgroundColor: colors.primary.light,
-              borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
+              borderBottom: '2px solid rgba(255, 255, 255, 0.15)',
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+              '&:last-child': {
+                right: 0,
+                zIndex: 2
+              }
             }
           },
           '& .MuiTableBody-root': {
             '& .MuiTableRow-root': {
               '&:hover': {
                 '& .MuiTableCell-root': {
-                  backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                  backgroundColor: 'rgba(255, 159, 67, 0.1)',
+                  '&:last-child': {
+                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                  }
                 }
               }
             }
@@ -685,6 +761,66 @@ export default function BusinessCases() {
           <Box sx={{ 
             padding: '24px',
             color: '#ffffff',
+            '& .MuiTextField-root': {
+              '& .MuiOutlinedInput-root': {
+                color: '#ffffff',
+                '& fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#ff9f43',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: 'rgba(255, 255, 255, 0.5)',
+                '&.Mui-focused': {
+                  color: '#ff9f43',
+                },
+              },
+              '& .MuiFormHelperText-root': {
+                color: 'rgba(255, 255, 255, 0.5)',
+                fontSize: '0.75rem',
+                marginLeft: 0,
+                marginTop: '4px',
+              }
+            },
+            '& .MuiFormControl-root': {
+              '& .MuiInputLabel-root': {
+                color: 'rgba(255, 255, 255, 0.5)',
+                '&.Mui-focused': {
+                  color: '#ff9f43',
+                },
+              },
+              '& .MuiOutlinedInput-root': {
+                color: '#ffffff',
+                '& fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#ff9f43',
+                },
+              },
+            },
+            '& .MuiSelect-icon': {
+              color: 'rgba(255, 255, 255, 0.5)',
+            },
+            '& .MuiMenuItem-root': {
+              '&:hover': {
+                backgroundColor: 'rgba(255, 159, 67, 0.1)',
+              },
+              '&.Mui-selected': {
+                backgroundColor: 'rgba(255, 159, 67, 0.2)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                },
+              },
+            }
           }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
@@ -874,35 +1010,25 @@ export default function BusinessCases() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ 
+          padding: '24px',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          px: 3,
-          py: 2,
-          gap: 2
         }}>
-          <Button 
-            onClick={() => {
-              setOpen(false);
-              setEditCase(null);
-            }}
-            sx={{
-              color: 'rgba(255, 255, 255, 0.7)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              }
-            }}
-          >
+          <Button onClick={() => {
+            setOpen(false);
+            setEditCase(null);
+          }} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
             Zrušiť
           </Button>
-          <Button
+          <Button 
             onClick={handleSubmit}
             variant="contained"
             sx={{
-              backgroundColor: '#ff9f43',
+              backgroundColor: colors.accent.main,
               color: '#ffffff',
               fontWeight: 600,
               padding: '8px 24px',
               '&:hover': {
-                backgroundColor: '#ffbe76',
+                backgroundColor: colors.accent.light,
               },
               '&.Mui-disabled': {
                 backgroundColor: 'rgba(255, 159, 67, 0.3)',
@@ -916,6 +1042,90 @@ export default function BusinessCases() {
                      !formData.contactPerson.phone}
           >
             {editCase ? 'Uložiť zmeny' : 'Pridať prípad'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setCaseToDelete(null);
+        }}
+        PaperProps={{
+          sx: {
+            background: 'rgba(35, 35, 66, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            minWidth: '400px'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          color: '#ffffff',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+          textAlign: 'center',
+          padding: '32px 32px 24px 32px'
+        }}>
+          Potvrdenie vymazania
+        </DialogTitle>
+        <DialogContent sx={{ 
+          padding: '0 32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <Typography sx={{ 
+            color: '#ffffff',
+            textAlign: 'center',
+            fontSize: '1rem',
+            maxWidth: '400px',
+            lineHeight: 1.5
+          }}>
+            Naozaj chcete vymazať tento obchodný prípad? Táto akcia je nenávratná.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ 
+          padding: '32px',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 2
+        }}>
+          <Button 
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setCaseToDelete(null);
+            }} 
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.7)',
+              padding: '8px 24px',
+              minWidth: '120px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)'
+              }
+            }}
+          >
+            Zrušiť
+          </Button>
+          <Button 
+            onClick={confirmDelete}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.secondary.main,
+              color: '#ffffff',
+              fontWeight: 600,
+              padding: '8px 24px',
+              minWidth: '120px',
+              '&:hover': {
+                backgroundColor: colors.secondary.light,
+              }
+            }}
+          >
+            Vymazať
           </Button>
         </DialogActions>
       </Dialog>
