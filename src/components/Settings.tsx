@@ -543,7 +543,7 @@ function Settings() {
 
           <InfoSection>
             <Box>
-              <InfoLabel>Adresa</InfoLabel>
+              <InfoLabel>Ulica</InfoLabel>
               <TextField
                 fullWidth
                 value={companyData?.street || ''}
@@ -572,39 +572,6 @@ function Settings() {
                 }}
               />
             </Box>
-            <Box>
-              <InfoLabel>Mesto</InfoLabel>
-              <TextField
-                fullWidth
-                value={companyData?.city || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, city: e.target.value } : null)}
-                disabled={!isEditing}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#00b894',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    '&.Mui-focused': {
-                      color: '#00b894',
-                    },
-                  },
-                }}
-              />
-            </Box>
-          </InfoSection>
-
-          <InfoSection>
             <Box>
               <InfoLabel>PSČ</InfoLabel>
               <TextField
@@ -635,12 +602,15 @@ function Settings() {
                 }}
               />
             </Box>
+          </InfoSection>
+
+          <InfoSection>
             <Box>
-              <InfoLabel>Krajina</InfoLabel>
+              <InfoLabel>Mesto</InfoLabel>
               <TextField
                 fullWidth
-                value={companyData?.country || ''}
-                onChange={(e) => setCompanyData(prev => prev ? { ...prev, country: e.target.value } : null)}
+                value={companyData?.city || ''}
+                onChange={(e) => setCompanyData(prev => prev ? { ...prev, city: e.target.value } : null)}
                 disabled={!isEditing}
                 variant="outlined"
                 sx={{
@@ -664,6 +634,40 @@ function Settings() {
                   },
                 }}
               />
+            </Box>
+            <Box>
+              <InfoLabel>Krajina</InfoLabel>
+              <FormControl fullWidth>
+                <Select
+                  value={companyData?.country || 'SK'}
+                  onChange={(e) => setCompanyData(prev => prev ? { ...prev, country: e.target.value } : null)}
+                  disabled={!isEditing}
+                  sx={{
+                    color: '#ffffff',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255, 255, 255, 0.1)',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#00b894',
+                    },
+                    '& .MuiSelect-icon': {
+                      color: 'rgba(255, 255, 255, 0.5)',
+                    }
+                  }}
+                >
+                  {euCountries.map((country) => (
+                    <MenuItem key={country.code} value={country.code}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <span>{country.flag}</span>
+                        <span>{country.name}</span>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Box>
           </InfoSection>
         </SettingsInfo>

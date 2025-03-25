@@ -247,17 +247,33 @@ export default function BusinessCases() {
 
       // Ak je nastavený reminder, vytvoríme email notifikáciu
       if (formData.reminderDateTime) {
-        await addDoc(collection(db, 'reminders'), {
+        console.log('Vytváram pripomienku:', {
+          dateTime: formData.reminderDateTime,
+          email: currentUser.email,
+          companyName: formData.companyName
+        });
+
+        const reminderData = {
           userId: currentUser.uid,
           userEmail: currentUser.email,
           businessCaseId: editCase?.id || '',
-          reminderDateTime: Timestamp.fromDate(formData.reminderDateTime),
+          reminderDateTime: Timestamp.fromDate(new Date(formData.reminderDateTime)),
           companyName: formData.companyName,
           reminderNote: formData.reminderNote || '',
           contactPerson: formData.contactPerson,
           createdAt: Timestamp.now(),
           sent: false
-        });
+        };
+
+        console.log('Dáta pripomienky:', reminderData);
+        
+        try {
+          const docRef = await addDoc(collection(db, 'reminders'), reminderData);
+          console.log('Pripomienka vytvorená s ID:', docRef.id);
+        } catch (error) {
+          console.error('Chyba pri vytváraní pripomienky:', error);
+          throw error;
+        }
       }
 
       setOpen(false);

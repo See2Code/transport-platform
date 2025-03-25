@@ -50,11 +50,21 @@ async function sendEmail(to, subject, html) {
         html
     };
     try {
-        await transporter.sendMail(mailOptions);
-        console.log('Email odoslaný úspešne');
+        console.log('Pokus o odoslanie emailu na:', to);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email odoslaný úspešne:', {
+            messageId: info.messageId,
+            to: to,
+            subject: subject
+        });
+        return info;
     }
     catch (error) {
-        console.error('Chyba pri odosielaní emailu:', error);
+        console.error('Chyba pri odosielaní emailu:', {
+            error: error,
+            to: to,
+            subject: subject
+        });
         throw error;
     }
 }
@@ -204,15 +214,25 @@ exports.checkBusinessCaseReminders = functions
     .pubsub.schedule('every 1 minutes')
     .timeZone('Europe/Bratislava')
     .onRun(async (context) => {
+    var _a, _b;
     const now = new Date();
     const db = admin.firestore();
+    console.log('Spustená kontrola pripomienok:', now.toISOString());
     try {
+        console.log('Hľadám pripomienky na odoslanie...');
         const remindersSnapshot = await db.collection('reminders')
             .where('reminderDateTime', '<=', now)
             .where('sent', '==', false)
             .get();
+        console.log('Počet nájdených pripomienok:', remindersSnapshot.size);
         for (const doc of remindersSnapshot.docs) {
             const reminder = doc.data();
+            console.log('Spracovávam pripomienku:', {
+                id: doc.id,
+                reminderDateTime: (_b = (_a = reminder.reminderDateTime) === null || _a === void 0 ? void 0 : _a.toDate) === null || _b === void 0 ? void 0 : _b.call(_a),
+                userEmail: reminder.userEmail,
+                companyName: reminder.companyName
+            });
             if (reminder.userEmail) {
                 const emailHtml = `
             <!DOCTYPE html>
@@ -287,13 +307,28 @@ exports.checkBusinessCaseReminders = functions
             </body>
             </html>
           `;
-                await sendEmail(reminder.userEmail, 'Pripomienka pre obchodný prípad', emailHtml);
-                await doc.ref.update({ sent: true });
-                // Aktualizujeme počítadlo metrík
-                const metricsRef = db.collection('functionMetrics').doc(now.toISOString().split('T')[0]);
-                await metricsRef.set({
-                    businessCaseReminders: admin.firestore.FieldValue.increment(1)
-                }, { merge: true });
+                try {
+                    console.log('Pokus o odoslanie pripomienky na:', reminder.userEmail);
+                    await sendEmail(reminder.userEmail, 'Pripomienka pre obchodný prípad', emailHtml);
+                    // Vymazanie pripomienky po úspešnom odoslaní
+                    await doc.ref.delete();
+                    console.log('Pripomienka úspešne odoslaná a vymazaná');
+                    // Aktualizujeme počítadlo metrík
+                    const metricsRef = db.collection('functionMetrics').doc(now.toISOString().split('T')[0]);
+                    await metricsRef.set({
+                        businessCaseReminders: admin.firestore.FieldValue.increment(1)
+                    }, { merge: true });
+                }
+                catch (error) {
+                    console.error('Chyba pri odosielaní pripomienky:', {
+                        error: error,
+                        reminderID: doc.id,
+                        userEmail: reminder.userEmail
+                    });
+                }
+            }
+            else {
+                console.warn('Pripomienka nemá nastavený email:', doc.id);
             }
         }
     }
