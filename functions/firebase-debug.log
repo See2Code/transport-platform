@@ -181,3 +181,41 @@
 [debug] [2025-03-25T01:36:29.810Z] Checked if tokens are valid: true, expires at: 1742868792162
 [debug] [2025-03-25T01:36:29.810Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudscheduler.googleapis.com [none]
 [debug] [2025-03-25T01:36:29.810Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudscheduler.googleapis.com x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-25T01:36:30.793Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudscheduler.googleapis.com 200
+[debug] [2025-03-25T01:36:30.793Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudscheduler.googleapis.com [omitted]
+[info] ✔  functions: required API cloudscheduler.googleapis.com is enabled 
+[debug] [2025-03-25T01:36:30.795Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:30.795Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:30.795Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 [none]
+[debug] [2025-03-25T01:36:31.101Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 200
+[debug] [2025-03-25T01:36:31.101Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 {"projectNumber":"869167769685","projectId":"core-app-423c7","lifecycleState":"ACTIVE","name":"core-app","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-03-23T09:54:58.346881Z"}
+[debug] [2025-03-25T01:36:31.106Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:31.106Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:31.106Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/core-app-423c7/versions [none]
+[debug] [2025-03-25T01:36:31.106Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/core-app-423c7/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2025-03-25T01:36:33.741Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/core-app-423c7/versions 200
+[debug] [2025-03-25T01:36:33.741Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/core-app-423c7/versions {"name":"projects/869167769685/sites/core-app-423c7/versions/15aa1cd53c3a0193","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2025-03-25T01:36:33.742Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:33.742Z] Checked if tokens are valid: true, expires at: 1742868792162
+[info] i  firestore: deploying indexes... 
+[debug] [2025-03-25T01:36:33.743Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:33.743Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:33.743Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/releases pageSize=10&pageToken=
+[debug] [2025-03-25T01:36:33.745Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2025-03-25T01:36:34.301Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/indexes 200
+[debug] [2025-03-25T01:36:34.301Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/indexes {"indexes":[{"name":"projects/core-app-423c7/databases/(default)/collectionGroups/reminders/indexes/CICAgOjXh4EK","queryScope":"COLLECTION","fields":[{"fieldPath":"sent","order":"ASCENDING"},{"fieldPath":"reminderDateTime","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY"},{"name":"projects/core-app-423c7/databases/(default)/collectionGroups/reminders/indexes/CICAgJiUpoMK","queryScope":"COLLECTION","fields":[{"fieldPath":"sent","order":"ASCENDING"},{"fieldPath":"reminderDateTime","order":"ASCENDING"},{"fieldPath":"transportId","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY"}]}
+[debug] [2025-03-25T01:36:34.301Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:34.301Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:34.301Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2025-03-25T01:36:34.715Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/releases 200
+[debug] [2025-03-25T01:36:34.715Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/releases {"releases":[{"name":"projects/core-app-423c7/releases/cloud.firestore","rulesetName":"projects/core-app-423c7/rulesets/7f5cc172-f51c-46f7-bcd6-71c32a8f8f86","createTime":"2025-03-23T10:47:52.691285Z","updateTime":"2025-03-25T00:19:17.796733Z"}]}
+[debug] [2025-03-25T01:36:34.716Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:34.716Z] Checked if tokens are valid: true, expires at: 1742868792162
+[debug] [2025-03-25T01:36:34.716Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/rulesets/7f5cc172-f51c-46f7-bcd6-71c32a8f8f86 [none]
+[debug] [2025-03-25T01:36:34.717Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 200
+[debug] [2025-03-25T01:36:34.717Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"fields":[{"name":"projects/core-app-423c7/databases/(default)/collectionGroups/__default__/fields/*","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"DESCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","arrayConfig":"CONTAINS"}],"state":"READY"}]}}]}
+[info] i  firestore: The following indexes are defined in your project but are not present in your firestore indexes file:
+	(reminders) -- (sent,ASCENDING) (reminderDateTime,ASCENDING)  
+[debug] [2025-03-25T01:36:35.558Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/rulesets/7f5cc172-f51c-46f7-bcd6-71c32a8f8f86 200
+[debug] [2025-03-25T01:36:35.558Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/rulesets/7f5cc172-f51c-46f7-bcd6-71c32a8f8f86 [omitted]
+[info] i  firestore: latest version of firestore.rules already up to date, skipping upload... 
