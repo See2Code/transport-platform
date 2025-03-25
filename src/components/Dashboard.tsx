@@ -21,7 +21,9 @@ import {
 import { collection, query, getDocs, where, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
+} from 'recharts';
 
 const PageWrapper = styled(Box)({
   padding: '30px',
@@ -68,52 +70,31 @@ const COLORS = ['#00b894', '#00cec9', '#0984e3', '#6c5ce7', '#fd79a8'];
 const RADIAN = Math.PI / 180;
 
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, isActive }: any) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  const sin = Math.sin(-RADIAN * midAngle);
-  const cos = Math.cos(-RADIAN * midAngle);
-  const mx = cx + (outerRadius + 30) * cos;
-  const my = cy + (outerRadius + 30) * sin;
-  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-  const ey = my;
-  const textAnchor = cos >= 0 ? 'start' : 'end';
 
   return (
     <g style={{ 
       opacity: isActive ? 1 : 0.9,
-      transition: 'all 0.3s ease-in-out'
+      transition: 'all 0.3s ease-in-out',
+      pointerEvents: 'none'
     }}>
-      <path
-        d={`M${x},${y}L${mx},${my}L${ex},${ey}`}
-        stroke={COLORS[index % COLORS.length]}
-        fill="none"
-        strokeWidth={isActive ? 2 : 1}
-      />
-      <circle cx={ex} cy={ey} r={2} fill={COLORS[index % COLORS.length]} stroke="none" />
       <text
-        x={ex + (cos >= 0 ? 1 : -1) * 12}
-        y={ey}
-        textAnchor={textAnchor}
+        x={x}
+        y={y}
         fill="#FFFFFF"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
         style={{ 
           fontSize: isActive ? '15px' : '14px', 
           fontWeight: isActive ? 600 : 500,
+          filter: 'drop-shadow(0px 2px 3px rgba(0,0,0,0.5))',
           transition: 'all 0.3s ease-in-out'
         }}
-      >{`${name}: ${value}`}</text>
-      <text
-        x={ex + (cos >= 0 ? 1 : -1) * 12}
-        y={ey}
-        dy={18}
-        textAnchor={textAnchor}
-        fill="#FFFFFF"
-        style={{ 
-          fontSize: isActive ? '13px' : '12px', 
-          opacity: isActive ? 0.8 : 0.7,
-          transition: 'all 0.3s ease-in-out'
-        }}
-      >{`(${(percent * 100).toFixed(1)}%)`}</text>
+      >
+        {`${name}: ${value} (${(percent * 100).toFixed(1)}%)`}
+      </text>
     </g>
   );
 };
@@ -134,9 +115,112 @@ interface Reminder {
   // ... ostatné polia môžu byť pridané podľa potreby
 }
 
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload[0]) {
+    return (
+      <Box
+        sx={{
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '8px',
+          padding: '12px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+        }}
+      >
+        <Typography sx={{ 
+          color: payload[0].payload.fill,
+          fontWeight: 600,
+          fontSize: '0.9rem',
+          mb: 1
+        }}>
+          {payload[0].name}
+        </Typography>
+        <Typography sx={{ 
+          color: '#fff',
+          fontSize: '0.85rem',
+          mb: 0.5
+        }}>
+          Počet: {payload[0].value}
+        </Typography>
+        <Typography sx={{ 
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontSize: '0.8rem'
+        }}>
+          {((payload[0].value / payload[0].payload.total) * 100).toFixed(1)}%
+        </Typography>
+      </Box>
+    );
+  }
+  return null;
+};
+
+const CustomLegend = ({ payload }: any) => {
+  return (
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      gap: 1,
+      position: 'absolute',
+      right: 0,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      pr: 2
+    }}>
+      {payload.map((entry: any, index: number) => (
+        <Box
+          key={entry.value}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              transform: 'translateX(-5px)'
+            }
+          }}
+        >
+          <Box
+            sx={{
+              width: 12,
+              height: 12,
+              borderRadius: '4px',
+              backgroundColor: entry.color,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+            }}
+          />
+          <Typography sx={{ 
+            color: '#fff',
+            fontSize: '0.85rem',
+            fontWeight: 500
+          }}>
+            {entry.value}
+          </Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
+const ProgressBarTooltip = styled(Box)({
+  position: 'absolute',
+  backgroundColor: 'rgba(0, 0, 0, 0.85)',
+  color: '#fff',
+  padding: '8px 12px',
+  borderRadius: '8px',
+  fontSize: '0.9rem',
+  zIndex: 1000,
+  pointerEvents: 'none',
+  transition: 'all 0.2s ease',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  backdropFilter: 'blur(8px)',
+});
+
 export default function Dashboard() {
   const { userData } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({
     totalBusinessCases: 0,
     totalContacts: 0,
@@ -145,6 +229,17 @@ export default function Dashboard() {
     statusDistribution: [] as { name: string; value: number; total?: number }[],
     recentBusinessCases: [] as BusinessCase[],
     upcomingReminders: [] as Reminder[],
+  });
+  const [tooltipData, setTooltipData] = useState<{
+    show: boolean;
+    x: number;
+    y: number;
+    data: { name: string; value: number; total?: number };
+  }>({
+    show: false,
+    x: 0,
+    y: 0,
+    data: { name: '', value: 0 }
   });
 
   const onPieEnter = (_: any, index: number) => {
@@ -278,78 +373,129 @@ export default function Dashboard() {
         <Grid item xs={12} md={6}>
           <StatsCard>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, color: '#ffffff' }}>Rozdelenie podľa statusu</Typography>
-              <Box sx={{ 
-                height: 400, 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center',
-                position: 'relative',
-                perspective: '1000px'
+              <Typography variant="h6" sx={{ mb: 3, color: '#ffffff' }}>
+                Rozdelenie podľa statusu
+              </Typography>
+              <Box 
+                ref={containerRef}
+                sx={{ 
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                position: 'relative'
               }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <defs>
-                      {COLORS.map((color, index) => (
-                        <React.Fragment key={`defs-${index}`}>
-                          <linearGradient 
-                            id={`gradient-${index}`} 
-                            x1="0" 
-                            y1="0" 
-                            x2="1" 
-                            y2="1"
-                          >
-                            <stop offset="0%" stopColor={color} stopOpacity={1} />
-                            <stop offset="50%" stopColor={color} stopOpacity={0.9} />
-                            <stop offset="100%" stopColor={color} stopOpacity={0.8} />
-                          </linearGradient>
-                          <filter id={`shadow-${index}`} x="-50%" y="-50%" width="200%" height="200%">
-                            <feOffset result="offOut" in="SourceGraphic" dx="2" dy="2" />
-                            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5" />
-                            <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
-                            <feComponentTransfer>
-                              <feFuncA type="linear" slope="0.7"/>
-                            </feComponentTransfer>
-                          </filter>
-                        </React.Fragment>
-                      ))}
-                    </defs>
-                    <Pie
-                      data={stats.statusDistribution}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(props) => renderCustomizedLabel({ ...props, isActive: props.index === activeIndex })}
-                      outerRadius={130}
-                      innerRadius={70}
-                      paddingAngle={8}
-                      dataKey="value"
-                      startAngle={90}
-                      endAngle={450}
-                      onMouseEnter={onPieEnter}
+                {tooltipData.show && (
+                  <ProgressBarTooltip
+                    sx={{
+                      left: `${tooltipData.x}px`,
+                      top: `${tooltipData.y}px`,
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 600, mb: 0.5 }}>
+                      {tooltipData.data.name}
+                    </Typography>
+                    <Typography>
+                      {tooltipData.data.value} ({((tooltipData.data.value / (tooltipData.data.total || 1)) * 100).toFixed(1)}%)
+                    </Typography>
+                  </ProgressBarTooltip>
+                )}
+                {/* Progress Bar Container */}
+                <Box sx={{ 
+                  width: '100%',
+                  height: '24px',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                }}>
+                  {stats.statusDistribution.map((item, index) => {
+                    const percentage = (item.value / (item.total || 1)) * 100;
+                    return (
+                      <Box
+                        key={item.name}
+                        sx={{
+                          width: `${percentage}%`,
+                          height: '100%',
+                          backgroundColor: COLORS[index % COLORS.length],
+                          transition: 'all 0.3s ease',
+                          position: 'relative',
+                          '&:hover': {
+                            filter: 'brightness(1.1)',
+                          },
+                          borderRight: index !== stats.statusDistribution.length - 1 ? '2px solid rgba(0,0,0,0.1)' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!containerRef.current) return;
+                          const containerRect = containerRef.current.getBoundingClientRect();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setTooltipData({
+                            show: true,
+                            x: rect.left - containerRect.left,
+                            y: rect.top - containerRect.top - 40,
+                            data: item
+                          });
+                        }}
+                        onMouseMove={(e) => {
+                          if (!containerRef.current) return;
+                          const containerRect = containerRef.current.getBoundingClientRect();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setTooltipData(prev => ({
+                            ...prev,
+                            x: rect.left - containerRect.left,
+                            y: rect.top - containerRect.top - 40,
+                          }));
+                        }}
+                        onMouseLeave={() => {
+                          setTooltipData(prev => ({ ...prev, show: false }));
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+
+                {/* Legend */}
+                <Box sx={{ 
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 2,
+                  mt: 1
+                }}>
+                  {stats.statusDistribution.map((item, index) => (
+                    <Box
+                      key={item.name}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}
                     >
-                      {stats.statusDistribution.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={`url(#gradient-${index % COLORS.length})`}
-                          stroke={COLORS[index % COLORS.length]}
-                          strokeWidth={3}
-                          style={{
-                            filter: index === activeIndex 
-                              ? `url(#shadow-${index}) drop-shadow(0 4px 8px rgba(0,0,0,0.3))` 
-                              : `url(#shadow-${index})`,
-                            transform: index === activeIndex 
-                              ? 'scale(1.05) translateY(-5px)' 
-                              : 'scale(1) translateY(0)',
-                            transformOrigin: 'center',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            opacity: index === activeIndex ? 1 : 0.85
-                          }}
-                        />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                      <Box
+                        sx={{
+                          width: '12px',
+                          height: '12px',
+                          borderRadius: '3px',
+                          backgroundColor: COLORS[index % COLORS.length]
+                        }}
+                      />
+                      <Typography sx={{ 
+                        color: '#fff',
+                        fontSize: '0.9rem'
+                      }}>
+                        {`${item.name}: ${item.value} (${((item.value / (item.total || 1)) * 100).toFixed(1)}%)`}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+
+                {/* Total */}
+                <Typography sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '0.9rem',
+                  mt: 1
+                }}>
+                  Celkom: {stats.statusDistribution.reduce((acc, curr) => acc + curr.value, 0)}
+                </Typography>
               </Box>
             </CardContent>
           </StatsCard>
