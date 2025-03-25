@@ -30,6 +30,7 @@ function RegisterUser() {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [invitation, setInvitation] = useState<any>(null);
   const [company, setCompany] = useState<any>(null);
+  const [companyLoading, setCompanyLoading] = useState(true);
 
   useEffect(() => {
     const invitationId = searchParams.get('invitationId');
@@ -48,16 +49,18 @@ function RegisterUser() {
             return;
           }
 
+          setInvitation(invitationData);
+
           // Načítanie informácií o firme
           const companyDoc = await getDoc(doc(db, 'companies', invitationData.companyID));
           if (companyDoc.exists()) {
             setCompany(companyDoc.data());
           }
-
-          setInvitation(invitationData);
         } catch (err) {
           console.error('Chyba pri načítaní pozvánky:', err);
           setError('Nepodarilo sa načítať pozvánku');
+        } finally {
+          setCompanyLoading(false);
         }
       };
 
@@ -178,18 +181,6 @@ function RegisterUser() {
     );
   }
 
-  if (!invitation && loading) {
-    return (
-      <Container maxWidth="sm">
-        <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-            <CircularProgress />
-          </Box>
-        </Paper>
-      </Container>
-    );
-  }
-
   return (
     <Container maxWidth="sm">
       <Paper elevation={3} sx={{ p: 4, mt: 8, position: 'relative' }}>
@@ -204,12 +195,16 @@ function RegisterUser() {
           <CloseIcon />
         </IconButton>
 
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Registrácia užívateľa
-        </Typography>
-
-        {invitation && (
+        {!invitation ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
           <>
+            <Typography variant="h4" component="h1" gutterBottom align="center">
+              Registrácia užívateľa
+            </Typography>
+
             <Typography variant="body1" gutterBottom>
               Vitajte {invitation.firstName} {invitation.lastName}!
             </Typography>
@@ -217,9 +212,38 @@ function RegisterUser() {
               Pre dokončenie registrácie si prosím nastavte heslo.
             </Typography>
 
-            {company && (
+            <Divider sx={{ my: 3 }} />
+            <Typography variant="h6" gutterBottom>
+              Nastavenie hesla
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Heslo"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Potvrďte heslo"
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+            </Grid>
+
+            {!companyLoading && company && (
               <>
-                <Divider sx={{ my: 2 }} />
+                <Divider sx={{ my: 3 }} />
                 <Typography variant="h6" gutterBottom>
                   Informácie o firme
                 </Typography>
@@ -256,84 +280,28 @@ function RegisterUser() {
                       disabled
                     />
                   </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="IČO"
-                      value={company?.ico || ''}
-                      disabled
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="IČ DPH"
-                      value={company?.icDph || ''}
-                      disabled
-                    />
-                  </Grid>
                 </Grid>
               </>
             )}
+
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              disabled={loading}
+              sx={{ mt: 3 }}
+            >
+              {loading ? <CircularProgress size={24} /> : 'Dokončiť registráciu'}
+            </Button>
           </>
         )}
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Heslo
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Heslo"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Potvrďte heslo"
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                type="submit"
-                size="large"
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={20} /> : 'Dokončiť registráciu'}
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
       </Paper>
     </Container>
   );

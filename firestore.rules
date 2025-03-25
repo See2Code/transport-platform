@@ -1,44 +1,72 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Funkcia na kontrolu, či je užívateľ prihlásený
+    // Pomocné funkcie
     function isAuthenticated() {
       return request.auth != null;
     }
-
-    // Funkcia na kontrolu, či je užívateľ admin
-    function isAdmin(userData) {
-      return isAuthenticated() && userData.role == 'admin';
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Pomocná funkcia na kontrolu, či je používateľ v rovnakej firme
+    // Pravidlá pre používateľov
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if true; // Povolíme vytvorenie nového používateľa
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Pravidlá pre pozvánky
+    match /invitations/{invitationId} {
+      allow read: if true; // Povolíme čítanie pozvánok
+      allow create: if isAdmin();
+      allow update: if true; // Povolíme aktualizáciu pozvánok
+      allow delete: if isAdmin();
+    }
+
+    // Pravidlá pre kontakty
+    match /contacts/{contactId} {
+      allow read: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow create: if isAuthenticated() && isInSameCompany(request.resource.data.companyID);
+      allow update: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow delete: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+    }
+
+    // Pravidlá pre obchodné prípady
+    match /businessCases/{caseId} {
+      allow read: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow create: if isAuthenticated() && isInSameCompany(request.resource.data.companyID);
+      allow update: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow delete: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+    }
+
+    // Pravidlá pre sledované prepravy
+    match /trackedTransports/{transportId} {
+      allow read: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow create: if isAuthenticated() && isInSameCompany(request.resource.data.companyID);
+      allow update: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow delete: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+    }
+
+    // Pomocná funkcia na kontrolu, či je užívateľ v rovnakej firme
     function isInSameCompany(companyId) {
       let user = get(/databases/$(database)/documents/users/$(request.auth.uid));
       return request.auth != null && user != null && user.data.companyID == companyId;
-    }
-
-    // Pomocná funkcia na kontrolu platnej pozvánky
-    function hasValidInvitation(email) {
-      let invitations = get(/databases/$(database)/documents/invitations/{invitationId});
-      return invitations != null && 
-             invitations.data.email == email && 
-             invitations.data.status == 'pending';
-    }
-
-    // Pravidlá pre kolekciu users
-    match /users/{userId} {
-      allow read, write: if true; // Povolíme všetky operácie pre všetkých
     }
 
     // Pravidlá pre kolekciu companies
     match /companies/{companyId} {
       allow read: if request.auth != null;  // Každý prihlásený užívateľ môže čítať údaje o firmách
       allow write: if isAdmin();
-    }
-
-    // Pravidlá pre kolekciu invitations
-    match /invitations/{invitationId} {
-      allow read, write: if true; // Povolíme všetky operácie pre všetkých
     }
 
     // Pravidlá pre kolekciu vehicles
@@ -61,7 +89,8 @@ service cloud.firestore {
 
     // Pravidlá pre ostatné kolekcie
     match /{document=**} {
-      allow read, write: if true; // Povolíme všetky operácie pre všetkých
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
     }
   }
 } 
