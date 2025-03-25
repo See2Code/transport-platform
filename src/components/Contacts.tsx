@@ -210,6 +210,8 @@ const Contacts = () => {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<Contact, 'id'>>({
     firstName: '',
     lastName: '',
@@ -362,8 +364,15 @@ const Contacts = () => {
   };
 
   const handleDelete = async (id: string) => {
+    setContactToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!contactToDelete) return;
+    
     try {
-      await deleteDoc(doc(db, 'contacts', id));
+      await deleteDoc(doc(db, 'contacts', contactToDelete));
       setSnackbar({
         open: true,
         message: 'Kontakt bol úspešne odstránený',
@@ -376,6 +385,9 @@ const Contacts = () => {
         message: 'Nastala chyba pri mazaní kontaktu',
         severity: 'error'
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setContactToDelete(null);
     }
   };
 
@@ -729,6 +741,61 @@ const Contacts = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        PaperProps={{
+          sx: {
+            background: 'rgba(35, 35, 66, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          color: '#ffffff',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '24px',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+        }}>
+          Potvrdiť vymazanie
+        </DialogTitle>
+        <DialogContent sx={{ padding: '24px', color: '#ffffff' }}>
+          <Typography>
+            Naozaj chcete vymazať tento kontakt? Táto akcia je nezvratná.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ 
+          padding: '24px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+          <Button 
+            onClick={() => setDeleteConfirmOpen(false)} 
+            sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+          >
+            Zrušiť
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.secondary.main,
+              color: '#ffffff',
+              fontWeight: 600,
+              padding: '8px 24px',
+              '&:hover': {
+                backgroundColor: colors.secondary.light,
+              },
+            }}
+          >
+            Vymazať
+          </Button>
+        </DialogActions>
+      </Dialog>
     </PageWrapper>
   );
 };
