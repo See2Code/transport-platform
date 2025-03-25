@@ -123,6 +123,7 @@ const mapStyles = [
 export default function TransportMap({ origin, destination, isThumbnail = false }: TransportMapProps) {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
@@ -138,16 +139,52 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
 
   const directionsCallback = useCallback(
     (result: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
-      console.log('Directions callback:', { status, result });
       if (status === 'OK' && result) {
         setDirections(result);
         setError(null);
+        
+        // Prispôsobenie mapy na zobrazenie celej trasy
+        if (map && result.routes[0]?.bounds) {
+          // Rozšírenie bounds pre lepšie zobrazenie markerov
+          const bounds = new google.maps.LatLngBounds();
+          const route = result.routes[0];
+          
+          // Pridanie bodov trasy do bounds
+          if (route.bounds) {
+            bounds.extend(route.bounds.getNorthEast());
+            bounds.extend(route.bounds.getSouthWest());
+          }
+          
+          // Pridanie počiatočného a koncového bodu
+          if (route.legs[0]) {
+            bounds.extend(route.legs[0].start_location);
+            bounds.extend(route.legs[0].end_location);
+          }
+          
+          // Aplikovanie väčšieho paddingu
+          const padding = {
+            top: 100,
+            right: 100,
+            bottom: 100,
+            left: 100
+          };
+          
+          map.fitBounds(bounds, padding);
+        }
       } else {
         setError('Nepodarilo sa nájsť trasu');
       }
     },
-    []
+    [map]
   );
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    setMap(map);
+  }, []);
+
+  const onUnmount = useCallback(() => {
+    setMap(null);
+  }, []);
 
   if (loadError) {
     return (
@@ -209,6 +246,8 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
           disableDoubleClickZoom: isThumbnail,
           backgroundColor: '#1a1a2e'
         }}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
       >
         {origin && destination && !directions && (
           <DirectionsService
@@ -229,6 +268,10 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
                 strokeColor: '#ff9f43',
                 strokeWeight: isThumbnail ? 3 : 4,
                 strokeOpacity: 0.8
+              },
+              markerOptions: {
+                opacity: 1.0,
+                zIndex: 100
               }
             }}
           />
