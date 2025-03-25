@@ -96,9 +96,9 @@ const colors = {
     dark: '#fa5252',
   },
   accent: {
-    main: '#00b894',
-    light: '#00d2a0',
-    dark: '#00a07a',
+    main: '#ff9f43',
+    light: '#ffbe76',
+    dark: '#f7b067',
   }
 };
 
@@ -139,11 +139,11 @@ const AddButton = styled(Button)({
   fontWeight: 600,
   textTransform: 'none',
   transition: 'all 0.2s ease-in-out',
-  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
   '&:hover': {
     backgroundColor: colors.accent.light,
     transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
   }
 });
 
@@ -621,9 +621,14 @@ function TrackedTransports() {
                   </Typography>
                   <Chip
                     label={transport.status}
-                    color={transport.status === 'Aktívna' ? 'primary' : 'default'}
+                    color={transport.status === 'Aktívna' ? 'success' : 'default'}
                     size="small"
-                    sx={{ mr: 1 }}
+                    sx={{ 
+                      mr: 1,
+                      backgroundColor: transport.status === 'Aktívna' ? '#00ff00' : 'inherit',
+                      color: transport.status === 'Aktívna' ? '#000000' : 'inherit',
+                      fontWeight: 500,
+                    }}
                   />
                   {transport.isDelayed && (
                     <Chip
@@ -658,24 +663,19 @@ function TrackedTransports() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                       <AccessTimeIcon sx={{ color: colors.accent.main }} />
                       <InfoValue>
-                        {transport.loadingDateTime instanceof Timestamp ? 
-                          format(transport.loadingDateTime.toDate(), 'dd.MM.yyyy HH:mm', { locale: sk }) :
-                          format(transport.loadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
+                        {format(
+                          transport.loadingDateTime instanceof Timestamp ? 
+                            transport.loadingDateTime.toDate() : 
+                            transport.loadingDateTime,
+                          'dd.MM.yyyy HH:mm',
+                          { locale: sk }
+                        )}
                       </InfoValue>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                       <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
                       <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                         Pripomienka: {transport.loadingReminder} minút pred nakládkou
-                        ({format(
-                          new Date(
-                            (transport.loadingDateTime instanceof Timestamp ? 
-                              transport.loadingDateTime.toDate() : 
-                              transport.loadingDateTime).getTime() - transport.loadingReminder * 60000
-                          ),
-                          'dd.MM.yyyy HH:mm',
-                          { locale: sk }
-                        )})
                       </Typography>
                     </Box>
                   </Box>
@@ -691,24 +691,19 @@ function TrackedTransports() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                       <AccessTimeIcon sx={{ color: colors.accent.main }} />
                       <InfoValue>
-                        {transport.unloadingDateTime instanceof Timestamp ? 
-                          format(transport.unloadingDateTime.toDate(), 'dd.MM.yyyy HH:mm', { locale: sk }) :
-                          format(transport.unloadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })}
+                        {format(
+                          transport.unloadingDateTime instanceof Timestamp ? 
+                            transport.unloadingDateTime.toDate() : 
+                            transport.unloadingDateTime,
+                          'dd.MM.yyyy HH:mm',
+                          { locale: sk }
+                        )}
                       </InfoValue>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                       <NotificationsIcon sx={{ color: colors.accent.main, fontSize: '1.1rem' }} />
                       <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                         Pripomienka: {transport.unloadingReminder} minút pred vykládkou
-                        ({format(
-                          new Date(
-                            (transport.unloadingDateTime instanceof Timestamp ? 
-                              transport.unloadingDateTime.toDate() : 
-                              transport.unloadingDateTime).getTime() - transport.unloadingReminder * 60000
-                          ),
-                          'dd.MM.yyyy HH:mm',
-                          { locale: sk }
-                        )})
                       </Typography>
                     </Box>
                   </Box>
@@ -740,117 +735,154 @@ function TrackedTransports() {
         onClose={handleCloseDialog}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            background: 'rgba(35, 35, 66, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ 
+          color: '#ffffff',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '24px',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+        }}>
           {editingTransport ? 'Upraviť prepravu' : 'Pridať novú prepravu'}
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Číslo objednávky"
-                value={formData.orderNumber}
-                onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                required
-              />
-            </Grid>
-
-            {/* Nakládka sekcia */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Nakládka
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Adresa nakládky"
-                value={formData.loadingAddress}
-                onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} md={8}>
-              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                <DateTimePicker
-                  label="Dátum a čas nakládky"
-                  value={formData.loadingDateTime}
-                  onChange={(newValue) => setFormData({ ...formData, loadingDateTime: newValue })}
-                  sx={{ width: '100%' }}
+          <Box sx={{ 
+            padding: '24px',
+            color: '#ffffff',
+          }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Číslo objednávky"
+                  value={formData.orderNumber}
+                  onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                  required
                 />
-              </LocalizationProvider>
-            </Grid>
+              </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Pripomienka (minúty)"
-                value={formData.loadingReminder || ''}
-                onChange={(e) => {
-                  const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
-                  setFormData({ ...formData, loadingReminder: value });
-                }}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">min</InputAdornment>,
-                }}
-              />
-            </Grid>
+              {/* Nakládka sekcia */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Nakládka
+                </Typography>
+              </Grid>
 
-            {/* Vykládka sekcia */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Vykládka
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Adresa vykládky"
-                value={formData.unloadingAddress}
-                onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} md={8}>
-              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                <DateTimePicker
-                  label="Dátum a čas vykládky"
-                  value={formData.unloadingDateTime}
-                  onChange={(newValue) => setFormData({ ...formData, unloadingDateTime: newValue })}
-                  sx={{ width: '100%' }}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Adresa nakládky"
+                  value={formData.loadingAddress}
+                  onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
+                  required
                 />
-              </LocalizationProvider>
-            </Grid>
+              </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Pripomienka (minúty)"
-                value={formData.unloadingReminder || ''}
-                onChange={(e) => {
-                  const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
-                  setFormData({ ...formData, unloadingReminder: value });
-                }}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">min</InputAdornment>,
-                }}
-              />
+              <Grid item xs={12} md={8}>
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                  <DateTimePicker
+                    label="Dátum a čas nakládky"
+                    value={formData.loadingDateTime}
+                    onChange={(newValue) => setFormData({ ...formData, loadingDateTime: newValue })}
+                    sx={{ width: '100%' }}
+                  />
+                </LocalizationProvider>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Pripomienka (minúty)"
+                  value={formData.loadingReminder || ''}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
+                    setFormData({ ...formData, loadingReminder: value });
+                  }}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">min</InputAdornment>,
+                  }}
+                />
+              </Grid>
+
+              {/* Vykládka sekcia */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Vykládka
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Adresa vykládky"
+                  value={formData.unloadingAddress}
+                  onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={8}>
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                  <DateTimePicker
+                    label="Dátum a čas vykládky"
+                    value={formData.unloadingDateTime}
+                    onChange={(newValue) => setFormData({ ...formData, unloadingDateTime: newValue })}
+                    sx={{ width: '100%' }}
+                  />
+                </LocalizationProvider>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Pripomienka (minúty)"
+                  value={formData.unloadingReminder || ''}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
+                    setFormData({ ...formData, unloadingReminder: value });
+                  }}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">min</InputAdornment>,
+                  }}
+                />
+              </Grid>
             </Grid>
-          </Grid>
+          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Zrušiť</Button>
+        <DialogActions sx={{ 
+          padding: '24px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+          <Button onClick={handleCloseDialog} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            Zrušiť
+          </Button>
           <Button 
             onClick={handleSubmit}
-            variant="contained" 
-            color="primary"
+            variant="contained"
+            sx={{
+              backgroundColor: colors.accent.main,
+              color: '#ffffff',
+              fontWeight: 600,
+              padding: '8px 24px',
+              '&:hover': {
+                backgroundColor: colors.accent.light,
+              },
+              '&.Mui-disabled': {
+                backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                color: 'rgba(255, 255, 255, 0.3)',
+              }
+            }}
           >
             {editingTransport ? 'Uložiť zmeny' : 'Pridať prepravu'}
           </Button>

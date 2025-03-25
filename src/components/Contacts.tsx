@@ -23,6 +23,7 @@ import {
   Snackbar,
   FormControl,
   InputLabel,
+  Grid,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot, getDocs, Timestamp } from 'firebase/firestore';
@@ -69,6 +70,38 @@ interface User {
   email: string;
 }
 
+const colors = {
+  primary: {
+    main: '#1a1a2e',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  secondary: {
+    main: '#ff6b6b',
+    light: '#ff8787',
+    dark: '#fa5252',
+  },
+  accent: {
+    main: '#ff9f43',
+    light: '#ffbe76',
+    dark: '#f7b067',
+  }
+};
+
+const PageWrapper = styled('div')({
+  padding: '24px',
+  position: 'relative'
+});
+
+const PageHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '32px',
+  position: 'relative',
+  zIndex: 1,
+});
+
 const PageTitle = styled(Typography)({
   fontSize: '1.75rem',
   fontWeight: 700,
@@ -81,24 +114,13 @@ const PageTitle = styled(Typography)({
     left: 0,
     width: '60px',
     height: '4px',
-    backgroundColor: '#00b894',
+    backgroundColor: colors.accent.main,
     borderRadius: '2px',
   }
 });
 
-const PageWrapper = styled(Box)({
-  padding: '30px',
-});
-
-const PageHeader = styled(Box)({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '30px',
-});
-
-const AddContactButton = styled(Button)({
-  backgroundColor: '#00b894',
+const AddButton = styled(Button)({
+  backgroundColor: colors.accent.main,
   color: '#ffffff',
   padding: '8px 24px',
   borderRadius: '12px',
@@ -106,12 +128,87 @@ const AddContactButton = styled(Button)({
   fontWeight: 600,
   textTransform: 'none',
   transition: 'all 0.2s ease-in-out',
-  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
   '&:hover': {
-    backgroundColor: '#00d2a0',
+    backgroundColor: colors.accent.light,
     transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
   }
+});
+
+const ContactCard = styled(Paper)({
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(20px)',
+  borderRadius: '16px',
+  padding: '24px',
+  color: '#ffffff',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
+  marginBottom: '16px',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+  }
+});
+
+const ContactInfo = styled(Box)({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+  gap: '24px',
+  marginBottom: '16px',
+});
+
+const InfoSection = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+});
+
+const InfoLabel = styled(Typography)({
+  fontSize: '0.85rem',
+  color: 'rgba(255, 255, 255, 0.5)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+});
+
+const InfoValue = styled(Typography)({
+  fontSize: '1rem',
+  color: '#ffffff',
+});
+
+const ContactName = styled(Typography)({
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  color: colors.accent.main,
+});
+
+const SearchWrapper = styled(Box)({
+  marginBottom: '24px',
+  position: 'relative',
+  zIndex: 1,
+});
+
+const SearchField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '12px',
+    '& fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: colors.accent.main,
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  '& .MuiInputBase-input': {
+    color: '#ffffff',
+  },
 });
 
 const Contacts = () => {
@@ -342,23 +439,24 @@ const Contacts = () => {
     <PageWrapper>
       <PageHeader>
         <PageTitle>Kontakty</PageTitle>
-        <AddContactButton
+        <AddButton
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setOpenDialog(true)}
         >
           Pridať kontakt
-        </AddContactButton>
+        </AddButton>
       </PageHeader>
 
-      <TextField
-        fullWidth
-        label="Vyhľadať kontakt"
-        variant="outlined"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        sx={{ mb: 3 }}
-      />
+      <SearchWrapper>
+        <SearchField
+          fullWidth
+          label="Vyhľadať kontakt"
+          variant="outlined"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </SearchWrapper>
 
       <TableContainer component={Paper} sx={{ mt: 2, backgroundColor: 'transparent' }}>
         <Table>
@@ -439,104 +537,144 @@ const Contacts = () => {
         onClose={handleCloseDialog}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            background: 'rgba(35, 35, 66, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ 
+          color: '#ffffff',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '24px',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+        }}>
           {editingContact ? 'Upraviť kontakt' : 'Pridať nový kontakt'}
         </DialogTitle>
-        <DialogContent sx={{ minWidth: '500px', pt: 2 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField
-              name="firstName"
-              label="Meno"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              error={touchedFields.firstName && !formData.firstName}
-            />
-            <TextField
-              name="lastName"
-              label="Priezvisko"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              error={touchedFields.lastName && !formData.lastName}
-            />
-            <TextField
-              name="company"
-              label="Firma"
-              value={formData.company}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Select
-                name="countryCode"
-                value={formData.countryCode}
-                onChange={handleCountryChange}
-                sx={{ width: '200px' }}
-              >
-                {countries.map((country) => (
-                  <MenuItem key={country.code} value={country.code}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <img
-                        loading="lazy"
-                        width="20"
-                        src={`https://flagcdn.com/${country.code}.svg`}
-                        alt={country.name}
-                      />
-                      <span>{country.name}</span>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-              <TextField
-                name="phoneNumber"
-                label={`Mobil (${formData.phonePrefix})`}
-                placeholder="910 XXX XXX"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                fullWidth
-              />
-            </Box>
-            <TextField
-              name="email"
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              error={touchedFields.email && !formData.email}
-            />
-            {editingContact && (
-              <FormControl fullWidth>
-                <InputLabel>Vytvoril</InputLabel>
-                <Select
-                  value={users.find(user => 
-                    user.firstName === formData.createdBy?.firstName && 
-                    user.lastName === formData.createdBy?.lastName
-                  )?.email || ''}
-                  onChange={handleCreatorChange}
-                  label="Vytvoril"
-                >
-                  {users.map((user) => (
-                    <MenuItem key={user.email} value={user.email}>
-                      {user.firstName} {user.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
+        <DialogContent>
+          <Box sx={{ 
+            padding: '24px',
+            color: '#ffffff',
+          }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Názov firmy"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Meno"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Priezvisko"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Krajina</InputLabel>
+                  <Select
+                    value={formData.countryCode}
+                    onChange={handleCountryChange}
+                    label="Krajina"
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country.code} value={country.code}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <img
+                            loading="lazy"
+                            width="20"
+                            src={`https://flagcdn.com/${country.code}.svg`}
+                            alt={country.name}
+                          />
+                          <span>{country.name}</span>
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={8}>
+                <TextField
+                  fullWidth
+                  label="Telefón"
+                  value={formData.phoneNumber}
+                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <Box component="span" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                        {formData.phonePrefix}
+                      </Box>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Poznámka"
+                  multiline
+                  rows={4}
+                  value={formData.notes || ''}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                />
+              </Grid>
+            </Grid>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Zrušiť</Button>
+        <DialogActions sx={{ 
+          padding: '24px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+          <Button onClick={handleCloseDialog} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            Zrušiť
+          </Button>
           <Button 
-            onClick={handleSubmit} 
+            onClick={handleSubmit}
             variant="contained"
-            disabled={!formData.firstName || !formData.lastName || !formData.email}
+            sx={{
+              backgroundColor: colors.accent.main,
+              color: '#ffffff',
+              fontWeight: 600,
+              padding: '8px 24px',
+              '&:hover': {
+                backgroundColor: colors.accent.light,
+              },
+              '&.Mui-disabled': {
+                backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                color: 'rgba(255, 255, 255, 0.3)',
+              }
+            }}
           >
             {editingContact ? 'Uložiť zmeny' : 'Pridať kontakt'}
           </Button>
