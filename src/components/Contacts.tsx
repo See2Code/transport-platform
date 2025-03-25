@@ -99,9 +99,19 @@ const PageHeader = styled(Box)({
 
 const AddContactButton = styled(Button)({
   backgroundColor: '#00b894',
+  color: '#ffffff',
+  padding: '8px 24px',
+  borderRadius: '12px',
+  fontSize: '0.95rem',
+  fontWeight: 600,
+  textTransform: 'none',
+  transition: 'all 0.2s ease-in-out',
+  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
   '&:hover': {
-    backgroundColor: '#00967e',
-  },
+    backgroundColor: '#00d2a0',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+  }
 });
 
 const Contacts = () => {

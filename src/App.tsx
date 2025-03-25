@@ -11,6 +11,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import RegisterUser from './components/RegisterUser';
 import Dashboard from './components/Dashboard';
+import DashboardLayout from './components/DashboardLayout';
 import Team from './components/Team';
 import Settings from './components/Settings';
 import AcceptInvitation from './components/AcceptInvitation';
@@ -85,50 +86,52 @@ function App() {
               <Route path="/register-user" element={<RegisterUser />} />
               <Route path="/dashboard" element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <DashboardLayout>
+                    <Dashboard />
+                  </DashboardLayout>
                 </PrivateRoute>
               } />
               <Route path="/transport" element={
                 <PrivateRoute>
-                  <Dashboard>
+                  <DashboardLayout>
                     <Transport />
-                  </Dashboard>
+                  </DashboardLayout>
                 </PrivateRoute>
               } />
               <Route path="/tracked-transports" element={
                 <PrivateRoute>
-                  <Dashboard>
+                  <DashboardLayout>
                     <TrackedTransports />
-                  </Dashboard>
+                  </DashboardLayout>
                 </PrivateRoute>
               } />
               <Route path="/team" element={
                 <PrivateRoute>
-                  <Dashboard>
+                  <DashboardLayout>
                     <Team />
-                  </Dashboard>
+                  </DashboardLayout>
                 </PrivateRoute>
               } />
               <Route path="/settings" element={
                 <PrivateRoute>
-                  <Dashboard>
+                  <DashboardLayout>
                     <Settings />
-                  </Dashboard>
+                  </DashboardLayout>
                 </PrivateRoute>
               } />
               <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
               <Route path="/contacts" element={
                 <PrivateRoute>
-                  <Dashboard>
+                  <DashboardLayout>
                     <Contacts />
-                  </Dashboard>
+                  </DashboardLayout>
                 </PrivateRoute>
               } />
               <Route path="/business-cases" element={
                 <PrivateRoute>
-                  <Dashboard>
+                  <DashboardLayout>
                     <BusinessCases />
-                  </Dashboard>
+                  </DashboardLayout>
                 </PrivateRoute>
               } />
               <Route path="*" element={<Navigate to="/" replace />} />
