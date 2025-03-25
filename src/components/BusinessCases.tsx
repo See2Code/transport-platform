@@ -114,13 +114,13 @@ const PageTitle = styled(Typography)({
     left: 0,
     width: '60px',
     height: '4px',
-    backgroundColor: '#00b894',
+    backgroundColor: '#ff9f43',
     borderRadius: '2px',
   }
 });
 
 const AddButton = styled(Button)({
-  backgroundColor: '#00b894',
+  backgroundColor: '#ff9f43',
   color: '#ffffff',
   padding: '8px 24px',
   borderRadius: '12px',
@@ -128,11 +128,11 @@ const AddButton = styled(Button)({
   fontWeight: 600,
   textTransform: 'none',
   transition: 'all 0.2s ease-in-out',
-  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
   '&:hover': {
-    backgroundColor: '#00d2a0',
+    backgroundColor: '#ffbe76',
     transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
   }
 });
 
@@ -541,12 +541,88 @@ export default function BusinessCases() {
         }}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            background: 'rgba(17, 25, 54, 0.6)',
+            backdropFilter: 'blur(12px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+            border: '1px solid rgba(255, 255, 255, 0.125)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            borderRadius: '16px',
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{
+          color: '#ffffff',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          pb: 2
+        }}>
           {editCase ? 'Upraviť obchodný prípad' : 'Nový obchodný prípad'}
         </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Grid container spacing={2}>
+        <DialogContent sx={{ 
+          paddingTop: '42px',
+          '& .MuiTextField-root': {
+            '& .MuiOutlinedInput-root': {
+              color: '#ffffff',
+              '& fieldset': {
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                transition: 'all 0.2s ease-in-out',
+              },
+              '&:hover fieldset': {
+                borderColor: 'rgba(255, 159, 67, 0.5)',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#ff9f43',
+              },
+            },
+            '& .MuiInputLabel-root': {
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&.Mui-focused': {
+                color: '#ff9f43',
+              },
+            },
+            '& .MuiFormHelperText-root': {
+              color: 'rgba(255, 255, 255, 0.5)',
+            }
+          },
+          '& .MuiFormControl-root': {
+            '& .MuiInputLabel-root': {
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&.Mui-focused': {
+                color: '#ff9f43',
+              },
+            },
+            '& .MuiOutlinedInput-root': {
+              color: '#ffffff',
+              '& fieldset': {
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+              },
+              '&:hover fieldset': {
+                borderColor: 'rgba(255, 159, 67, 0.5)',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#ff9f43',
+              },
+            },
+          },
+          '& .MuiSelect-icon': {
+            color: 'rgba(255, 255, 255, 0.5)',
+          },
+          '& .MuiMenuItem-root': {
+            '&:hover': {
+              backgroundColor: 'rgba(255, 159, 67, 0.1)',
+            },
+            '&.Mui-selected': {
+              backgroundColor: 'rgba(255, 159, 67, 0.2)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 159, 67, 0.3)',
+              },
+            },
+          }
+        }}>
+          <Grid container spacing={2} sx={{ pt: 1 }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -612,7 +688,7 @@ export default function BusinessCases() {
                         borderColor: 'rgba(255, 255, 255, 0.2)',
                       },
                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#00b894',
+                        borderColor: '#ff9f43',
                       },
                       '& .MuiSelect-icon': {
                         color: 'rgba(255, 255, 255, 0.5)',
@@ -650,13 +726,13 @@ export default function BusinessCases() {
                         borderColor: 'rgba(255, 255, 255, 0.2)',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#00b894',
+                        borderColor: '#ff9f43',
                       },
                     },
                     '& .MuiInputLabel-root': {
                       color: 'rgba(255, 255, 255, 0.5)',
                       '&.Mui-focused': {
-                        color: '#00b894',
+                        color: '#ff9f43',
                       },
                     },
                     '& .MuiFormHelperText-root': {
@@ -732,17 +808,42 @@ export default function BusinessCases() {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            setOpen(false);
-            setEditCase(null);
-          }}>
+        <DialogActions sx={{ 
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          px: 3,
+          py: 2,
+          gap: 2
+        }}>
+          <Button 
+            onClick={() => {
+              setOpen(false);
+              setEditCase(null);
+            }}
+            sx={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              }
+            }}
+          >
             Zrušiť
           </Button>
           <Button
             onClick={handleSubmit}
             variant="contained"
-            sx={{ backgroundColor: '#00b894' }}
+            sx={{
+              backgroundColor: '#ff9f43',
+              color: '#ffffff',
+              fontWeight: 600,
+              padding: '8px 24px',
+              '&:hover': {
+                backgroundColor: '#ffbe76',
+              },
+              '&.Mui-disabled': {
+                backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                color: 'rgba(255, 255, 255, 0.3)',
+              }
+            }}
             disabled={!formData.companyName || 
                      !formData.contactPerson.firstName || 
                      !formData.contactPerson.lastName || 

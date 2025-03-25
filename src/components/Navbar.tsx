@@ -114,18 +114,18 @@ const ToggleButton = styled(IconButton)(({ theme }) => ({
   position: 'fixed',
   right: '12px',
   bottom: '24px',
-  backgroundColor: colors.accent.main,
+  backgroundColor: '#ff9f43',
   color: '#ffffff',
   zIndex: 1300,
   padding: '8px',
   borderRadius: '12px',
   width: '40px',
   height: '40px',
-  boxShadow: '0 4px 12px rgba(0, 184, 148, 0.3)',
+  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
   '&:hover': {
-    backgroundColor: colors.accent.light,
+    backgroundColor: '#ffbe76',
     transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(0, 184, 148, 0.4)',
+    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
   },
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '& .MuiSvgIcon-root': {
@@ -141,7 +141,7 @@ const ToggleButton = styled(IconButton)(({ theme }) => ({
     width: '48px',
     height: '48px',
     borderRadius: '50%',
-    boxShadow: '0 4px 16px rgba(0, 184, 148, 0.4)',
+    boxShadow: '0 4px 16px rgba(255, 159, 67, 0.4)',
   }
 }));
 
@@ -341,7 +341,7 @@ const Navbar = () => {
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 '& .MuiListItemIcon-root': {
-                  color: colors.accent.main,
+                  color: '#ff9f43',
                   transform: 'scale(1.1)',
                 },
                 '& .MuiListItemText-primary': {
@@ -356,7 +356,7 @@ const Navbar = () => {
                 transform: 'translateY(-50%)',
                 width: '3px',
                 height: '0%',
-                backgroundColor: colors.accent.main,
+                backgroundColor: '#ff9f43',
                 borderRadius: '4px',
                 transition: 'height 0.2s ease-in-out',
               },
@@ -369,7 +369,7 @@ const Navbar = () => {
                   height: '70%',
                 },
                 '& .MuiListItemIcon-root': {
-                  color: colors.accent.main,
+                  color: '#ff9f43',
                 },
                 '& .MuiListItemText-primary': {
                   color: '#ffffff',
@@ -428,7 +428,7 @@ const Navbar = () => {
                 '&:hover': {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   '& .MuiListItemIcon-root': {
-                    color: colors.accent.main,
+                    color: '#ff9f43',
                     transform: 'scale(1.1)',
                   },
                   '& .MuiListItemText-primary': {
@@ -443,7 +443,7 @@ const Navbar = () => {
                   transform: 'translateY(-50%)',
                   width: '3px',
                   height: '0%',
-                  backgroundColor: colors.accent.main,
+                  backgroundColor: '#ff9f43',
                   borderRadius: '4px',
                   transition: 'height 0.2s ease-in-out',
                 },
