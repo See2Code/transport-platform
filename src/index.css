@@ -8,7 +8,9 @@
   
   /* Gradienty pre tlačidlá */
   --gradient-green: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
-  --gradient-orange: linear-gradient(135deg, #ff6b6b 0%, #ffa502 100%);
+  --gradient-orange: linear-gradient(135deg, #ff9f43 0%, #ffa502 100%);
+  --gradient-red: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+  --gradient-primary: linear-gradient(135deg, #ff9f43 0%, #ffbe76 100%);
   
   /* Tiene */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);

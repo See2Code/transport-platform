@@ -48,7 +48,7 @@ const miniDrawerWidth = 64;
 // Definícia farebnej palety
 const colors = {
   primary: {
-    main: '#1a1a2e',
+    main: '#ff9f43',
     light: 'rgba(35, 35, 66, 0.95)',
     dark: '#12121f',
   },
@@ -204,12 +204,11 @@ const SideNav = styled('nav')(({ theme }) => ({
   width: drawerWidth,
   backgroundColor: colors.primary.light,
   backdropFilter: 'blur(20px)',
-  borderRight: '1px solid rgba(255, 255, 255, 0.06)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'fixed',
   height: '100vh',
   zIndex: 1200,
-  boxShadow: '4px 0 24px rgba(0, 0, 0, 0.15)',
+  boxShadow: '0 0 15px rgba(0, 0, 0, 0.1)',
   overflowX: 'hidden',
   transform: 'translateX(0)',
   '&.drawer-closed': {
@@ -254,7 +253,6 @@ const Drawer = styled('div')(({ theme }) => ({
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
   backgroundColor: colors.primary.light,
-  borderRight: '1px solid rgba(255, 255, 255, 0.1)',
   height: '100vh',
   position: 'fixed',
   overflowX: 'hidden',
@@ -288,7 +286,6 @@ const MainWrapper = styled('div')({
 const ContentWrapper = styled('div')({
   padding: '16px',
   minHeight: '100vh',
-  backgroundColor: colors.primary.main,
   position: 'relative',
   overflowX: 'hidden',
   '@media (max-width: 600px)': {
@@ -299,7 +296,7 @@ const ContentWrapper = styled('div')({
 const AppWrapper = styled('div')({
   display: 'flex',
   minHeight: '100vh',
-  backgroundColor: colors.primary.main,
+  backgroundColor: colors.primary.dark,
 });
 
 const Overlay = styled('div')({
@@ -313,7 +310,9 @@ const Overlay = styled('div')({
   opacity: 0,
   visibility: 'hidden',
   transition: 'all 0.3s ease-in-out',
+  display: 'none',
   '@media (max-width: 600px)': {
+    display: 'block',
     '&.visible': {
       opacity: 1,
       visibility: 'visible'

@@ -820,7 +820,7 @@ function TrackedTransports() {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <CircularProgress />
+          <CircularProgress sx={{ color: '#ff9f43' }} />
         </Box>
       </Container>
     );
@@ -852,7 +852,7 @@ function TrackedTransports() {
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
+            <CircularProgress sx={{ color: '#ff9f43' }} />
           </Box>
         ) : (
           <Box sx={{ 

@@ -159,7 +159,7 @@ function RegisterUser() {
             <CloseIcon />
           </IconButton>
 
-          <Typography variant="h4" component="h1" gutterBottom align="center" color="success.main">
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ color: '#ff9f43' }}>
             Registrácia úspešná!
           </Typography>
 
@@ -217,7 +217,7 @@ function RegisterUser() {
                 mb: 4,
                 border: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
-                <Typography variant="h6" gutterBottom sx={{ color: '#00b894', mb: 2 }}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#ff9f43', mb: 2 }}>
                   Boli ste pozvaní spoločnosťou:
                 </Typography>
                 <Grid container spacing={2}>
@@ -280,7 +280,7 @@ function RegisterUser() {
                         borderColor: 'rgba(255, 255, 255, 0.2)',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#00b894',
+                        borderColor: '#ff9f43',
                       },
                     },
                     '& .MuiInputLabel-root': {
@@ -310,7 +310,7 @@ function RegisterUser() {
                         borderColor: 'rgba(255, 255, 255, 0.2)',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#00b894',
+                        borderColor: '#ff9f43',
                       },
                     },
                     '& .MuiInputLabel-root': {
@@ -338,10 +338,10 @@ function RegisterUser() {
               sx={{
                 mt: 3,
                 mb: 2,
-                bgcolor: '#00b894',
+                bgcolor: '#ff9f43',
                 color: '#ffffff',
                 '&:hover': {
-                  bgcolor: '#00a383',
+                  bgcolor: '#ff8a2d',
                 },
                 height: '48px',
                 fontSize: '1rem',

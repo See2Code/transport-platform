@@ -372,7 +372,7 @@ const StatusChip = styled(Chip)(({ status }: { status: string }) => ({
   backgroundColor: status === 'active' ? 'rgba(46, 213, 115, 0.15)' : 
                   status === 'pending' ? 'rgba(255, 159, 67, 0.15)' : 
                   'rgba(255, 107, 107, 0.15)',
-  color: status === 'active' ? '#2ed573' : 
+  color: status === 'active' ? '#ff9f43' : 
         status === 'pending' ? '#ff9f43' : 
         '#ff6b6b',
   borderRadius: '8px',
@@ -781,7 +781,7 @@ function Team() {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-          <CircularProgress />
+          <CircularProgress sx={{ color: '#ff9f43' }} />
         </Box>
       </Container>
     );
@@ -898,7 +898,7 @@ function Team() {
                           size="small"
                           sx={{
                             backgroundColor: member.status === 'active' ? 'rgba(46, 213, 115, 0.15)' : 'rgba(255, 159, 67, 0.15)',
-                            color: member.status === 'active' ? '#2ed573' : colors.accent.main,
+                            color: member.status === 'active' ? '#ff9f43' : colors.accent.main,
                             '& .MuiChip-label': {
                               fontSize: {
                                 xs: '0.7rem',
@@ -1025,16 +1025,13 @@ function Team() {
                           size="small"
                           sx={{
                             backgroundColor: invite.status === 'pending' ? 'rgba(255, 159, 67, 0.15)' : 
-                                         invite.status === 'accepted' ? 'rgba(46, 213, 115, 0.15)' : 
-                                         'rgba(255, 107, 107, 0.15)',
-                            color: invite.status === 'pending' ? colors.accent.main : 
-                                  invite.status === 'accepted' ? '#2ed573' : 
-                                  colors.secondary.main,
+                                             invite.status === 'accepted' ? 'rgba(255, 159, 67, 0.15)' : 
+                                             'rgba(255, 107, 107, 0.15)',
+                            color: invite.status === 'pending' ? '#ff9f43' : 
+                                  invite.status === 'accepted' ? '#ff9f43' : 
+                                  '#ff6b6b',
                             '& .MuiChip-label': {
-                              fontSize: {
-                                xs: '0.7rem',
-                                sm: '0.8rem'
-                              }
+                              fontSize: '0.8rem'
                             }
                           }}
                         />

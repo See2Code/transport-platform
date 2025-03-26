@@ -26,12 +26,12 @@ const GradientButton = styled(Button)(({ theme }) => ({
 }));
 
 const GreenGradientButton = styled(GradientButton)({
-  background: 'linear-gradient(135deg, #00b894 0%, #00d2a0 100%)',
+  background: 'linear-gradient(135deg, #ff9f43 0%, #ffbe76 100%)',
   color: 'white',
 });
 
 const OrangeGradientButton = styled(GradientButton)({
-  background: 'linear-gradient(135deg, #ff6b6b 0%, #ffa502 100%)',
+  background: 'linear-gradient(135deg, #ff9f43 0%, #ffa502 100%)',
   color: 'white',
 });
 
@@ -183,7 +183,7 @@ function Home() {
                       width: '8px',
                       height: '8px',
                       borderRadius: '50%',
-                      background: index % 2 === 0 ? '#00b894' : '#ff6b6b',
+                      background: index % 2 === 0 ? '#ff9f43' : '#ff6b6b',
                       marginRight: '10px'
                     }
                   }}

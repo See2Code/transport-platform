@@ -189,11 +189,23 @@ function Register() {
             <CloseIcon />
           </IconButton>
 
-          <Typography variant="h4" component="h1" gutterBottom align="center" color="success.main">
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ color: '#ff9f43' }}>
             Registrácia úspešná!
           </Typography>
 
-          <Alert severity="success" sx={{ mb: 3 }}>
+          <Alert 
+            severity="success" 
+            sx={{ 
+              mb: 3,
+              '& .MuiAlert-icon': {
+                color: '#ff9f43'
+              },
+              '& .MuiAlert-message': {
+                color: '#ff9f43'
+              },
+              backgroundColor: 'rgba(255, 159, 67, 0.1)',
+            }}
+          >
             Vaša firma bola úspešne zaregistrovaná.
           </Alert>
 
@@ -205,7 +217,7 @@ function Register() {
             sx={{ 
               p: 2, 
               mb: 3, 
-              backgroundColor: 'primary.main',
+              backgroundColor: '#ff9f43',
               color: 'white',
               textAlign: 'center',
               fontSize: '1.2rem',
@@ -228,9 +240,14 @@ function Register() {
           <Button
             fullWidth
             variant="contained"
-            color="primary"
             onClick={() => navigate('/login')}
-            sx={{ mt: 3 }}
+            sx={{ 
+              mt: 3,
+              backgroundColor: '#ff9f43',
+              '&:hover': {
+                backgroundColor: '#ffbe76',
+              }
+            }}
           >
             Prihlásiť sa
           </Button>
@@ -435,12 +452,29 @@ function Register() {
                 variant="contained"
                 size="large"
                 disabled={loading}
+                sx={{
+                  backgroundColor: '#ff9f43',
+                  '&:hover': {
+                    backgroundColor: '#ffbe76',
+                  },
+                  '&.Mui-disabled': {
+                    backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                    color: 'rgba(255, 255, 255, 0.3)',
+                  }
+                }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Registrovať'}
+                {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Registrovať'}
               </Button>
             </Grid>
             <Grid item xs={12}>
-              <Link href="/login" variant="body2" sx={{ display: 'block', textAlign: 'center' }}>
+              <Link href="/login" variant="body2" sx={{ 
+                display: 'block', 
+                textAlign: 'center',
+                color: '#ff9f43',
+                '&:hover': {
+                  color: '#ffbe76'
+                }
+              }}>
                 Máte už účet? Prihláste sa
               </Link>
             </Grid>

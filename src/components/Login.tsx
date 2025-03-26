@@ -168,8 +168,18 @@ function Login() {
                 type="submit"
                 size="large"
                 disabled={loading}
+                sx={{
+                  backgroundColor: '#ff9f43',
+                  '&:hover': {
+                    backgroundColor: '#ffbe76',
+                  },
+                  '&.Mui-disabled': {
+                    backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                    color: 'rgba(255, 255, 255, 0.3)',
+                  }
+                }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Prihlásiť sa'}
+                {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Prihlásiť sa'}
               </Button>
             </Grid>
 
@@ -177,7 +187,12 @@ function Login() {
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
                   Nemáte účet?{' '}
-                  <Link href="/register" color="primary">
+                  <Link href="/register" sx={{ 
+                    color: '#ff9f43',
+                    '&:hover': {
+                      color: '#ffbe76'
+                    }
+                  }}>
                     Zaregistrujte sa
                   </Link>
                 </Typography>
@@ -187,7 +202,12 @@ function Login() {
             <Grid item xs={12}>
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
-                  <Link href="/forgot-password" color="primary">
+                  <Link href="/forgot-password" sx={{ 
+                    color: '#ff9f43',
+                    '&:hover': {
+                      color: '#ffbe76'
+                    }
+                  }}>
                     Zabudli ste heslo?
                   </Link>
                 </Typography>
