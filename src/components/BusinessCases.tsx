@@ -167,8 +167,8 @@ const PageWrapper = styled('div')({
   maxWidth: '100%',
   overflowX: 'hidden',
   '@media (max-width: 600px)': {
-    padding: '16px',
-    paddingBottom: '80px' // Priestor pre bottom navigation
+    padding: '8px',
+    paddingBottom: '80px'
   }
 });
 
