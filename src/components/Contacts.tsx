@@ -109,7 +109,6 @@ const PageHeader = styled(Box)({
   marginBottom: '32px',
   position: 'relative',
   zIndex: 1,
-  backgroundColor: colors.primary.main,
   '@media (max-width: 600px)': {
     flexDirection: 'column',
     gap: '16px',
