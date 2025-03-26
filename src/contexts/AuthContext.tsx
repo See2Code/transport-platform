@@ -50,15 +50,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (user) {
         try {
+          console.log('AuthProvider: Získavam údaje o užívateľovi z Firestore');
           // Získanie údajov o užívateľovi z Firestore
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
-            setUserData(userDoc.data() as UserData);
+            const userData = userDoc.data() as UserData;
+            console.log('AuthProvider: Údaje o užívateľovi:', {
+              uid: userData.uid,
+              email: userData.email,
+              companyID: userData.companyID,
+              role: userData.role
+            });
+            setUserData(userData);
+          } else {
+            console.error('AuthProvider: Dokument užívateľa neexistuje v Firestore');
+            setUserData(null);
           }
         } catch (error) {
-          console.error('Chyba pri získavaní údajov o užívateľovi:', error);
+          console.error('AuthProvider: Chyba pri získavaní údajov o užívateľovi:', error);
+          setUserData(null);
         }
       } else {
+        console.log('AuthProvider: Užívateľ nie je prihlásený');
         setUserData(null);
       }
       

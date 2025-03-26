@@ -18,7 +18,7 @@ import {
   Person as PersonIcon,
   Notifications as NotificationsIcon,
 } from '@mui/icons-material';
-import { collection, query, getDocs, where, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, getDocs, where, Timestamp, orderBy, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -316,14 +316,80 @@ export default function Dashboard() {
     setActiveIndex(index);
   };
 
+  // Pridaná funkcia pre aktualizáciu záznamov
+  const updateMissingCompanyIDs = async () => {
+    if (!userData?.companyID) return;
+
+    try {
+      const batch = writeBatch(db);
+      let updatedCount = 0;
+
+      // Update business cases
+      const allBusinessCasesSnapshot = await getDocs(collection(db, 'businessCases'));
+      console.log('Dashboard Debug: Business Cases s nesprávnym companyID:');
+      allBusinessCasesSnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.companyID && data.companyID !== userData.companyID) {
+          console.log('Business Case:', {
+            id: doc.id,
+            companyName: data.companyName,
+            currentCompanyID: data.companyID,
+            expectedCompanyID: userData.companyID
+          });
+        }
+        if (!data.companyID) {
+          batch.update(doc.ref, { companyID: userData.companyID });
+          updatedCount++;
+        }
+      });
+
+      // Update contacts
+      const allContactsSnapshot = await getDocs(collection(db, 'contacts'));
+      console.log('Dashboard Debug: Kontakty s nesprávnym companyID:');
+      allContactsSnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.companyID && data.companyID !== userData.companyID) {
+          console.log('Contact:', {
+            id: doc.id,
+            name: `${data.firstName} ${data.lastName}`,
+            currentCompanyID: data.companyID,
+            expectedCompanyID: userData.companyID
+          });
+        }
+        if (!data.companyID) {
+          batch.update(doc.ref, { companyID: userData.companyID });
+          updatedCount++;
+        }
+      });
+
+      if (updatedCount > 0) {
+        await batch.commit();
+        console.log(`Dashboard: Aktualizovaných ${updatedCount} záznamov s chýbajúcim companyID`);
+      }
+    } catch (error) {
+      console.error('Dashboard: Chyba pri aktualizácii záznamov:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!userData?.companyID) {
-        console.log('No companyID available');
+      console.log('Dashboard: Začínam načítavanie dát');
+      console.log('Dashboard: userData:', userData);
+
+      if (!userData) {
+        console.log('Dashboard: userData je null - užívateľ nie je prihlásený alebo údaje neboli načítané');
         return;
       }
 
-      console.log('Fetching data for companyID:', userData.companyID);
+      if (!userData.companyID) {
+        console.log('Dashboard: companyID nie je nastavené - užívateľ nemá priradenú firmu');
+        return;
+      }
+
+      // Najprv aktualizujeme záznamy s chýbajúcim companyID
+      await updateMissingCompanyIDs();
+
+      console.log('Dashboard: Načítavam dáta pre companyID:', userData.companyID);
 
       try {
         // Fetch business cases
@@ -331,8 +397,24 @@ export default function Dashboard() {
           collection(db, 'businessCases'),
           where('companyID', '==', userData.companyID)
         );
+        console.log('Dashboard: Business Cases Query:', businessCasesQuery);
         const businessCasesSnapshot = await getDocs(businessCasesQuery);
-        console.log('Business cases found:', businessCasesSnapshot.size);
+        console.log('Dashboard: Business Cases Raw Data:', businessCasesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        console.log('Dashboard: Počet nájdených business cases:', businessCasesSnapshot.size);
+
+        // Debug: Check all business cases
+        const allBusinessCasesQuery = query(collection(db, 'businessCases'));
+        const allBusinessCasesSnapshot = await getDocs(allBusinessCasesQuery);
+        const allBusinessCases = allBusinessCasesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          companyName: doc.data().companyName,
+          companyID: doc.data().companyID,
+          status: doc.data().status,
+          createdAt: doc.data().createdAt
+        }));
+        console.log('Dashboard Debug: Detaily všetkých business cases:', allBusinessCases);
+        console.log('Dashboard Debug: Očakávané companyID:', userData.companyID);
+        console.log('Dashboard Debug: Nájdené companyID hodnoty:', Array.from(new Set(allBusinessCases.map(bc => bc.companyID))));
         
         const businessCases = businessCasesSnapshot.docs.map(doc => {
           const data = doc.data();
@@ -348,8 +430,23 @@ export default function Dashboard() {
           collection(db, 'contacts'),
           where('companyID', '==', userData.companyID)
         );
+        console.log('Dashboard: Contacts Query:', contactsQuery);
         const contactsSnapshot = await getDocs(contactsQuery);
-        console.log('Contacts found:', contactsSnapshot.size);
+        console.log('Dashboard: Contacts Raw Data:', contactsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        console.log('Dashboard: Počet nájdených kontaktov:', contactsSnapshot.size);
+
+        // Debug: Check all contacts
+        const allContactsQuery = query(collection(db, 'contacts'));
+        const allContactsSnapshot = await getDocs(allContactsQuery);
+        const allContacts = allContactsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          name: `${doc.data().firstName} ${doc.data().lastName}`,
+          companyID: doc.data().companyID,
+          email: doc.data().email
+        }));
+        console.log('Dashboard Debug: Detaily všetkých kontaktov:', allContacts);
+        console.log('Dashboard Debug: Očakávané companyID:', userData.companyID);
+        console.log('Dashboard Debug: Nájdené companyID hodnoty v kontaktoch:', Array.from(new Set(allContacts.map(c => c.companyID))));
 
         // Fetch reminders
         const now = Timestamp.now();
@@ -359,16 +456,20 @@ export default function Dashboard() {
           where('reminderDateTime', '>=', now),
           where('sent', '==', false)
         );
+        console.log('Dashboard: Reminders Query:', remindersQuery);
         const remindersSnapshot = await getDocs(remindersQuery);
-        console.log('Active reminders found:', remindersSnapshot.size);
+        console.log('Dashboard: Reminders Raw Data:', remindersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        console.log('Dashboard: Počet nájdených pripomienok:', remindersSnapshot.size);
 
         // Fetch team members
         const usersQuery = query(
           collection(db, 'users'),
           where('companyID', '==', userData.companyID)
         );
+        console.log('Dashboard: Users Query:', usersQuery);
         const usersSnapshot = await getDocs(usersQuery);
-        console.log('Team members found:', usersSnapshot.size);
+        console.log('Dashboard: Users Raw Data:', usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        console.log('Dashboard: Počet nájdených členov tímu:', usersSnapshot.size);
 
         // Calculate status distribution
         const statusCounts: { [key: string]: number } = {};
@@ -413,6 +514,7 @@ export default function Dashboard() {
           return dateA.getTime() - dateB.getTime();
         });
 
+        console.log('Dashboard: Aktualizujem stav s novými dátami');
         setStats({
           totalBusinessCases: businessCasesSnapshot.size,
           totalContacts: contactsSnapshot.size,
@@ -424,7 +526,11 @@ export default function Dashboard() {
         });
 
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('Dashboard: Chyba pri načítaní dát:', error);
+        if (error instanceof Error) {
+          console.error('Dashboard: Detail chyby:', error.message);
+          console.error('Dashboard: Stack trace:', error.stack);
+        }
       }
     };
 
