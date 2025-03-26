@@ -119,14 +119,17 @@ const MobileBusinessCard = styled(Box)({
   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
   border: '1px solid rgba(255, 255, 255, 0.06)',
   marginBottom: '16px',
-  width: '100%'
+  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px'
 });
 
 const MobileCardHeader = styled(Box)({
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  marginBottom: '12px'
+  alignItems: 'center',
+  width: '100%'
 });
 
 const MobileCompanyName = styled(Typography)({
@@ -146,6 +149,7 @@ const MobileInfoRow = styled(Box)({
   alignItems: 'center',
   gap: '8px',
   fontSize: '0.9rem',
+  color: 'rgba(255, 255, 255, 0.9)',
   '& .MuiSvgIcon-root': {
     fontSize: '1.1rem',
     color: colors.accent.main
@@ -156,9 +160,9 @@ const MobileCardActions = styled(Box)({
   display: 'flex',
   justifyContent: 'flex-end',
   gap: '8px',
-  marginTop: '12px',
-  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-  paddingTop: '12px'
+  marginTop: '8px',
+  paddingTop: '12px',
+  borderTop: '1px solid rgba(255, 255, 255, 0.1)'
 });
 
 const PageWrapper = styled('div')({
@@ -193,6 +197,7 @@ const PageTitle = styled(Typography)({
   fontWeight: 700,
   color: '#ffffff',
   position: 'relative',
+  marginBottom: '16px',
   '&::after': {
     content: '""',
     position: 'absolute',
@@ -202,35 +207,16 @@ const PageTitle = styled(Typography)({
     height: '4px',
     backgroundColor: colors.accent.main,
     borderRadius: '2px',
-  },
-  '@media (max-width: 600px)': {
-    fontSize: '1.5rem',
-    width: '100%',
-    textAlign: 'left',
-    '&::after': {
-      width: '40px'
-    }
   }
 });
 
 const AddButton = styled(Button)({
-  backgroundColor: colors.accent.main,
   color: '#ffffff',
-  padding: '8px 24px',
-  borderRadius: '12px',
-  fontSize: '0.95rem',
-  fontWeight: 600,
   textTransform: 'none',
-  transition: 'all 0.2s ease-in-out',
-  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
+  padding: '12px',
+  borderRadius: '16px',
   '&:hover': {
-    backgroundColor: colors.accent.light,
-    transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
-  },
-  '@media (max-width: 600px)': {
-    width: '100%',
-    justifyContent: 'center'
+    backgroundColor: 'transparent',
   }
 });
 
@@ -238,11 +224,8 @@ const SearchWrapper = styled(Box)({
   marginBottom: '24px',
   position: 'relative',
   zIndex: 1,
-  maxWidth: '600px',
-  width: '100%',
-  '@media (max-width: 600px)': {
-    maxWidth: '100%',
-  }
+  maxWidth: '100%',
+  width: '100%'
 });
 
 const convertToDate = (dateTime: Date | Timestamp | null): Date | null => {
@@ -502,88 +485,122 @@ export default function BusinessCases() {
   );
 
   const renderMobileCase = (businessCase: BusinessCase) => (
-    <MobileBusinessCard key={businessCase.id}>
+    <MobileBusinessCard>
       <MobileCardHeader>
-        <Box>
-          <MobileCompanyName>{businessCase.companyName}</MobileCompanyName>
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-            {businessCase.vatNumber}
-          </Typography>
-        </Box>
+        <MobileCompanyName>
+          {businessCase.companyName}
+        </MobileCompanyName>
         <Chip
           label={caseStatuses[businessCase.status].label}
           color={caseStatuses[businessCase.status].color}
           size="small"
-          sx={{ ml: 1 }}
+          sx={{
+            height: '24px',
+            fontSize: '0.8rem'
+          }}
         />
       </MobileCardHeader>
-
       <MobileCardContent>
         <MobileInfoRow>
-          <BusinessIcon />
-          <Typography>{businessCase.companyAddress}</Typography>
+          <AccessTimeIcon />
+          {businessCase.createdAt instanceof Timestamp ? 
+            businessCase.createdAt.toDate().toLocaleString('sk-SK', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }).replace(',', '') : 
+            new Date(businessCase.createdAt).toLocaleString('sk-SK', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }).replace(',', '')}
         </MobileInfoRow>
-
+        <MobileInfoRow>
+          <BusinessIcon />
+          {businessCase.vatNumber}
+        </MobileInfoRow>
+        <MobileInfoRow>
+          <BusinessIcon />
+          {businessCase.companyAddress}
+        </MobileInfoRow>
         <MobileInfoRow>
           <PersonIcon />
-          <Typography>
-            {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}
-          </Typography>
+          {`${businessCase.contactPerson.firstName} ${businessCase.contactPerson.lastName}`}
         </MobileInfoRow>
-
         <MobileInfoRow>
           <PhoneIcon />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <img
               loading="lazy"
-              width="20"
+              width="16"
               src={`https://flagcdn.com/${businessCase.countryCode?.toLowerCase()}.svg`}
               alt=""
             />
             {businessCase.contactPerson.phone}
           </Box>
         </MobileInfoRow>
-
         <MobileInfoRow>
           <EmailIcon />
-          <Typography>{businessCase.contactPerson.email}</Typography>
+          {businessCase.contactPerson.email}
         </MobileInfoRow>
-
+        <MobileInfoRow>
+          <PersonIcon />
+          Vytvoril: {businessCase.createdBy?.firstName} {businessCase.createdBy?.lastName}
+        </MobileInfoRow>
         {businessCase.reminderDateTime && (
           <MobileInfoRow>
             <AccessTimeIcon />
-            <Typography>
-              Pripomienka: {businessCase.reminderDateTime.toLocaleString('sk-SK', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+            Pripomienka: {format(businessCase.reminderDateTime, 'dd.MM.yyyy HH:mm')}
+          </MobileInfoRow>
+        )}
+        {businessCase.internalNote && (
+          <MobileInfoRow sx={{ 
+            flexDirection: 'column', 
+            alignItems: 'flex-start',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            padding: '8px',
+            borderRadius: '8px'
+          }}>
+            <Typography sx={{ 
+              fontSize: '0.8rem', 
+              color: colors.accent.main,
+              marginBottom: '4px'
+            }}>
+              Interná poznámka:
+            </Typography>
+            <Typography sx={{ fontSize: '0.9rem' }}>
+              {businessCase.internalNote}
             </Typography>
           </MobileInfoRow>
         )}
-
         {businessCase.reminderNote && (
-          <MobileInfoRow>
-            <Box sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.85rem' }}>
+          <MobileInfoRow sx={{ 
+            flexDirection: 'column', 
+            alignItems: 'flex-start',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            padding: '8px',
+            borderRadius: '8px'
+          }}>
+            <Typography sx={{ 
+              fontSize: '0.8rem', 
+              color: colors.accent.main,
+              marginBottom: '4px'
+            }}>
+              Poznámka k pripomienke:
+            </Typography>
+            <Typography sx={{ fontSize: '0.9rem' }}>
               {businessCase.reminderNote}
-            </Box>
-          </MobileInfoRow>
-        )}
-
-        {businessCase.createdBy && (
-          <MobileInfoRow>
-            <PersonIcon />
-            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              {businessCase.createdBy.firstName} {businessCase.createdBy.lastName}
             </Typography>
           </MobileInfoRow>
         )}
       </MobileCardContent>
-
       <MobileCardActions>
-        <IconButton 
+        <IconButton
+          size="small"
           onClick={() => handleEdit(businessCase)}
           sx={{ 
             color: colors.accent.main,
@@ -595,7 +612,8 @@ export default function BusinessCases() {
         >
           <EditIcon />
         </IconButton>
-        <IconButton 
+        <IconButton
+          size="small"
           onClick={() => handleDelete(businessCase.id!)}
           sx={{ 
             color: colors.secondary.main,
@@ -615,8 +633,65 @@ export default function BusinessCases() {
     <PageWrapper>
       <PageHeader>
         <PageTitle>Obchodné prípady</PageTitle>
+        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setEditCase(null);
+              setFormData({
+                companyName: '',
+                vatNumber: '',
+                companyAddress: '',
+                contactPerson: {
+                  firstName: '',
+                  lastName: '',
+                  phone: '',
+                  email: '',
+                },
+                internalNote: '',
+                status: 'NOT_CALLED',
+                reminderDateTime: null,
+                reminderNote: '',
+                createdBy: null,
+                createdAt: null
+              });
+              setSelectedCountry(euCountries[0]);
+              setOpen(true);
+            }}
+            sx={{
+              backgroundColor: colors.accent.main,
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: colors.accent.light,
+              }
+            }}
+          >
+            Pridať prípad
+          </Button>
+        </Box>
+      </PageHeader>
+
+      {/* Mobilné tlačidlo */}
+      <Box sx={{ 
+        display: { xs: 'block', sm: 'none' },
+        width: '100%', 
+        backgroundColor: colors.accent.main,
+        borderRadius: '16px',
+        marginBottom: '24px',
+        padding: '4px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          backgroundColor: colors.accent.light,
+        }
+      }}>
         <AddButton
-          startIcon={<AddIcon />}
+          fullWidth
           onClick={() => {
             setEditCase(null);
             setFormData({
@@ -640,9 +715,21 @@ export default function BusinessCases() {
             setOpen(true);
           }}
         >
-          Pridať prípad
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: 1,
+            color: '#ffffff',
+            fontSize: '1rem',
+            fontWeight: 600,
+            width: '100%'
+          }}>
+            <AddIcon sx={{ fontSize: '1.2rem' }} />
+            Pridať prípad
+          </Box>
         </AddButton>
-      </PageHeader>
+      </Box>
 
       <SearchWrapper>
         <SearchField
@@ -813,7 +900,7 @@ export default function BusinessCases() {
                     </Tooltip>
                     <Tooltip title="Vymazať">
                       <IconButton 
-                        onClick={() => handleDelete(businessCase.id || '')}
+                        onClick={() => handleDelete(businessCase.id!)}
                         sx={{ 
                           color: colors.secondary.main,
                           '&:hover': {

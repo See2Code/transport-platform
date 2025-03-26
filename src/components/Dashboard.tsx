@@ -27,6 +27,47 @@ import {
 import CountUp from 'react-countup';
 import { motion } from 'framer-motion';
 
+interface BusinessCase {
+  id?: string;
+  companyName: string;
+  vatNumber: string;
+  companyAddress: string;
+  contactPerson: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+  };
+  internalNote: string;
+  status: string;
+  reminderDateTime: Date | null;
+  reminderNote: string;
+  createdAt: Timestamp;
+  createdBy: {
+    firstName: string;
+    lastName: string;
+  };
+  countryCode?: string;
+}
+
+interface Reminder {
+  id?: string;
+  userId: string;
+  userEmail: string;
+  businessCaseId: string;
+  reminderDateTime: Timestamp;
+  companyName: string;
+  reminderNote: string;
+  contactPerson: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+  };
+  createdAt: Timestamp;
+  sent: boolean;
+}
+
 const PageWrapper = styled(Box)(({ theme }) => ({
   padding: '30px',
   [theme.breakpoints.down('sm')]: {
@@ -112,22 +153,6 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
     </g>
   );
 };
-
-interface BusinessCase {
-  id: string;
-  companyName: string;
-  status: string;
-  createdAt: Timestamp;
-  // ... ostatné polia môžu byť pridané podľa potreby
-}
-
-interface Reminder {
-  id: string;
-  companyName: string;
-  reminderNote: string;
-  reminderDateTime: Timestamp;
-  // ... ostatné polia môžu byť pridané podľa potreby
-}
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload[0]) {
@@ -293,50 +318,100 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!userData?.companyID) {
+        console.log('No companyID available');
+        return;
+      }
+
+      console.log('Fetching data for companyID:', userData.companyID);
+
       try {
         // Fetch business cases
-        const businessCasesQuery = query(collection(db, 'businessCases'), orderBy('createdAt', 'desc'));
+        const businessCasesQuery = query(
+          collection(db, 'businessCases'),
+          where('companyID', '==', userData.companyID)
+        );
         const businessCasesSnapshot = await getDocs(businessCasesQuery);
-        const businessCases = businessCasesSnapshot.docs.map(doc => ({ 
-          id: doc.id, 
-          ...doc.data() 
-        })) as BusinessCase[];
+        console.log('Business cases found:', businessCasesSnapshot.size);
+        
+        const businessCases = businessCasesSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt instanceof Timestamp ? data.createdAt : new Timestamp(data.createdAt.seconds, data.createdAt.nanoseconds)
+          };
+        }) as BusinessCase[];
 
         // Fetch contacts
-        const contactsQuery = query(collection(db, 'contacts'));
+        const contactsQuery = query(
+          collection(db, 'contacts'),
+          where('companyID', '==', userData.companyID)
+        );
         const contactsSnapshot = await getDocs(contactsQuery);
+        console.log('Contacts found:', contactsSnapshot.size);
 
         // Fetch reminders
-        const now = new Date();
+        const now = Timestamp.now();
         const remindersQuery = query(
           collection(db, 'reminders'),
+          where('companyID', '==', userData.companyID),
           where('reminderDateTime', '>=', now),
-          where('sent', '==', false),
-          orderBy('reminderDateTime')
+          where('sent', '==', false)
         );
         const remindersSnapshot = await getDocs(remindersQuery);
+        console.log('Active reminders found:', remindersSnapshot.size);
 
         // Fetch team members
-        const usersQuery = query(collection(db, 'users'));
+        const usersQuery = query(
+          collection(db, 'users'),
+          where('companyID', '==', userData.companyID)
+        );
         const usersSnapshot = await getDocs(usersQuery);
+        console.log('Team members found:', usersSnapshot.size);
 
         // Calculate status distribution
         const statusCounts: { [key: string]: number } = {};
-        let maxValue = 0;
         businessCases.forEach(bc => {
-          statusCounts[bc.status] = (statusCounts[bc.status] || 0) + 1;
-          if (statusCounts[bc.status] > maxValue) maxValue = statusCounts[bc.status];
+          if (bc.status) {
+            statusCounts[bc.status] = (statusCounts[bc.status] || 0) + 1;
+          }
         });
 
         const total = businessCases.length;
         const statusDistribution = Object.entries(statusCounts)
           .map(([name, value], index) => ({
-            name,
+            name: name || 'Neznámy',
             value,
             fill: COLORS[index % COLORS.length],
             total
           }))
           .sort((a, b) => b.value - a.value);
+
+        // Sort business cases by creation date
+        const sortedBusinessCases = businessCases.sort((a, b) => {
+          const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toDate() : new Date(a.createdAt);
+          const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toDate() : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        });
+
+        // Sort reminders by date
+        const reminders = remindersSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            reminderDateTime: data.reminderDateTime instanceof Timestamp ? 
+              data.reminderDateTime : 
+              new Timestamp(data.reminderDateTime.seconds, data.reminderDateTime.nanoseconds)
+          };
+        }) as Reminder[];
+
+        const sortedReminders = reminders.sort((a, b) => {
+          const dateA = a.reminderDateTime instanceof Timestamp ? a.reminderDateTime.toDate() : new Date(a.reminderDateTime);
+          const dateB = b.reminderDateTime instanceof Timestamp ? b.reminderDateTime.toDate() : new Date(b.reminderDateTime);
+          return dateA.getTime() - dateB.getTime();
+        });
 
         setStats({
           totalBusinessCases: businessCasesSnapshot.size,
@@ -344,10 +419,8 @@ export default function Dashboard() {
           totalReminders: remindersSnapshot.size,
           totalTeamMembers: usersSnapshot.size,
           statusDistribution,
-          recentBusinessCases: businessCases.slice(0, 5),
-          upcomingReminders: remindersSnapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .slice(0, 5) as Reminder[],
+          recentBusinessCases: sortedBusinessCases.slice(0, 5),
+          upcomingReminders: sortedReminders.slice(0, 5),
         });
 
       } catch (error) {
@@ -356,7 +429,7 @@ export default function Dashboard() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [userData]);
 
   return (
     <PageWrapper>
