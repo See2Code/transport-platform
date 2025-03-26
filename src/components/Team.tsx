@@ -29,7 +29,8 @@ import {
   Grid,
   Card,
   Avatar,
-  styled
+  styled,
+  useMediaQuery
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -289,8 +290,100 @@ const fadeOut = {
   }
 };
 
+const MobileTeamCard = styled(Paper)({
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(20px)',
+  borderRadius: '16px',
+  padding: '20px',
+  color: '#ffffff',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
+  marginBottom: '16px',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+  }
+});
+
+const MobileTeamHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  marginBottom: '16px',
+});
+
+const MobileTeamName = styled(Typography)({
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  color: colors.accent.main,
+  marginBottom: '4px',
+});
+
+const MobileTeamRole = styled(Typography)({
+  fontSize: '0.9rem',
+  color: 'rgba(255, 255, 255, 0.7)',
+});
+
+const MobileTeamInfo = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+});
+
+const MobileInfoItem = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+});
+
+const MobileInfoLabel = styled(Typography)({
+  fontSize: '0.8rem',
+  color: 'rgba(255, 255, 255, 0.5)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+});
+
+const MobileInfoValue = styled(Typography)({
+  fontSize: '0.95rem',
+  color: '#ffffff',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+});
+
+const MobileActions = styled(Box)({
+  display: 'flex',
+  gap: '8px',
+  marginTop: '16px',
+  justifyContent: 'flex-end',
+});
+
+const ActionButton = styled(IconButton)({
+  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  color: '#ffffff',
+  padding: '8px',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  }
+});
+
+const StatusChip = styled(Chip)(({ status }: { status: string }) => ({
+  backgroundColor: status === 'active' ? 'rgba(46, 213, 115, 0.15)' : 
+                  status === 'pending' ? 'rgba(255, 159, 67, 0.15)' : 
+                  'rgba(255, 107, 107, 0.15)',
+  color: status === 'active' ? '#2ed573' : 
+        status === 'pending' ? '#ff9f43' : 
+        '#ff6b6b',
+  borderRadius: '8px',
+  fontSize: '0.8rem',
+  fontWeight: 500,
+  height: '24px'
+}));
+
 function Team() {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 600px)');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -634,6 +727,56 @@ function Team() {
     }
   };
 
+  const renderMobileTeamMember = (member: TeamMember | Invitation) => (
+    <MobileTeamCard key={member.id}>
+      <MobileTeamHeader>
+        <Box>
+          <MobileTeamName>
+            {member.firstName} {member.lastName}
+          </MobileTeamName>
+          <MobileTeamRole>
+            {member.role}
+          </MobileTeamRole>
+        </Box>
+        <StatusChip 
+          status={member.status} 
+          label={member.status === 'active' ? 'Aktívny' : 
+                member.status === 'pending' ? 'Čaká sa' : 
+                'Zamietnutý'} 
+        />
+      </MobileTeamHeader>
+      
+      <MobileTeamInfo>
+        <MobileInfoItem>
+          <MobileInfoLabel>Email</MobileInfoLabel>
+          <MobileInfoValue>
+            <MailIcon sx={{ fontSize: '1rem' }} />
+            {member.email}
+          </MobileInfoValue>
+        </MobileInfoItem>
+        
+        <MobileInfoItem>
+          <MobileInfoLabel>Telefón</MobileInfoLabel>
+          <MobileInfoValue>{member.phone}</MobileInfoValue>
+        </MobileInfoItem>
+      </MobileTeamInfo>
+      
+      <MobileActions>
+        {member.status === 'pending' && 'id' in member && (
+          <ActionButton onClick={() => handleResendInvitation(member as Invitation)}>
+            <SendIcon />
+          </ActionButton>
+        )}
+        <ActionButton onClick={() => handleEdit(member)}>
+          <EditIcon />
+        </ActionButton>
+        <ActionButton onClick={() => handleDeleteClick(member)}>
+          <DeleteIcon />
+        </ActionButton>
+      </MobileActions>
+    </MobileTeamCard>
+  );
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -665,321 +808,217 @@ function Team() {
         </Alert>
       )}
 
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Členovia tímu
-            </Typography>
-            <TableContainer 
-              component={Paper} 
-              sx={{ 
-                backgroundColor: 'transparent',
-                overflowX: 'auto',
-                width: '100%',
-                '& .MuiTable-root': {
-                  minWidth: {
-                    xs: '800px',
-                    md: '100%'
-                  }
-                },
-                '& .MuiTableCell-root': {
-                  padding: {
-                    xs: '12px 8px',
-                    sm: '16px'
-                  },
-                  fontSize: {
-                    xs: '0.8rem',
-                    sm: '0.875rem'
-                  },
-                  whiteSpace: 'nowrap',
-                  color: '#ffffff',
-                  backgroundColor: colors.primary.light,
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                },
-                '& .MuiTableHead-root': {
-                  '& .MuiTableCell-root': {
-                    fontWeight: 600,
-                    backgroundColor: colors.primary.light,
-                    borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
-                  }
-                },
-                '& .MuiTableBody-root': {
-                  '& .MuiTableRow-root': {
-                    '&:hover': {
-                      '& .MuiTableCell-root': {
-                        backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                      }
-                    }
-                  }
-                },
-                '@media (max-width: 960px)': {
-                  display: 'block',
-                  overflowX: 'auto',
-                  whiteSpace: 'nowrap',
-                }
-              }}
-            >
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Meno</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Telefón</TableCell>
-                    <TableCell>Rola</TableCell>
-                    <TableCell>Status</TableCell>
-                    {isAdmin && <TableCell>Akcie</TableCell>}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <AnimatePresence mode="wait">
-                    {teamMembers.map((member) => (
-                      <AnimatedTableRow
-                        key={member.id}
-                        variants={fadeOut}
-                        initial="initial"
-                        exit="exit"
-                        animate={deletingMemberId === member.id ? "exit" : "initial"}
-                        style={{ display: deletingMemberId === member.id ? 'none' : 'table-row' }}
-                      >
-                        <TableCell>{member.firstName} {member.lastName}</TableCell>
-                        <TableCell>{member.email}</TableCell>
-                        <TableCell>{member.phone}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={member.role} 
-                            color={member.role === 'admin' ? 'primary' : 'default'} 
-                            size="small"
-                            sx={{
-                              backgroundColor: member.role === 'admin' ? colors.accent.main : 'rgba(255, 255, 255, 0.1)',
-                              color: '#ffffff',
-                              '& .MuiChip-label': {
-                                fontSize: {
-                                  xs: '0.7rem',
-                                  sm: '0.8rem'
-                                }
+      {isMobile ? (
+        <Box>
+          {teamMembers.map(member => renderMobileTeamMember(member))}
+          {invitations.map(invite => renderMobileTeamMember(invite))}
+        </Box>
+      ) : (
+        <TableContainer component={Paper} sx={{
+          backgroundColor: colors.primary.light,
+          backdropFilter: 'blur(20px)',
+          borderRadius: '16px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+        }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Meno</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Telefón</TableCell>
+                <TableCell>Rola</TableCell>
+                <TableCell>Status</TableCell>
+                {isAdmin && <TableCell>Akcie</TableCell>}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <AnimatePresence mode="wait">
+                {teamMembers.map((member) => (
+                  <AnimatedTableRow
+                    key={member.id}
+                    variants={fadeOut}
+                    initial="initial"
+                    exit="exit"
+                    animate={deletingMemberId === member.id ? "exit" : "initial"}
+                    style={{ display: deletingMemberId === member.id ? 'none' : 'table-row' }}
+                  >
+                    <TableCell>{member.firstName} {member.lastName}</TableCell>
+                    <TableCell>{member.email}</TableCell>
+                    <TableCell>{member.phone}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={member.role} 
+                        color={member.role === 'admin' ? 'primary' : 'default'} 
+                        size="small"
+                        sx={{
+                          backgroundColor: member.role === 'admin' ? colors.accent.main : 'rgba(255, 255, 255, 0.1)',
+                          color: '#ffffff',
+                          '& .MuiChip-label': {
+                            fontSize: {
+                              xs: '0.7rem',
+                              sm: '0.8rem'
+                            }
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={member.status} 
+                        color={member.status === 'active' ? 'success' : 'warning'} 
+                        size="small"
+                        sx={{
+                          backgroundColor: member.status === 'active' ? 'rgba(46, 213, 115, 0.15)' : 'rgba(255, 159, 67, 0.15)',
+                          color: member.status === 'active' ? '#2ed573' : colors.accent.main,
+                          '& .MuiChip-label': {
+                            fontSize: {
+                              xs: '0.7rem',
+                              sm: '0.8rem'
+                            }
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton 
+                            onClick={() => handleEdit(member)}
+                            sx={{ 
+                              color: colors.accent.main,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 159, 67, 0.1)'
                               }
                             }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={member.status} 
-                            color={member.status === 'active' ? 'success' : 'warning'} 
-                            size="small"
-                            sx={{
-                              backgroundColor: member.status === 'active' ? 'rgba(46, 213, 115, 0.15)' : 'rgba(255, 159, 67, 0.15)',
-                              color: member.status === 'active' ? '#2ed573' : colors.accent.main,
-                              '& .MuiChip-label': {
-                                fontSize: {
-                                  xs: '0.7rem',
-                                  sm: '0.8rem'
-                                }
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton 
+                            onClick={() => handleDeleteClick(member)}
+                            sx={{ 
+                              color: colors.secondary.main,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 107, 107, 0.1)'
                               }
                             }}
-                          />
-                        </TableCell>
-                        {isAdmin && (
-                          <TableCell>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <IconButton 
-                                onClick={() => handleEdit(member)}
-                                sx={{ 
-                                  color: colors.accent.main,
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                                  }
-                                }}
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton 
-                                onClick={() => handleDeleteClick(member)}
-                                sx={{ 
-                                  color: colors.secondary.main,
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(255, 107, 107, 0.1)'
-                                  }
-                                }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          </TableCell>
-                        )}
-                      </AnimatedTableRow>
-                    ))}
-                  </AnimatePresence>
-                </TableBody>
-              </Table>
-            </TableContainer>
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    )}
+                  </AnimatedTableRow>
+                ))}
+              </AnimatePresence>
+            </TableBody>
+          </Table>
 
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-              Čakajúce pozvánky
-            </Typography>
-            <TableContainer 
-              component={Paper} 
-              sx={{ 
-                backgroundColor: 'transparent',
-                overflowX: 'auto',
-                width: '100%',
-                '& .MuiTable-root': {
-                  minWidth: {
-                    xs: '800px',
-                    md: '100%'
-                  }
-                },
-                '& .MuiTableCell-root': {
-                  padding: {
-                    xs: '12px 8px',
-                    sm: '16px'
-                  },
-                  fontSize: {
-                    xs: '0.8rem',
-                    sm: '0.875rem'
-                  },
-                  whiteSpace: 'nowrap',
-                  color: '#ffffff',
-                  backgroundColor: colors.primary.light,
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                },
-                '& .MuiTableHead-root': {
-                  '& .MuiTableCell-root': {
-                    fontWeight: 600,
-                    backgroundColor: colors.primary.light,
-                    borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
-                  }
-                },
-                '& .MuiTableBody-root': {
-                  '& .MuiTableRow-root': {
-                    '&:hover': {
-                      '& .MuiTableCell-root': {
-                        backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                      }
-                    }
-                  }
-                },
-                '@media (max-width: 960px)': {
-                  display: 'block',
-                  overflowX: 'auto',
-                  whiteSpace: 'nowrap',
-                }
-              }}
-            >
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Meno</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Telefón</TableCell>
-                    <TableCell>Rola</TableCell>
-                    <TableCell>Status</TableCell>
-                    {isAdmin && <TableCell>Akcie</TableCell>}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <AnimatePresence mode="sync">
-                    {invitations.map((invite) => (
-                      <AnimatedTableRow
-                        key={invite.id}
-                        variants={fadeOut}
-                        initial="initial"
-                        exit="exit"
-                        animate={deletingMemberId === invite.id ? "exit" : "initial"}
-                        style={{ display: deletingMemberId === invite.id ? 'none' : 'table-row' }}
-                      >
-                        <TableCell>{invite.firstName} {invite.lastName}</TableCell>
-                        <TableCell>{invite.email}</TableCell>
-                        <TableCell>{invite.phone}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={invite.role} 
-                            color={invite.role === 'admin' ? 'primary' : 'default'} 
-                            size="small"
-                            sx={{
-                              backgroundColor: invite.role === 'admin' ? colors.accent.main : 'rgba(255, 255, 255, 0.1)',
-                              color: '#ffffff',
-                              '& .MuiChip-label': {
-                                fontSize: {
-                                  xs: '0.7rem',
-                                  sm: '0.8rem'
-                                }
+          <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+            Čakajúce pozvánky
+          </Typography>
+          <Table>
+            <TableBody>
+              <AnimatePresence mode="sync">
+                {invitations.map((invite) => (
+                  <AnimatedTableRow
+                    key={invite.id}
+                    variants={fadeOut}
+                    initial="initial"
+                    exit="exit"
+                    animate={deletingMemberId === invite.id ? "exit" : "initial"}
+                    style={{ display: deletingMemberId === invite.id ? 'none' : 'table-row' }}
+                  >
+                    <TableCell>{invite.firstName} {invite.lastName}</TableCell>
+                    <TableCell>{invite.email}</TableCell>
+                    <TableCell>{invite.phone}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={invite.role} 
+                        color={invite.role === 'admin' ? 'primary' : 'default'} 
+                        size="small"
+                        sx={{
+                          backgroundColor: invite.role === 'admin' ? colors.accent.main : 'rgba(255, 255, 255, 0.1)',
+                          color: '#ffffff',
+                          '& .MuiChip-label': {
+                            fontSize: {
+                              xs: '0.7rem',
+                              sm: '0.8rem'
+                            }
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={invite.status} 
+                        color={invite.status === 'pending' ? 'warning' : invite.status === 'accepted' ? 'success' : 'error'} 
+                        size="small"
+                        sx={{
+                          backgroundColor: invite.status === 'pending' ? 'rgba(255, 159, 67, 0.15)' : 
+                                       invite.status === 'accepted' ? 'rgba(46, 213, 115, 0.15)' : 
+                                       'rgba(255, 107, 107, 0.15)',
+                          color: invite.status === 'pending' ? colors.accent.main : 
+                                invite.status === 'accepted' ? '#2ed573' : 
+                                colors.secondary.main,
+                          '& .MuiChip-label': {
+                            fontSize: {
+                              xs: '0.7rem',
+                              sm: '0.8rem'
+                            }
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton 
+                            onClick={() => handleEdit(invite)}
+                            sx={{ 
+                              color: colors.accent.main,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 159, 67, 0.1)'
                               }
                             }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={invite.status} 
-                            color={invite.status === 'pending' ? 'warning' : invite.status === 'accepted' ? 'success' : 'error'} 
-                            size="small"
-                            sx={{
-                              backgroundColor: invite.status === 'pending' ? 'rgba(255, 159, 67, 0.15)' : 
-                                           invite.status === 'accepted' ? 'rgba(46, 213, 115, 0.15)' : 
-                                           'rgba(255, 107, 107, 0.15)',
-                              color: invite.status === 'pending' ? colors.accent.main : 
-                                    invite.status === 'accepted' ? '#2ed573' : 
-                                    colors.secondary.main,
-                              '& .MuiChip-label': {
-                                fontSize: {
-                                  xs: '0.7rem',
-                                  sm: '0.8rem'
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          {invite.status === 'pending' && (
+                            <IconButton 
+                              onClick={() => handleResendInvitation(invite)}
+                              disabled={loading}
+                              sx={{ 
+                                color: colors.accent.main,
+                                '&:hover': {
+                                  backgroundColor: 'rgba(255, 159, 67, 0.1)'
                                 }
+                              }}
+                            >
+                              <SendIcon />
+                            </IconButton>
+                          )}
+                          <IconButton 
+                            onClick={() => handleDeleteClick(invite)}
+                            sx={{ 
+                              color: colors.secondary.main,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 107, 107, 0.1)'
                               }
                             }}
-                          />
-                        </TableCell>
-                        {isAdmin && (
-                          <TableCell>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <IconButton 
-                                onClick={() => handleEdit(invite)}
-                                sx={{ 
-                                  color: colors.accent.main,
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                                  }
-                                }}
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              {invite.status === 'pending' && (
-                                <IconButton 
-                                  onClick={() => handleResendInvitation(invite)}
-                                  disabled={loading}
-                                  sx={{ 
-                                    color: colors.accent.main,
-                                    '&:hover': {
-                                      backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                                    }
-                                  }}
-                                >
-                                  <SendIcon />
-                                </IconButton>
-                              )}
-                              <IconButton 
-                                onClick={() => handleDeleteClick(invite)}
-                                sx={{ 
-                                  color: colors.secondary.main,
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(255, 107, 107, 0.1)'
-                                  }
-                                }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          </TableCell>
-                        )}
-                      </AnimatedTableRow>
-                    ))}
-                  </AnimatePresence>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-      </Grid>
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    )}
+                  </AnimatedTableRow>
+                ))}
+              </AnimatePresence>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       {/* Dialóg pre pozvanie nového člena */}
       <Dialog

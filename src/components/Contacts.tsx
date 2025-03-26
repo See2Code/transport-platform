@@ -31,6 +31,7 @@ import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
 import SearchField from './common/SearchField';
+import { useMediaQuery } from '@mui/material';
 
 interface Country {
   code: string;
@@ -200,6 +201,81 @@ const SearchLabel = styled(Typography)({
   fontSize: '1rem',
   marginBottom: '8px',
   fontWeight: 500,
+});
+
+const MobileContactCard = styled(Paper)({
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(20px)',
+  borderRadius: '16px',
+  padding: '20px',
+  color: '#ffffff',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
+  marginBottom: '16px',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+  }
+});
+
+const MobileContactHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  marginBottom: '16px',
+});
+
+const MobileContactName = styled(Typography)({
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  color: colors.accent.main,
+  marginBottom: '4px',
+});
+
+const MobileContactCompany = styled(Typography)({
+  fontSize: '0.9rem',
+  color: 'rgba(255, 255, 255, 0.7)',
+});
+
+const MobileContactInfo = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+});
+
+const MobileInfoItem = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+});
+
+const MobileInfoLabel = styled(Typography)({
+  fontSize: '0.8rem',
+  color: 'rgba(255, 255, 255, 0.5)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+});
+
+const MobileInfoValue = styled(Typography)({
+  fontSize: '0.95rem',
+  color: '#ffffff',
+});
+
+const MobileActions = styled(Box)({
+  display: 'flex',
+  gap: '8px',
+  marginTop: '16px',
+  justifyContent: 'flex-end',
+});
+
+const ActionButton = styled(IconButton)({
+  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  color: '#ffffff',
+  padding: '8px',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  }
 });
 
 const Contacts = () => {
@@ -438,6 +514,60 @@ const Contacts = () => {
       .includes(searchTerm.toLowerCase())
   );
 
+  const renderMobileContact = (contact: Contact) => (
+    <MobileContactCard key={contact.id}>
+      <MobileContactHeader>
+        <Box>
+          <MobileContactName>
+            {contact.firstName} {contact.lastName}
+          </MobileContactName>
+          <MobileContactCompany>
+            {contact.company}
+          </MobileContactCompany>
+        </Box>
+      </MobileContactHeader>
+      
+      <MobileContactInfo>
+        <MobileInfoItem>
+          <MobileInfoLabel>Telefón</MobileInfoLabel>
+          <MobileInfoValue>
+            {contact.phonePrefix} {contact.phoneNumber}
+          </MobileInfoValue>
+        </MobileInfoItem>
+        
+        <MobileInfoItem>
+          <MobileInfoLabel>Email</MobileInfoLabel>
+          <MobileInfoValue>{contact.email}</MobileInfoValue>
+        </MobileInfoItem>
+        
+        {contact.notes && (
+          <MobileInfoItem>
+            <MobileInfoLabel>Poznámky</MobileInfoLabel>
+            <MobileInfoValue>{contact.notes}</MobileInfoValue>
+          </MobileInfoItem>
+        )}
+        
+        {contact.createdBy && (
+          <MobileInfoItem>
+            <MobileInfoLabel>Vytvoril</MobileInfoLabel>
+            <MobileInfoValue>
+              {contact.createdBy.firstName} {contact.createdBy.lastName}
+            </MobileInfoValue>
+          </MobileInfoItem>
+        )}
+      </MobileContactInfo>
+      
+      <MobileActions>
+        <ActionButton onClick={() => handleEdit(contact)}>
+          <EditIcon />
+        </ActionButton>
+        <ActionButton onClick={() => handleDelete(contact.id)}>
+          <DeleteIcon />
+        </ActionButton>
+      </MobileActions>
+    </MobileContactCard>
+  );
+
   return (
     <PageWrapper>
       <PageHeader>
@@ -459,125 +589,131 @@ const Contacts = () => {
         />
       </SearchWrapper>
 
-      <TableContainer 
-        component={Paper} 
-        sx={{ 
-          mt: 2, 
-          backgroundColor: 'transparent',
-          overflowX: 'auto',
-          width: '100%',
-          '& .MuiTable-root': {
-            minWidth: {
-              xs: '800px',
-              md: '100%'
-            }
-          },
-          '& .MuiTableCell-root': {
-            padding: {
-              xs: '12px 8px',
-              sm: '16px'
+      {useMediaQuery('(max-width: 600px)') ? (
+        <Box>
+          {filteredContacts.map(contact => renderMobileContact(contact))}
+        </Box>
+      ) : (
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            marginTop: 2, 
+            backgroundColor: 'transparent',
+            overflowX: 'auto',
+            width: '100%',
+            '& .MuiTable-root': {
+              width: {
+                xs: '800px',
+                md: '100%'
+              }
             },
-            fontSize: {
-              xs: '0.8rem',
-              sm: '0.875rem'
-            },
-            whiteSpace: 'nowrap',
-            color: '#ffffff',
-            backgroundColor: colors.primary.light,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-          },
-          '& .MuiTableHead-root': {
             '& .MuiTableCell-root': {
-              fontWeight: 600,
+              padding: {
+                xs: '12px 8px',
+                sm: '16px'
+              },
+              fontSize: {
+                xs: '0.8rem',
+                sm: '0.875rem'
+              },
+              whiteSpace: 'nowrap',
+              color: '#ffffff',
               backgroundColor: colors.primary.light,
-              borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
-            }
-          },
-          '& .MuiTableBody-root': {
-            '& .MuiTableRow-root': {
-              '&:hover': {
-                '& .MuiTableCell-root': {
-                  backgroundColor: 'rgba(255, 159, 67, 0.1)'
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            },
+            '& .MuiTableHead-root': {
+              '& .MuiTableCell-root': {
+                fontWeight: 600,
+                backgroundColor: colors.primary.light,
+                borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
+              }
+            },
+            '& .MuiTableBody-root': {
+              '& .MuiTableRow-root': {
+                '&:hover': {
+                  '& .MuiTableCell-root': {
+                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                  }
                 }
               }
             }
-          }
-        }}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Spoločnosť</TableCell>
-              <TableCell>Kontaktná osoba</TableCell>
-              <TableCell>Mobil</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Vytvoril</TableCell>
-              <TableCell>Dátum vytvorenia</TableCell>
-              <TableCell>Poznámka</TableCell>
-              <TableCell>Akcie</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredContacts.map((contact) => (
-              <TableRow key={contact.id}>
-                <TableCell>{contact.company}</TableCell>
-                <TableCell>{contact.firstName} {contact.lastName}</TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <img
-                      loading="lazy"
-                      width="20"
-                      src={`https://flagcdn.com/${contact.countryCode}.svg`}
-                      alt=""
-                    />
-                    {contact.phonePrefix} {contact.phoneNumber}
-                  </Box>
-                </TableCell>
-                <TableCell>{contact.email}</TableCell>
-                <TableCell>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {contact.createdAt?.toDate().toLocaleString('sk-SK', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </TableCell>
-                <TableCell sx={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {contact.notes || ''}
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <IconButton 
-                      onClick={() => handleEdit(contact)} 
-                      sx={{ 
-                        color: colors.accent.main,
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                        }
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton 
-                      onClick={() => contact.id && handleDelete(contact.id)} 
-                      sx={{ 
-                        color: colors.secondary.main,
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 107, 107, 0.1)'
-                        }
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </TableCell>
+          }}
+        >
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Spoločnosť</TableCell>
+                <TableCell>Kontaktná osoba</TableCell>
+                <TableCell>Mobil</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Vytvoril</TableCell>
+                <TableCell>Dátum vytvorenia</TableCell>
+                <TableCell>Poznámka</TableCell>
+                <TableCell>Akcie</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filteredContacts.map((contact) => (
+                <TableRow key={contact.id}>
+                  <TableCell>{contact.company}</TableCell>
+                  <TableCell>{contact.firstName} {contact.lastName}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <img
+                        loading="lazy"
+                        width="20"
+                        src={`https://flagcdn.com/${contact.countryCode}.svg`}
+                        alt=""
+                      />
+                      {contact.phonePrefix} {contact.phoneNumber}
+                    </Box>
+                  </TableCell>
+                  <TableCell>{contact.email}</TableCell>
+                  <TableCell>{contact.createdBy?.firstName} {contact.createdBy?.lastName}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                    {contact.createdAt?.toDate().toLocaleString('sk-SK', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {contact.notes || ''}
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton 
+                        onClick={() => handleEdit(contact)} 
+                        sx={{ 
+                          color: colors.accent.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                          }
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton 
+                        onClick={() => contact.id && handleDelete(contact.id)} 
+                        sx={{ 
+                          color: colors.secondary.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                          }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <Dialog 
         open={openDialog} 

@@ -46,6 +46,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/material.css';
 import { useNavigate } from 'react-router-dom';
 import SearchField from './common/SearchField';
+import { format } from 'date-fns';
 
 const euCountries = [
   { code: 'SK', name: 'Slovensko', flag: '🇸🇰', prefix: '+421' },
@@ -110,11 +111,65 @@ interface BusinessCase {
   countryCode?: string;
 }
 
+const MobileBusinessCard = styled(Box)({
+  backgroundColor: colors.primary.light,
+  borderRadius: '16px',
+  padding: '16px',
+  color: '#ffffff',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
+  marginBottom: '16px',
+  width: '100%'
+});
+
+const MobileCardHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  marginBottom: '12px'
+});
+
+const MobileCompanyName = styled(Typography)({
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  color: colors.accent.main
+});
+
+const MobileCardContent = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px'
+});
+
+const MobileInfoRow = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontSize: '0.9rem',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.1rem',
+    color: colors.accent.main
+  }
+});
+
+const MobileCardActions = styled(Box)({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: '8px',
+  marginTop: '12px',
+  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+  paddingTop: '12px'
+});
+
 const PageWrapper = styled('div')({
   padding: '24px',
   position: 'relative',
   maxWidth: '100%',
-  overflowX: 'hidden'
+  overflowX: 'hidden',
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    paddingBottom: '80px' // Priestor pre bottom navigation
+  }
 });
 
 const PageHeader = styled(Box)({
@@ -192,6 +247,13 @@ const SearchWrapper = styled(Box)({
   }
 });
 
+const convertToDate = (dateTime: Date | Timestamp | null): Date | null => {
+  if (!dateTime) return null;
+  if (dateTime instanceof Date) return dateTime;
+  if (dateTime instanceof Timestamp) return dateTime.toDate();
+  return new Date(dateTime);
+};
+
 export default function BusinessCases() {
   const [cases, setCases] = useState<BusinessCase[]>([]);
   const [open, setOpen] = useState(false);
@@ -243,7 +305,7 @@ export default function BusinessCases() {
           id: doc.id,
           ...data,
           createdAt: data.createdAt instanceof Timestamp ? data.createdAt : Timestamp.fromDate(new Date(data.createdAt)),
-          reminderDateTime: data.reminderDateTime ? (data.reminderDateTime instanceof Timestamp ? data.reminderDateTime.toDate() : new Date(data.reminderDateTime)) : null
+          reminderDateTime: data.reminderDateTime ? new Date(data.reminderDateTime.seconds * 1000) : null
         };
       }) as BusinessCase[];
       setCases(casesData);
@@ -441,12 +503,99 @@ export default function BusinessCases() {
       .includes(searchTerm.toLowerCase())
   );
 
+  const renderMobileCase = (businessCase: BusinessCase) => (
+    <MobileBusinessCard key={businessCase.id}>
+      <MobileCardHeader>
+        <Box>
+          <MobileCompanyName>{businessCase.companyName}</MobileCompanyName>
+          <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            {businessCase.vatNumber}
+          </Typography>
+        </Box>
+        <Chip
+          label={caseStatuses[businessCase.status].label}
+          color={caseStatuses[businessCase.status].color}
+          size="small"
+          sx={{ ml: 1 }}
+        />
+      </MobileCardHeader>
+
+      <MobileCardContent>
+        <MobileInfoRow>
+          <BusinessIcon />
+          <Typography>{businessCase.companyAddress}</Typography>
+        </MobileInfoRow>
+
+        <MobileInfoRow>
+          <PersonIcon />
+          <Typography>
+            {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}
+          </Typography>
+        </MobileInfoRow>
+
+        <MobileInfoRow>
+          <PhoneIcon />
+          <Typography>{businessCase.contactPerson.phone}</Typography>
+        </MobileInfoRow>
+
+        <MobileInfoRow>
+          <EmailIcon />
+          <Typography>{businessCase.contactPerson.email}</Typography>
+        </MobileInfoRow>
+
+        {businessCase.reminderDateTime && (
+          <MobileInfoRow>
+            <AccessTimeIcon />
+            <Typography>
+              Pripomienka: {businessCase.reminderDateTime.toLocaleString('sk-SK', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </Typography>
+          </MobileInfoRow>
+        )}
+
+        {businessCase.reminderNote && (
+          <Typography 
+            sx={{ 
+              mt: 1, 
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontSize: '0.9rem',
+              fontStyle: 'italic'
+            }}
+          >
+            {businessCase.reminderNote}
+          </Typography>
+        )}
+      </MobileCardContent>
+
+      <MobileCardActions>
+        <IconButton
+          size="small"
+          onClick={() => handleEdit(businessCase)}
+          sx={{ color: colors.accent.main }}
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
+        <IconButton
+          size="small"
+          onClick={() => handleDelete(businessCase.id!)}
+          sx={{ color: colors.secondary.main }}
+        >
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      </MobileCardActions>
+    </MobileBusinessCard>
+  );
+
   return (
     <PageWrapper>
       <PageHeader>
         <PageTitle>Obchodné prípady</PageTitle>
         <AddButton
-          variant="contained"
           startIcon={<AddIcon />}
           onClick={() => {
             setEditCase(null);
@@ -483,104 +632,27 @@ export default function BusinessCases() {
         />
       </SearchWrapper>
 
+      {/* Mobilné zobrazenie */}
+      <Box sx={{ 
+        display: { 
+          xs: 'block', 
+          md: 'none' 
+        }
+      }}>
+        {filteredCases.map(businessCase => renderMobileCase(businessCase))}
+      </Box>
+
+      {/* Desktop zobrazenie */}
       <TableContainer 
         component={Paper} 
         sx={{ 
-          mt: 2, 
+          display: { 
+            xs: 'none', 
+            md: 'block' 
+          },
           backgroundColor: 'transparent',
-          overflowX: 'auto',
-          width: '100%',
-          position: 'relative',
-          '& .MuiTable-root': {
-            minWidth: '1200px',
-            '@media (max-width: 1200px)': {
-              minWidth: '800px'
-            }
-          },
-          '& .MuiTableCell-root': {
-            padding: {
-              xs: '12px 8px',
-              sm: '16px'
-            },
-            fontSize: {
-              xs: '0.8rem',
-              sm: '0.875rem'
-            },
-            whiteSpace: 'nowrap',
-            color: '#ffffff',
-            backgroundColor: colors.primary.light,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            '&:nth-of-type(1)': { // Dátum vytvorenia
-              width: '140px',
-              minWidth: '140px'
-            },
-            '&:nth-of-type(2)': { // Status
-              width: '120px',
-              minWidth: '120px'
-            },
-            '&:nth-of-type(3)': { // Firma
-              width: '200px',
-              minWidth: '200px'
-            },
-            '&:nth-of-type(4)': { // IČ DPH
-              width: '130px',
-              minWidth: '130px'
-            },
-            '&:nth-of-type(5)': { // Kontaktná osoba
-              width: '180px',
-              minWidth: '180px'
-            },
-            '&:nth-of-type(6)': { // Telefón
-              width: '150px',
-              minWidth: '150px'
-            },
-            '&:nth-of-type(7)': { // Email
-              width: '200px',
-              minWidth: '200px'
-            },
-            '&:nth-of-type(8)': { // Vytvoril
-              width: '150px',
-              minWidth: '150px'
-            },
-            '&:nth-of-type(9)': { // Pripomienka
-              width: '140px',
-              minWidth: '140px'
-            },
-            '&:last-child': { // Akcie
-              position: 'sticky',
-              right: 0,
-              width: '100px',
-              minWidth: '100px',
-              backgroundColor: colors.primary.light,
-              boxShadow: '-5px 0 10px rgba(0,0,0,0.2)'
-            }
-          },
-          '& .MuiTableHead-root': {
-            '& .MuiTableCell-root': {
-              fontWeight: 600,
-              backgroundColor: colors.primary.light,
-              borderBottom: '2px solid rgba(255, 255, 255, 0.15)',
-              position: 'sticky',
-              top: 0,
-              zIndex: 1,
-              '&:last-child': {
-                right: 0,
-                zIndex: 2
-              }
-            }
-          },
-          '& .MuiTableBody-root': {
-            '& .MuiTableRow-root': {
-              '&:hover': {
-                '& .MuiTableCell-root': {
-                  backgroundColor: 'rgba(255, 159, 67, 0.1)',
-                  '&:last-child': {
-                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                  }
-                }
-              }
-            }
-          }
+          backgroundImage: 'none',
+          boxShadow: 'none'
         }}
       >
         <Table>

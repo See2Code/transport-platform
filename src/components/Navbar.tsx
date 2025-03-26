@@ -229,6 +229,14 @@ const SideNav = styled('nav')(({ theme }) => ({
       padding: '12px 0',
     }
   },
+  '@media (max-width: 600px)': {
+    transform: 'translateX(-100%)',
+    width: '85%',
+    maxWidth: '320px',
+    '&.drawer-open': {
+      transform: 'translateX(0)',
+    }
+  },
   '& .MuiListItemText-root': {
     opacity: 1,
     transform: 'translateX(0)',
@@ -240,66 +248,6 @@ const SideNav = styled('nav')(({ theme }) => ({
   }
 }));
 
-const MainWrapper = styled('div')({
-  flexGrow: 1,
-  marginLeft: drawerWidth,
-  minHeight: '100vh',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&.drawer-closed': {
-    marginLeft: miniDrawerWidth,
-  }
-});
-
-const ContentWrapper = styled('div')({
-  padding: '16px',
-  minHeight: '100vh',
-  backgroundColor: colors.primary.main,
-  position: 'relative',
-  overflowX: 'hidden'
-});
-
-const BottomNav = styled(Box)({
-  position: 'fixed',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: colors.primary.light,
-  backdropFilter: 'blur(10px)',
-  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-  zIndex: 1000,
-  display: 'none',
-  '@media (max-width: 600px)': {
-    display: 'flex',
-    justifyContent: 'space-around',
-    padding: '8px 0'
-  }
-});
-
-const BottomNavItem = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  color: 'rgba(255, 255, 255, 0.7)',
-  padding: '4px 0',
-  minWidth: '64px',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease-in-out',
-  '&:hover': {
-    color: colors.accent.main
-  },
-  '&.active': {
-    color: colors.accent.main
-  },
-  '& .MuiSvgIcon-root': {
-    fontSize: '24px',
-    marginBottom: '2px'
-  },
-  '& .label': {
-    fontSize: '0.7rem',
-    textAlign: 'center'
-  }
-});
-
 const Drawer = styled('div')(({ theme }) => ({
   width: drawerWidth,
   flexShrink: 0,
@@ -310,14 +258,68 @@ const Drawer = styled('div')(({ theme }) => ({
   height: '100vh',
   position: 'fixed',
   overflowX: 'hidden',
-  transition: 'width 0.3s ease-in-out',
+  transition: 'width 0.3s ease-in-out, transform 0.3s ease-in-out',
   '&.drawer-closed': {
     width: miniDrawerWidth,
   },
   '@media (max-width: 600px)': {
-    display: 'none'
+    transform: 'translateX(-100%)',
+    '&.drawer-open': {
+      transform: 'translateX(0)',
+      width: drawerWidth
+    }
   }
 }));
+
+const MainWrapper = styled('div')({
+  flexGrow: 1,
+  marginLeft: drawerWidth,
+  minHeight: '100vh',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&.drawer-closed': {
+    marginLeft: miniDrawerWidth,
+  },
+  '@media (max-width: 600px)': {
+    marginLeft: 0,
+    width: '100%'
+  }
+});
+
+const ContentWrapper = styled('div')({
+  padding: '16px',
+  minHeight: '100vh',
+  backgroundColor: colors.primary.main,
+  position: 'relative',
+  overflowX: 'hidden',
+  '@media (max-width: 600px)': {
+    padding: '12px'
+  }
+});
+
+const AppWrapper = styled('div')({
+  display: 'flex',
+  minHeight: '100vh',
+  backgroundColor: colors.primary.main,
+});
+
+const Overlay = styled('div')({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  zIndex: 1100,
+  opacity: 0,
+  visibility: 'hidden',
+  transition: 'all 0.3s ease-in-out',
+  '@media (max-width: 600px)': {
+    '&.visible': {
+      opacity: 1,
+      visibility: 'visible'
+    }
+  }
+});
 
 const Navbar = () => {
   const { currentUser, userData, logout } = useAuth();
@@ -362,12 +364,6 @@ const Navbar = () => {
     { text: 'Tím', icon: <GroupIcon />, path: '/team' },
     { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings' },
   ];
-
-  const AppWrapper = styled('div')({
-    display: 'flex',
-    minHeight: '100vh',
-    backgroundColor: colors.primary.main,
-  });
 
   const drawer = (
     <>
@@ -576,37 +572,22 @@ const Navbar = () => {
     </>
   );
 
-  const renderBottomNav = () => {
-    const location = window.location.pathname;
-    
-    const bottomNavItems = [
-      { icon: <DashboardIcon />, label: 'Dashboard', path: '/' },
-      { icon: <VisibilityIcon />, label: 'Prepravy', path: '/tracked-transports' },
-      { icon: <BusinessIcon />, label: 'Prípady', path: '/business-cases' },
-      { icon: <ContactsIcon />, label: 'Kontakty', path: '/contacts' },
-    ];
-
-    return (
-      <BottomNav>
-        {bottomNavItems.map((item) => (
-          <BottomNavItem
-            key={item.path}
-            className={location === item.path ? 'active' : ''}
-            onClick={() => navigate(item.path)}
-          >
-            {item.icon}
-            <span className="label">{item.label}</span>
-          </BottomNavItem>
-        ))}
-      </BottomNav>
-    );
+  const handleOverlayClick = () => {
+    if (isMobile) {
+      setMobileOpen(false);
+    }
   };
 
   return (
     <AppWrapper>
       <CssBaseline />
-      
-      <SideNav className={!mobileOpen ? 'drawer-closed' : ''}>
+
+      <Overlay 
+        className={mobileOpen ? 'visible' : ''} 
+        onClick={handleOverlayClick}
+      />
+
+      <SideNav className={`${!mobileOpen ? 'drawer-closed' : ''} ${isMobile ? (mobileOpen ? 'drawer-open' : '') : ''}`}>
         {drawer}
       </SideNav>
 
@@ -615,8 +596,6 @@ const Navbar = () => {
           {/* Page content goes here */}
         </ContentWrapper>
       </MainWrapper>
-
-      {renderBottomNav()}
     </AppWrapper>
   );
 };
