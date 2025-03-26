@@ -39,6 +39,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import BusinessIcon from '@mui/icons-material/Business';
 import PersonIcon from '@mui/icons-material/Person';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import InfoIcon from '@mui/icons-material/Info';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -885,6 +886,31 @@ export default function BusinessCases() {
                 </TableCell>
                 <TableCell align="right">
                   <Box sx={{ display: 'flex', gap: 1 }}>
+                    {businessCase.internalNote && (
+                      <Tooltip 
+                        title={
+                          <Box sx={{ p: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                              Interná poznámka:
+                            </Typography>
+                            <Typography variant="body2">
+                              {businessCase.internalNote}
+                            </Typography>
+                          </Box>
+                        }
+                      >
+                        <IconButton 
+                          sx={{ 
+                            color: colors.accent.main,
+                            '&:hover': {
+                              backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                            }
+                          }}
+                        >
+                          <InfoIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                     <Tooltip title="Upraviť">
                       <IconButton 
                         onClick={() => handleEdit(businessCase)}
