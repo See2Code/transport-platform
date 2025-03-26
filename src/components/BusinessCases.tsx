@@ -180,15 +180,15 @@ const PageHeader = styled(Box)({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: '32px',
+  marginBottom: '24px',
   position: 'relative',
   zIndex: 1,
   backgroundColor: colors.primary.main,
   '@media (max-width: 600px)': {
     flexDirection: 'column',
-    gap: '16px',
+    gap: '8px',
     alignItems: 'flex-start',
-    padding: '16px 0'
+    padding: '8px 0'
   }
 });
 
@@ -197,7 +197,7 @@ const PageTitle = styled(Typography)({
   fontWeight: 700,
   color: '#ffffff',
   position: 'relative',
-  marginBottom: '16px',
+  marginBottom: '8px',
   '&::after': {
     content: '""',
     position: 'absolute',
