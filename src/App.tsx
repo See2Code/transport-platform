@@ -1,144 +1,99 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material';
-import CssBaseline from '@mui/material/CssBaseline';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { sk } from 'date-fns/locale';
-import { AuthProvider } from './contexts/AuthContext';
-import Home from './components/Home';
-import Login from './components/Login';
-import Register from './components/Register';
-import RegisterUser from './components/RegisterUser';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, createTheme, styled, CssBaseline, GlobalStyles } from '@mui/material';
+import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
-import DashboardLayout from './components/DashboardLayout';
 import Team from './components/Team';
-import Settings from './components/Settings';
-import AcceptInvitation from './components/AcceptInvitation';
-import Transport from './components/Transport';
-import PrivateRoute from './components/PrivateRoute';
 import Contacts from './components/Contacts';
+import Settings from './components/Settings';
+import Transport from './components/Transport';
 import TrackedTransports from './components/TrackedTransports';
-import BusinessCases from './components/BusinessCases';
+import { AuthProvider } from './contexts/AuthContext';
 
 const theme = createTheme({
   palette: {
     mode: 'dark',
-    primary: {
-      main: '#ff9f43',
-      light: '#00d2a0',
-      dark: '#009b7d',
-    },
-    secondary: {
-      main: '#ff6b6b',
-      light: '#ff8585',
-      dark: '#ff5252',
-    },
     background: {
-      default: '#1a1a2e',
-      paper: '#232342',
-    },
-    text: {
-      primary: '#ffffff',
-      secondary: 'rgba(255, 255, 255, 0.7)',
+      default: '#12121f',
+      paper: 'rgba(28, 28, 45, 0.95)',
     },
   },
   components: {
-    MuiButton: {
+    MuiCssBaseline: {
       styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          padding: '10px 24px',
-          fontWeight: 500,
-          letterSpacing: 0.5,
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
+        body: {
+          backgroundColor: '#12121f',
+          margin: 0,
+          padding: 0,
         },
       },
     },
   },
 });
 
+const globalStyles = {
+  '*': {
+    boxSizing: 'border-box',
+    margin: 0,
+    padding: 0,
+  },
+  'html, body': {
+    backgroundColor: '#12121f',
+    minHeight: '100vh',
+    width: '100%',
+  },
+  '#root': {
+    backgroundColor: '#12121f',
+    minHeight: '100vh',
+    width: '100%',
+  },
+};
+
+const AppContainer = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh',
+  width: '100%',
+  backgroundColor: '#12121f',
+  position: 'relative',
+});
+
+const PageContent = styled('div')({
+  flexGrow: 1,
+  marginTop: '64px',
+  padding: '24px 16px',
+  backgroundColor: '#12121f',
+  position: 'relative',
+  zIndex: 1,
+  '@media (max-width: 600px)': {
+    marginTop: '56px',
+    padding: '16px',
+  },
+});
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-        <CssBaseline />
-        <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/register-user" element={<RegisterUser />} />
-              <Route path="/dashboard" element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Dashboard />
-                  </DashboardLayout>
-                </PrivateRoute>
-              } />
-              <Route path="/transport" element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Transport />
-                  </DashboardLayout>
-                </PrivateRoute>
-              } />
-              <Route path="/tracked-transports" element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <TrackedTransports />
-                  </DashboardLayout>
-                </PrivateRoute>
-              } />
-              <Route path="/team" element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Team />
-                  </DashboardLayout>
-                </PrivateRoute>
-              } />
-              <Route path="/settings" element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Settings />
-                  </DashboardLayout>
-                </PrivateRoute>
-              } />
-              <Route path="/accept-invitation/:invitationId" element={<AcceptInvitation />} />
-              <Route path="/contacts" element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Contacts />
-                  </DashboardLayout>
-                </PrivateRoute>
-              } />
-              <Route path="/business-cases" element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <BusinessCases />
-                  </DashboardLayout>
-                </PrivateRoute>
-              } />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Router>
-        </AuthProvider>
-      </LocalizationProvider>
+      <CssBaseline />
+      <GlobalStyles styles={globalStyles} />
+      <AuthProvider>
+        <Router>
+          <AppContainer>
+            <Navbar />
+            <PageContent>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/contacts" element={<Contacts />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/transports" element={<Transport />} />
+                <Route path="/tracked-transports" element={<TrackedTransports />} />
+              </Routes>
+            </PageContent>
+          </AppContainer>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

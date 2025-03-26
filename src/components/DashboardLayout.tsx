@@ -8,11 +8,27 @@ interface DashboardLayoutProps {
 
 function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Navbar />
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      minHeight: '100vh', 
+      overflow: 'hidden' 
+    }}>
+      <Box 
+        component="main" 
+        sx={{ 
+          flexGrow: 1,
+          p: 0,
+          background: 'transparent',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 'calc(100vh - 64px)',
+          overflow: 'auto'
+        }}
+      >
         {children}
       </Box>
+      <Navbar />
     </Box>
   );
 }

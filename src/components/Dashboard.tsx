@@ -9,7 +9,7 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
+  TableContainer as MuiTableContainer,
   TableHead,
   TableRow,
 } from '@mui/material';
@@ -69,9 +69,15 @@ interface Reminder {
 }
 
 const PageWrapper = styled(Box)(({ theme }) => ({
-  padding: '30px',
-  [theme.breakpoints.down('sm')]: {
+  padding: '24px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '24px',
+  width: '100%',
+  height: '100%',
+  '@media (max-width: 600px)': {
     padding: '16px',
+    gap: '16px'
   }
 }));
 
@@ -79,10 +85,10 @@ const PageHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: '30px',
-  [theme.breakpoints.down('sm')]: {
-    marginBottom: '20px',
-  }
+  padding: '16px 24px',
+  paddingLeft: 0,
+  background: 'transparent',
+  border: 'none'
 }));
 
 const PageTitle = styled(Typography)(({ theme }) => ({
@@ -106,18 +112,52 @@ const PageTitle = styled(Typography)(({ theme }) => ({
 }));
 
 const StatsCard = styled(motion(Card))(({ theme }) => ({
-  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  backgroundColor: 'rgba(255, 255, 255, 0.03)',
   borderRadius: '16px',
   backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
   color: '#ffffff',
+  height: '100%',
   transition: 'all 0.3s ease',
+  overflow: 'hidden',
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: '0 8px 24px rgba(255, 159, 67, 0.2)',
-  },
-  [theme.breakpoints.down('sm')]: {
-    borderRadius: '12px',
+    border: '1px solid rgba(255, 159, 67, 0.2)',
+    '& .MuiCardContent-root': {
+      background: 'linear-gradient(180deg, rgba(255, 159, 67, 0.1) 0%, rgba(255, 159, 67, 0) 100%)',
+    }
+  }
+}));
+
+const StatsCardContent = styled(CardContent)({
+  padding: '24px',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+  '&:last-child': {
+    paddingBottom: '24px'
+  }
+});
+
+const ChartContainer = styled(Box)(({ theme }) => ({
+  background: 'rgba(255, 255, 255, 0.03)',
+  borderRadius: '16px',
+  padding: '24px',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
+  '@media (max-width: 600px)': {
+    padding: '16px'
+  }
+}));
+
+const DataTableContainer = styled(Box)(({ theme }) => ({
+  background: 'rgba(255, 255, 255, 0.03)',
+  borderRadius: '16px',
+  padding: '24px',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
+  '@media (max-width: 600px)': {
+    padding: '16px'
   }
 }));
 
@@ -543,20 +583,16 @@ export default function Dashboard() {
         <PageTitle>Dashboard</PageTitle>
       </PageHeader>
 
-      <Grid container spacing={{ xs: 2, sm: 3 }}>
+      <Grid container spacing={3}>
         {/* Štatistické karty */}
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
+            whileHover={{ y: -5 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <CardContent sx={{ 
-              p: { xs: 2, sm: 3 },
-              '&:last-child': { pb: { xs: 2, sm: 3 } }
-            }}>
+            <StatsCardContent>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -581,22 +617,18 @@ export default function Dashboard() {
                 opacity: 0.7,
                 fontSize: { xs: '0.9rem', sm: '1rem' }
               }}>Obchodné prípady</Typography>
-            </CardContent>
+            </StatsCardContent>
           </StatsCard>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
+            whileHover={{ y: -5 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <CardContent sx={{ 
-              p: { xs: 2, sm: 3 },
-              '&:last-child': { pb: { xs: 2, sm: 3 } }
-            }}>
+            <StatsCardContent>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -621,22 +653,18 @@ export default function Dashboard() {
                 opacity: 0.7,
                 fontSize: { xs: '0.9rem', sm: '1rem' }
               }}>Kontakty</Typography>
-            </CardContent>
+            </StatsCardContent>
           </StatsCard>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
+            whileHover={{ y: -5 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <CardContent sx={{ 
-              p: { xs: 2, sm: 3 },
-              '&:last-child': { pb: { xs: 2, sm: 3 } }
-            }}>
+            <StatsCardContent>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -661,22 +689,18 @@ export default function Dashboard() {
                 opacity: 0.7,
                 fontSize: { xs: '0.9rem', sm: '1rem' }
               }}>Aktívne pripomienky</Typography>
-            </CardContent>
+            </StatsCardContent>
           </StatsCard>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
+            whileHover={{ y: -5 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <CardContent sx={{ 
-              p: { xs: 2, sm: 3 },
-              '&:last-child': { pb: { xs: 2, sm: 3 } }
-            }}>
+            <StatsCardContent>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -701,14 +725,14 @@ export default function Dashboard() {
                 opacity: 0.7,
                 fontSize: { xs: '0.9rem', sm: '1rem' }
               }}>Členovia tímu</Typography>
-            </CardContent>
+            </StatsCardContent>
           </StatsCard>
         </Grid>
 
         {/* Grafy */}
         <Grid item xs={12}>
           <StatsCard>
-            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            <StatsCardContent>
               <Typography variant="h6" sx={{ 
                 mb: { xs: 2, sm: 3 }, 
                 color: '#ffffff',
@@ -856,127 +880,131 @@ export default function Dashboard() {
                   Celkom: {stats.statusDistribution.reduce((acc, curr) => acc + curr.value, 0)}
                 </Typography>
               </Box>
-            </CardContent>
+            </StatsCardContent>
           </StatsCard>
         </Grid>
 
         {/* Najnovšie obchodné prípady */}
         <Grid item xs={12}>
           <StatsCard>
-            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            <StatsCardContent>
               <Typography variant="h6" sx={{ 
                 mb: { xs: 1.5, sm: 2 },
                 fontSize: { xs: '1.1rem', sm: '1.25rem' }
               }}>Najnovšie obchodné prípady</Typography>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ 
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        padding: { xs: '8px', sm: '16px' },
-                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                      }}>Firma</TableCell>
-                      <TableCell sx={{ 
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        padding: { xs: '8px', sm: '16px' },
-                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                      }}>Status</TableCell>
-                      <TableCell sx={{ 
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        padding: { xs: '8px', sm: '16px' },
-                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                      }}>Dátum</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {stats.recentBusinessCases.map((bc: BusinessCase) => (
-                      <TableRow key={bc.id}>
+              <DataTableContainer>
+                <MuiTableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
                         <TableCell sx={{ 
-                          color: '#ffffff',
+                          color: 'rgba(255, 255, 255, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                        }}>{bc.companyName}</TableCell>
+                        }}>Firma</TableCell>
                         <TableCell sx={{ 
-                          color: '#ffffff',
+                          color: 'rgba(255, 255, 255, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                        }}>{bc.status}</TableCell>
+                        }}>Status</TableCell>
                         <TableCell sx={{ 
-                          color: '#ffffff',
+                          color: 'rgba(255, 255, 255, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                        }}>
-                          {bc.createdAt instanceof Timestamp ? 
-                            bc.createdAt.toDate().toLocaleDateString('sk-SK') :
-                            new Date(bc.createdAt).toLocaleDateString('sk-SK')}
-                        </TableCell>
+                        }}>Dátum</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+                    </TableHead>
+                    <TableBody>
+                      {stats.recentBusinessCases.map((bc: BusinessCase) => (
+                        <TableRow key={bc.id}>
+                          <TableCell sx={{ 
+                            color: '#ffffff',
+                            padding: { xs: '8px', sm: '16px' },
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                          }}>{bc.companyName}</TableCell>
+                          <TableCell sx={{ 
+                            color: '#ffffff',
+                            padding: { xs: '8px', sm: '16px' },
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                          }}>{bc.status}</TableCell>
+                          <TableCell sx={{ 
+                            color: '#ffffff',
+                            padding: { xs: '8px', sm: '16px' },
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                          }}>
+                            {bc.createdAt instanceof Timestamp ? 
+                              bc.createdAt.toDate().toLocaleDateString('sk-SK') :
+                              new Date(bc.createdAt).toLocaleDateString('sk-SK')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </MuiTableContainer>
+              </DataTableContainer>
+            </StatsCardContent>
           </StatsCard>
         </Grid>
 
         {/* Nadchádzajúce pripomienky */}
         <Grid item xs={12}>
           <StatsCard>
-            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            <StatsCardContent>
               <Typography variant="h6" sx={{ 
                 mb: { xs: 1.5, sm: 2 },
                 fontSize: { xs: '1.1rem', sm: '1.25rem' }
               }}>Nadchádzajúce pripomienky</Typography>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ 
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        padding: { xs: '8px', sm: '16px' },
-                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                      }}>Firma</TableCell>
-                      <TableCell sx={{ 
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        padding: { xs: '8px', sm: '16px' },
-                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                      }}>Poznámka</TableCell>
-                      <TableCell sx={{ 
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        padding: { xs: '8px', sm: '16px' },
-                        fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                      }}>Dátum a čas</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {stats.upcomingReminders.map((reminder: Reminder) => (
-                      <TableRow key={reminder.id}>
+              <DataTableContainer>
+                <MuiTableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
                         <TableCell sx={{ 
-                          color: '#ffffff',
+                          color: 'rgba(255, 255, 255, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                        }}>{reminder.companyName}</TableCell>
+                        }}>Firma</TableCell>
                         <TableCell sx={{ 
-                          color: '#ffffff',
+                          color: 'rgba(255, 255, 255, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                        }}>{reminder.reminderNote}</TableCell>
+                        }}>Poznámka</TableCell>
                         <TableCell sx={{ 
-                          color: '#ffffff',
+                          color: 'rgba(255, 255, 255, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                        }}>
-                          {reminder.reminderDateTime instanceof Timestamp ? 
-                            reminder.reminderDateTime.toDate().toLocaleString('sk-SK') :
-                            new Date(reminder.reminderDateTime).toLocaleString('sk-SK')}
-                        </TableCell>
+                        }}>Dátum a čas</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+                    </TableHead>
+                    <TableBody>
+                      {stats.upcomingReminders.map((reminder: Reminder) => (
+                        <TableRow key={reminder.id}>
+                          <TableCell sx={{ 
+                            color: '#ffffff',
+                            padding: { xs: '8px', sm: '16px' },
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                          }}>{reminder.companyName}</TableCell>
+                          <TableCell sx={{ 
+                            color: '#ffffff',
+                            padding: { xs: '8px', sm: '16px' },
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                          }}>{reminder.reminderNote}</TableCell>
+                          <TableCell sx={{ 
+                            color: '#ffffff',
+                            padding: { xs: '8px', sm: '16px' },
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                          }}>
+                            {reminder.reminderDateTime instanceof Timestamp ? 
+                              reminder.reminderDateTime.toDate().toLocaleString('sk-SK') :
+                              new Date(reminder.reminderDateTime).toLocaleString('sk-SK')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </MuiTableContainer>
+              </DataTableContainer>
+            </StatsCardContent>
           </StatsCard>
         </Grid>
       </Grid>

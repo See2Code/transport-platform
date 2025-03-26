@@ -49,30 +49,30 @@ const miniDrawerWidth = 64;
 const colors = {
   primary: {
     main: '#ff9f43',
+    light: '#ffc107',
+    dark: '#f57c00',
+  },
+  background: {
+    main: 'rgba(28, 28, 45, 0.95)',
     light: 'rgba(35, 35, 66, 0.95)',
     dark: '#12121f',
   },
-  secondary: {
-    main: '#ff6b6b',
-    light: '#ff8787',
-    dark: '#fa5252',
-  },
-  accent: {
-    main: '#00b894',
-    light: '#00d2a0',
-    dark: '#00a07a',
+  text: {
+    primary: '#ffffff',
+    secondary: 'rgba(255, 255, 255, 0.7)',
+    disabled: 'rgba(255, 255, 255, 0.5)',
   }
 };
 
 const Logo = styled(Typography)(({ theme }) => ({
   fontWeight: 800,
-  color: colors.accent.main,
+  color: colors.primary.main,
   fontSize: '1.5rem',
   marginRight: theme.spacing(2),
   letterSpacing: '-0.5px',
   transition: 'color 0.2s ease-in-out',
   '&:hover': {
-    color: colors.accent.light,
+    color: colors.primary.light,
   }
 }));
 
@@ -97,39 +97,38 @@ const AesaLogoMini = styled('img')({
 });
 
 const DrawerHeader = styled('div')({
-  padding: '28px 24px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  height: '88px',
-  borderBottom: `1px solid rgba(255, 255, 255, 0.06)`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&.drawer-closed': {
-    justifyContent: 'center',
-    padding: '28px 12px',
-  }
+  display: 'none'
 });
 
 const ToggleButton = styled(IconButton)(({ theme }) => ({
   position: 'fixed',
-  right: '12px',
+  right: '24px',
   bottom: '24px',
-  backgroundColor: '#ff9f43',
-  color: '#ffffff',
+  backgroundColor: `${colors.primary.main}e6`,
+  color: colors.text.primary,
   zIndex: 1300,
-  padding: '8px',
-  borderRadius: '12px',
-  width: '40px',
-  height: '40px',
-  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
+  padding: '12px',
+  borderRadius: '16px',
+  width: '48px',
+  height: '48px',
+  backdropFilter: 'blur(10px)',
+  boxShadow: `0 4px 20px ${colors.primary.main}4d`,
   '&:hover': {
-    backgroundColor: '#ffbe76',
+    backgroundColor: colors.primary.main,
     transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
+    boxShadow: `0 8px 24px ${colors.primary.main}66`,
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+    boxShadow: `0 4px 16px ${colors.primary.main}4d`,
   },
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '& .MuiSvgIcon-root': {
     fontSize: '24px',
+    transition: 'transform 0.3s ease',
+  },
+  '&:hover .MuiSvgIcon-root': {
+    transform: 'scale(1.1)',
   },
   '@media (max-width: 600px)': {
     position: 'relative',
@@ -141,18 +140,20 @@ const ToggleButton = styled(IconButton)(({ theme }) => ({
     width: '48px',
     height: '48px',
     borderRadius: '50%',
-    boxShadow: '0 4px 16px rgba(255, 159, 67, 0.4)',
   }
 }));
 
 const ListItemIconStyled = styled(ListItemIcon)({
   minWidth: 48,
-  color: 'rgba(255, 255, 255, 0.7)',
+  color: colors.text.secondary,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   display: 'flex',
   justifyContent: 'center',
   width: '100%',
   margin: 0,
+  '& .MuiSvgIcon-root': {
+    transition: 'transform 0.3s ease',
+  }
 });
 
 interface UserData {
@@ -200,103 +201,125 @@ const MinimizedMenuList = styled(MenuList)({
   }
 });
 
+const LogoImage = styled('img')({
+  height: '28px',
+  width: 'auto',
+  filter: 'brightness(1) contrast(1.1)',
+  transition: 'all 0.3s ease',
+  marginRight: '8px',
+  '&:hover': {
+    filter: 'brightness(1.2) contrast(1.1)',
+    transform: 'scale(1.02)'
+  },
+  '@media (max-width: 600px)': {
+    height: '22px'
+  }
+});
+
+const MenuContainer = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '16px',
+  flex: 1,
+  justifyContent: 'flex-end'
+});
+
+const StyledMenuList = styled(List)({
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: 0,
+  gap: '8px',
+  margin: 0
+});
+
+const StyledMenuItem = styled(MenuItem)({
+  color: colors.text.primary,
+  padding: '12px 16px',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  '& .MuiListItemIcon-root': {
+    color: colors.text.secondary,
+    minWidth: '40px',
+  },
+  '&:hover .MuiListItemIcon-root': {
+    color: colors.primary.main,
+  },
+});
+
+const StyledMenuItemIcon = styled(ListItemIcon)({
+  minWidth: 0,
+  marginRight: 1,
+  color: colors.text.secondary
+});
+
+const StyledMenuItemText = styled(ListItemText)({
+  '& .MuiTypography-root': {
+    fontSize: '0.9rem',
+    fontWeight: 500
+  }
+});
+
+const LogoutButton = styled(IconButton)({
+  color: colors.text.secondary,
+  '&:hover': {
+    color: colors.primary.main,
+    backgroundColor: 'rgba(255, 159, 67, 0.1)'
+  }
+});
+
+interface AuthContextType {
+  logout: () => Promise<void>;
+}
+
 const SideNav = styled('nav')(({ theme }) => ({
-  width: drawerWidth,
-  backgroundColor: colors.primary.light,
+  width: '100%',
+  backgroundColor: colors.background.main,
   backdropFilter: 'blur(20px)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'fixed',
-  height: '100vh',
+  height: '64px',
   zIndex: 1200,
-  boxShadow: '0 0 15px rgba(0, 0, 0, 0.1)',
-  overflowX: 'hidden',
-  transform: 'translateX(0)',
-  '&.drawer-closed': {
-    width: miniDrawerWidth,
-    transform: 'translateX(0)',
-    '& .MuiListItemText-root': {
-      opacity: 0,
-      transform: 'translateX(-10px)',
-      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-    },
-    '& .MuiListItemIcon-root': {
-      minWidth: 0,
-      marginRight: 0,
-      justifyContent: 'center',
-    },
-    '& .MuiListItem-root': {
-      padding: '12px 0',
-    }
-  },
+  boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.2)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '0 16px',
+  bottom: 0,
+  left: 0,
+  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
   '@media (max-width: 600px)': {
-    transform: 'translateX(-100%)',
-    width: '85%',
-    maxWidth: '320px',
-    '&.drawer-open': {
-      transform: 'translateX(0)',
-    }
-  },
-  '& .MuiListItemText-root': {
-    opacity: 1,
-    transform: 'translateX(0)',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    whiteSpace: 'nowrap'
-  },
-  '& .MuiListItem-root': {
-    transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    height: '56px',
+    padding: '0 12px'
   }
 }));
 
-const Drawer = styled('div')(({ theme }) => ({
-  width: drawerWidth,
-  flexShrink: 0,
-  whiteSpace: 'nowrap',
-  boxSizing: 'border-box',
-  backgroundColor: colors.primary.light,
-  height: '100vh',
-  position: 'fixed',
-  overflowX: 'hidden',
-  transition: 'width 0.3s ease-in-out, transform 0.3s ease-in-out',
-  '&.drawer-closed': {
-    width: miniDrawerWidth,
-  },
-  '@media (max-width: 600px)': {
-    transform: 'translateX(-100%)',
-    '&.drawer-open': {
-      transform: 'translateX(0)',
-      width: drawerWidth
-    }
-  }
-}));
-
-const MainWrapper = styled('div')({
-  flexGrow: 1,
-  marginLeft: drawerWidth,
-  minHeight: '100vh',
+const MainWrapper = styled('main')({
+  width: '100%',
+  marginBottom: '64px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&.drawer-closed': {
-    marginLeft: miniDrawerWidth,
-  },
   '@media (max-width: 600px)': {
-    marginLeft: 0,
-    width: '100%'
+    marginBottom: '56px'
   }
 });
 
 const ContentWrapper = styled('div')({
-  padding: '16px',
-  minHeight: '100vh',
+  padding: '24px',
   position: 'relative',
-  overflowX: 'hidden',
+  zIndex: 1,
   '@media (max-width: 600px)': {
-    padding: '12px'
+    padding: '16px'
   }
 });
 
 const AppWrapper = styled('div')({
   display: 'flex',
   minHeight: '100vh',
-  backgroundColor: colors.primary.dark,
+  backgroundColor: colors.background.dark,
+  width: '100%',
+  position: 'relative',
+  overflow: 'hidden',
 });
 
 const Overlay = styled('div')({
@@ -305,7 +328,8 @@ const Overlay = styled('div')({
   left: 0,
   right: 0,
   bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  backdropFilter: 'blur(4px)',
   zIndex: 1100,
   opacity: 0,
   visibility: 'hidden',
@@ -320,30 +344,95 @@ const Overlay = styled('div')({
   }
 });
 
+const StyledAppBar = styled(AppBar)({
+  backgroundColor: colors.background.main,
+  backdropFilter: 'blur(10px)',
+  boxShadow: 'none',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 9999,
+});
+
+const StyledToolbar = styled(Toolbar)({
+  minHeight: '64px',
+  padding: '0 16px',
+  justifyContent: 'space-between',
+  '@media (max-width: 600px)': {
+    minHeight: '56px',
+  },
+});
+
+const MenuButton = styled(IconButton)({
+  color: colors.text.primary,
+  marginRight: '16px',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+});
+
+const StyledMenu = styled(Menu)({
+  '& .MuiPaper-root': {
+    backgroundColor: colors.background.main,
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '12px',
+    marginTop: '8px',
+    minWidth: '200px',
+    maxHeight: 'calc(100vh - 64px)',
+    overflowY: 'auto',
+    position: 'absolute',
+    zIndex: 99999,
+    '&::-webkit-scrollbar': {
+      width: '8px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'rgba(255, 255, 255, 0.05)',
+      borderRadius: '4px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: '4px',
+      '&:hover': {
+        background: 'rgba(255, 255, 255, 0.3)',
+      },
+    },
+  },
+});
+
+const PageWrapper = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+  position: 'relative',
+  backgroundColor: colors.background.dark,
+});
+
+const MainContent = styled('main')({
+  flexGrow: 1,
+  width: '100%',
+});
+
 const Navbar = () => {
-  const { currentUser, userData, logout } = useAuth();
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleMobileMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setMobileMenuAnchor(event.currentTarget);
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleMobileMenuClose = () => {
     setMobileMenuAnchor(null);
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    handleMobileMenuClose();
   };
 
   const handleLogout = async () => {
@@ -351,251 +440,122 @@ const Navbar = () => {
       await logout();
       navigate('/login');
     } catch (error) {
-      console.error('Chyba pri odhlásení:', error);
+      console.error('Error logging out:', error);
     }
   };
 
   const menuItems = [
+    { text: 'Domov', icon: <HomeIcon />, path: '/', hidden: true },
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases' },
+    { text: 'Transporty', icon: <LocalShippingIcon />, path: '/transports', hidden: true },
     { text: 'Sledované prepravy', icon: <VisibilityIcon />, path: '/tracked-transports' },
-    { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },
     { text: 'Tím', icon: <GroupIcon />, path: '/team' },
+    { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },
     { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings' },
   ];
 
-  const drawer = (
-    <>
-      <DrawerHeader className={!mobileOpen ? 'drawer-closed' : ''}>
-        {mobileOpen ? (
-          <AesaLogoDrawer src="/AESA white.svg" alt="AESA Logo" />
-        ) : (
-          <AesaLogoMini src="/mininavbar.png" alt="AESA Logo Mini" />
-        )}
-      </DrawerHeader>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem 
-            button 
-            key={item.text} 
-            onClick={() => {
-              navigate(item.path);
-              if (isMobile) {
-                setMobileOpen(false);
-              }
-            }}
+  return (
+    <PageWrapper>
+      <StyledAppBar>
+        <StyledToolbar>
+          {isMobile ? (
+            <>
+              <MenuButton
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                onClick={handleMobileMenuClick}
+              >
+                <MenuIcon />
+              </MenuButton>
+              <Typography variant="h6" noWrap component="div">
+                Transport Platform
+              </Typography>
+              <Box sx={{ width: 40 }} />
+            </>
+          ) : (
+            <>
+              <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                Transport Platform
+              </Typography>
+              <List sx={{ display: 'flex', gap: 1 }}>
+                {menuItems.filter(item => !item.hidden).map((item) => (
+                  <ListItem
+                    key={item.text}
+                    button
+                    onClick={() => item.path && navigate(item.path)}
+                    sx={{
+                      minWidth: 'auto',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40, color: colors.text.secondary }}>
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText primary={item.text} />
+                  </ListItem>
+                ))}
+              </List>
+            </>
+          )}
+        </StyledToolbar>
+      </StyledAppBar>
+
+      <StyledMenu
+        anchorEl={mobileMenuAnchor}
+        open={Boolean(mobileMenuAnchor)}
+        onClose={handleMobileMenuClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        sx={{
+          '& .MuiMenu-paper': {
+            marginTop: '56px',
+          },
+        }}
+      >
+        {menuItems.filter(item => !item.hidden).map((item) => (
+          <MenuItem
+            key={item.text}
+            onClick={() => item.path && handleNavigation(item.path)}
             sx={{
-              minHeight: 48,
-              justifyContent: mobileOpen ? 'initial' : 'center',
-              px: mobileOpen ? 2.5 : '8px',
-              borderRadius: '12px',
-              margin: '4px auto',
-              width: !mobileOpen ? 'calc(100% - 16px)' : 'auto',
-              transition: 'all 0.3s ease-in-out',
-              position: 'relative',
+              color: colors.text.primary,
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                '& .MuiListItemIcon-root': {
-                  color: '#ff9f43',
-                  transform: 'scale(1.1)',
-                },
-                '& .MuiListItemText-primary': {
-                  color: '#ffffff',
-                }
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
               },
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                left: '-8px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '3px',
-                height: '0%',
-                backgroundColor: '#ff9f43',
-                borderRadius: '4px',
-                transition: 'height 0.2s ease-in-out',
-              },
-              '&:hover::before': {
-                height: '50%',
-              },
-              '&.active': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                '&::before': {
-                  height: '70%',
-                },
-                '& .MuiListItemIcon-root': {
-                  color: '#ff9f43',
-                },
-                '& .MuiListItemText-primary': {
-                  color: '#ffffff',
-                  fontWeight: 600,
-                }
-              }
             }}
           >
-            <ListItemIconStyled
-              sx={{
-                minWidth: 0,
-                mr: mobileOpen ? 3 : 0,
-                justifyContent: 'center',
-                transition: 'all 0.3s ease-in-out',
-                width: !mobileOpen ? '100%' : 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                padding: !mobileOpen ? '0' : undefined,
-              }}
-            >
+            <ListItemIcon sx={{ minWidth: 40, color: colors.text.secondary }}>
               {item.icon}
-            </ListItemIconStyled>
-            <ListItemText 
-              primary={item.text} 
-              sx={{ 
-                opacity: mobileOpen ? 1 : 0,
-                visibility: mobileOpen ? 'visible' : 'hidden',
-                transition: 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out',
-                '& .MuiTypography-root': {
-                  fontSize: '0.95rem',
-                  fontWeight: 500,
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  transition: 'all 0.3s ease-in-out',
-                }
-              }} 
-            />
-          </ListItem>
+            </ListItemIcon>
+            <ListItemText primary={item.text} />
+          </MenuItem>
         ))}
-      </List>
-      <Box sx={{ mt: 'auto', mb: 2 }}>
-        <Divider sx={{ mb: 2, backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
-        {currentUser && userData && (
-          <>
-            <ListItem 
-              button 
-              onClick={handleLogout}
-              sx={{
-                minHeight: 48,
-                justifyContent: mobileOpen ? 'initial' : 'center',
-                px: mobileOpen ? 2.5 : '8px',
-                borderRadius: '12px',
-                margin: '4px auto',
-                width: !mobileOpen ? 'calc(100% - 16px)' : 'auto',
-                transition: 'all 0.2s ease-in-out',
-                position: 'relative',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  '& .MuiListItemIcon-root': {
-                    color: '#ff9f43',
-                    transform: 'scale(1.1)',
-                  },
-                  '& .MuiListItemText-primary': {
-                    color: '#ffffff',
-                  }
-                },
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  left: '-8px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '3px',
-                  height: '0%',
-                  backgroundColor: '#ff9f43',
-                  borderRadius: '4px',
-                  transition: 'height 0.2s ease-in-out',
-                },
-                '&:hover::before': {
-                  height: '50%',
-                }
-              }}
-            >
-              <ListItemIconStyled
-                sx={{
-                  minWidth: 0,
-                  mr: mobileOpen ? 3 : 0,
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease-in-out',
-                  width: !mobileOpen ? '100%' : 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: !mobileOpen ? '0' : undefined,
-                }}
-              >
-                <LogoutIcon />
-              </ListItemIconStyled>
-              <ListItemText 
-                primary="Odhlásiť sa" 
-                sx={{ opacity: mobileOpen ? 1 : 0 }} 
-              />
-            </ListItem>
-            <ListItem 
-              sx={{
-                minHeight: 48,
-                justifyContent: mobileOpen ? 'initial' : 'center',
-                px: 2.5,
-                borderRadius: '12px',
-                margin: '4px 8px',
-                opacity: 0.7,
-                '& .MuiListItemText-primary': {
-                  fontSize: '0.85rem',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                }
-              }}
-            >
-              <ListItemText 
-                primary={`Prihlásený: ${userData.firstName} ${userData.lastName}`}
-                sx={{ opacity: mobileOpen ? 1 : 0 }} 
-              />
-            </ListItem>
-            <Box sx={{ 
-              display: { xs: 'flex', sm: 'none' },
-              justifyContent: 'center',
-              mt: 2
-            }}>
-              <ToggleButton onClick={handleDrawerToggle}>
-                {mobileOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-              </ToggleButton>
-            </Box>
-          </>
-        )}
-      </Box>
-      <Box sx={{ 
-        display: { xs: 'none', sm: 'block' },
-        position: 'fixed',
-        right: '12px',
-        bottom: '24px'
-      }}>
-        <ToggleButton onClick={handleDrawerToggle}>
-          {mobileOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-        </ToggleButton>
-      </Box>
-    </>
-  );
-
-  const handleOverlayClick = () => {
-    if (isMobile) {
-      setMobileOpen(false);
-    }
-  };
-
-  return (
-    <AppWrapper>
-      <CssBaseline />
-
-      <Overlay 
-        className={mobileOpen ? 'visible' : ''} 
-        onClick={handleOverlayClick}
-      />
-
-      <SideNav className={`${!mobileOpen ? 'drawer-closed' : ''} ${isMobile ? (mobileOpen ? 'drawer-open' : '') : ''}`}>
-        {drawer}
-      </SideNav>
-
-      <MainWrapper className={!mobileOpen ? 'drawer-closed' : ''}>
-        <ContentWrapper>
-          {/* Page content goes here */}
-        </ContentWrapper>
-      </MainWrapper>
-    </AppWrapper>
+        <MenuItem
+          onClick={handleLogout}
+          sx={{
+            color: colors.text.primary,
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 40, color: colors.text.secondary }}>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary="Odhlásiť sa" />
+        </MenuItem>
+      </StyledMenu>
+    </PageWrapper>
   );
 };
 
