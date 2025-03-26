@@ -79,6 +79,16 @@ const colors = {
     light: 'rgba(35, 35, 66, 0.95)',
     dark: '#12121f',
   },
+  background: {
+    main: 'rgba(28, 28, 45, 0.95)',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  text: {
+    primary: '#ffffff',
+    secondary: 'rgba(255, 255, 255, 0.9)',
+    disabled: 'rgba(255, 255, 255, 0.7)',
+  },
   secondary: {
     main: '#ff6b6b',
     light: '#ff8787',
@@ -159,7 +169,7 @@ const AddButton = styled(Button)({
 });
 
 const ContactCard = styled(Paper)({
-  backgroundColor: colors.primary.light,
+  backgroundColor: colors.background.main,
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
   padding: '24px',
@@ -224,7 +234,7 @@ const SearchLabel = styled(Typography)({
 });
 
 const MobileContactCard = styled(Box)({
-  backgroundColor: colors.primary.light,
+  backgroundColor: colors.background.main,
   borderRadius: '16px',
   padding: '16px',
   color: '#ffffff',
@@ -625,11 +635,25 @@ const Contacts = () => {
         </Box>
       ) : (
         <TableContainer component={Paper} sx={{
-          backgroundColor: colors.primary.light,
+          backgroundColor: colors.background.main,
           backdropFilter: 'blur(20px)',
           borderRadius: '16px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
           border: '1px solid rgba(255, 255, 255, 0.06)',
+          '& .MuiTable-root': {
+            backgroundColor: 'transparent',
+          },
+          '& .MuiTableCell-root': {
+            color: colors.text.primary,
+            borderColor: 'rgba(255, 255, 255, 0.06)',
+          },
+          '& .MuiTableHead-root .MuiTableCell-root': {
+            backgroundColor: colors.background.main,
+            fontWeight: 600,
+          },
+          '& .MuiTableBody-root .MuiTableRow-root:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+          }
         }}>
           <Table>
             <TableHead>
@@ -646,7 +670,14 @@ const Contacts = () => {
             </TableHead>
             <TableBody>
               {filteredContacts.map((contact) => (
-                <TableRow key={contact.id}>
+                <TableRow 
+                  key={contact.id}
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.03) !important',
+                    }
+                  }}
+                >
                   <TableCell>{contact.company}</TableCell>
                   <TableCell>{contact.firstName} {contact.lastName}</TableCell>
                   <TableCell>

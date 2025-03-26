@@ -64,6 +64,16 @@ const colors = {
     light: 'rgba(35, 35, 66, 0.95)',
     dark: '#12121f',
   },
+  background: {
+    main: 'rgba(28, 28, 45, 0.95)',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  text: {
+    primary: '#ffffff',
+    secondary: 'rgba(255, 255, 255, 0.9)',
+    disabled: 'rgba(255, 255, 255, 0.7)',
+  },
   secondary: {
     main: '#ff6b6b',
     light: '#ff8787',
@@ -113,7 +123,7 @@ interface BusinessCase {
 }
 
 const MobileBusinessCard = styled(Box)({
-  backgroundColor: colors.primary.light,
+  backgroundColor: colors.background.main,
   borderRadius: '16px',
   padding: '16px',
   color: '#ffffff',
@@ -184,7 +194,6 @@ const PageHeader = styled(Box)({
   marginBottom: '24px',
   position: 'relative',
   zIndex: 1,
-  backgroundColor: colors.primary.main,
   '@media (max-width: 600px)': {
     flexDirection: 'column',
     gap: '8px',
@@ -758,23 +767,23 @@ export default function BusinessCases() {
             xs: 'none', 
             md: 'block' 
           },
-          backgroundColor: colors.primary.light,
+          backgroundColor: colors.background.main,
           backdropFilter: 'blur(20px)',
           borderRadius: '16px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
           border: '1px solid rgba(255, 255, 255, 0.06)',
           '& .MuiTableCell-root': {
-            color: '#ffffff',
+            color: colors.text.primary,
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             padding: '16px',
             fontSize: '0.9rem'
           },
           '& .MuiTableHead-root .MuiTableCell-root': {
             fontWeight: 600,
-            backgroundColor: 'rgba(255, 255, 255, 0.05)'
+            backgroundColor: colors.background.main
           },
           '& .MuiTableBody-root .MuiTableRow-root:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.05)'
+            backgroundColor: 'rgba(255, 255, 255, 0.03)'
           }
         }}
       >
@@ -972,7 +981,7 @@ export default function BusinessCases() {
         fullWidth
         PaperProps={{
           sx: {
-            background: 'rgba(35, 35, 66, 0.7)',
+            background: colors.background.main,
             backdropFilter: 'blur(10px)',
             borderRadius: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -981,7 +990,7 @@ export default function BusinessCases() {
         }}
       >
         <DialogTitle sx={{ 
-          color: '#ffffff',
+          color: colors.text.primary,
           borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '24px',
           fontSize: '1.5rem',
@@ -992,10 +1001,10 @@ export default function BusinessCases() {
         <DialogContent>
           <Box sx={{ 
             padding: '24px',
-            color: '#ffffff',
-            '& .MuiTextField-root': {
+            color: colors.text.primary,
+            '& .MuiTextField-root, & .MuiFormControl-root': {
               '& .MuiOutlinedInput-root': {
-                color: '#ffffff',
+                color: colors.text.primary,
                 '& fieldset': {
                   borderColor: 'rgba(255, 255, 255, 0.1)',
                 },
@@ -1003,44 +1012,18 @@ export default function BusinessCases() {
                   borderColor: 'rgba(255, 255, 255, 0.2)',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#ff9f43',
+                  borderColor: colors.accent.main,
                 },
               },
               '& .MuiInputLabel-root': {
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: colors.text.secondary,
                 '&.Mui-focused': {
-                  color: '#ff9f43',
+                  color: colors.accent.main,
                 },
               },
-              '& .MuiFormHelperText-root': {
-                color: 'rgba(255, 255, 255, 0.5)',
-                fontSize: '0.75rem',
-                marginLeft: 0,
-                marginTop: '4px',
-              }
-            },
-            '& .MuiFormControl-root': {
-              '& .MuiInputLabel-root': {
-                color: 'rgba(255, 255, 255, 0.5)',
-                '&.Mui-focused': {
-                  color: '#ff9f43',
-                },
+              '& .MuiSelect-icon': {
+                color: colors.text.secondary,
               },
-              '& .MuiOutlinedInput-root': {
-                color: '#ffffff',
-                '& fieldset': {
-                  borderColor: 'rgba(255, 255, 255, 0.1)',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#ff9f43',
-                },
-              },
-            },
-            '& .MuiSelect-icon': {
-              color: 'rgba(255, 255, 255, 0.5)',
             },
             '& .MuiMenuItem-root': {
               '&:hover': {
@@ -1248,7 +1231,7 @@ export default function BusinessCases() {
           <Button onClick={() => {
             setOpen(false);
             setEditCase(null);
-          }} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          }} sx={{ color: colors.text.secondary }}>
             Zrušiť
           </Button>
           <Button 
@@ -1256,7 +1239,7 @@ export default function BusinessCases() {
             variant="contained"
             sx={{
               backgroundColor: colors.accent.main,
-              color: '#ffffff',
+              color: colors.text.primary,
               fontWeight: 600,
               padding: '8px 24px',
               '&:hover': {
@@ -1287,7 +1270,7 @@ export default function BusinessCases() {
         }}
         PaperProps={{
           sx: {
-            background: 'rgba(35, 35, 66, 0.7)',
+            background: colors.background.main,
             backdropFilter: 'blur(10px)',
             borderRadius: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -1297,7 +1280,7 @@ export default function BusinessCases() {
         }}
       >
         <DialogTitle sx={{ 
-          color: '#ffffff',
+          color: colors.text.primary,
           fontSize: '1.5rem',
           fontWeight: 600,
           textAlign: 'center',
@@ -1312,7 +1295,7 @@ export default function BusinessCases() {
           justifyContent: 'center'
         }}>
           <Typography sx={{ 
-            color: '#ffffff',
+            color: colors.text.primary,
             textAlign: 'center',
             fontSize: '1rem',
             maxWidth: '400px',
@@ -1333,7 +1316,7 @@ export default function BusinessCases() {
               setCaseToDelete(null);
             }} 
             sx={{ 
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: colors.text.secondary,
               padding: '8px 24px',
               minWidth: '120px',
               '&:hover': {
@@ -1348,7 +1331,7 @@ export default function BusinessCases() {
             variant="contained"
             sx={{
               backgroundColor: colors.secondary.main,
-              color: '#ffffff',
+              color: colors.text.primary,
               fontWeight: 600,
               padding: '8px 24px',
               minWidth: '120px',

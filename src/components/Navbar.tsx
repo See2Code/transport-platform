@@ -541,6 +541,7 @@ const Navbar = () => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Transporty', icon: <LocalShippingIcon />, path: '/transports', hidden: true },
     { text: 'Sledované prepravy', icon: <VisibilityIcon />, path: '/tracked-transports' },
+    { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases' },
     { text: 'Tím', icon: <GroupIcon />, path: '/team' },
     { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },
     { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings' },

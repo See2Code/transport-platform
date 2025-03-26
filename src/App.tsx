@@ -8,6 +8,7 @@ import Contacts from './components/Contacts';
 import Settings from './components/Settings';
 import Transport from './components/Transport';
 import TrackedTransports from './components/TrackedTransports';
+import BusinessCases from './components/BusinessCases';
 import { AuthProvider } from './contexts/AuthContext';
 
 const theme = createTheme({
@@ -89,6 +90,7 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/transports" element={<Transport />} />
                 <Route path="/tracked-transports" element={<TrackedTransports />} />
+                <Route path="/business-cases" element={<BusinessCases />} />
               </Routes>
             </PageContent>
           </AppContainer>

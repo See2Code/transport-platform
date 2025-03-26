@@ -97,6 +97,16 @@ const colors = {
     light: 'rgba(35, 35, 66, 0.95)',
     dark: '#12121f',
   },
+  background: {
+    main: 'rgba(28, 28, 45, 0.95)',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  text: {
+    primary: '#ffffff',
+    secondary: 'rgba(255, 255, 255, 0.9)',
+    disabled: 'rgba(255, 255, 255, 0.7)',
+  },
   secondary: {
     main: '#ff6b6b',
     light: '#ff8787',
@@ -150,11 +160,11 @@ const PageTitle = styled(Typography)({
 });
 
 const SettingsCard = styled(Card)({
-  backgroundColor: colors.primary.light,
+  backgroundColor: colors.background.main,
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
   padding: '24px',
-  color: '#ffffff',
+  color: colors.text.primary,
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
   border: '1px solid rgba(255, 255, 255, 0.06)',
   marginBottom: '24px',
@@ -230,29 +240,68 @@ const InfoValue = styled(Typography)({
   }
 });
 
-const SaveButton = styled(Button)({
+const StyledTextField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    color: colors.text.primary,
+    '& fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: colors.accent.main,
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: colors.text.secondary,
+    '&.Mui-focused': {
+      color: colors.accent.main,
+    },
+  },
+  '& .MuiInputBase-input': {
+    color: colors.text.primary,
+  },
+});
+
+const StyledSelect = styled(Select)({
+  color: colors.text.primary,
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: colors.accent.main,
+  },
+  '& .MuiSelect-icon': {
+    color: colors.text.secondary,
+  },
+});
+
+const StyledButton = styled(Button)({
   backgroundColor: colors.accent.main,
-  color: '#ffffff',
+  color: colors.text.primary,
   padding: '8px 24px',
-  borderRadius: '12px',
-  fontSize: '0.95rem',
-  fontWeight: 600,
+  borderRadius: '8px',
   textTransform: 'none',
-  transition: 'all 0.2s ease-in-out',
-  boxShadow: `0 4px 12px ${colors.accent.main}4D`,
+  fontWeight: 600,
   '&:hover': {
     backgroundColor: colors.accent.light,
-    transform: 'translateY(-2px)',
-    boxShadow: `0 6px 16px ${colors.accent.main}66`,
   },
-  '&:active': {
-    transform: 'translateY(0)',
-    boxShadow: `0 2px 8px ${colors.accent.main}4D`,
+  '&.MuiButton-outlined': {
+    borderColor: colors.accent.main,
+    color: colors.accent.main,
+    backgroundColor: 'transparent',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 159, 67, 0.1)',
+    },
   },
-  '@media (max-width: 600px)': {
-    width: '100%',
-    justifyContent: 'center',
-  }
+  '&.Mui-disabled': {
+    backgroundColor: 'rgba(255, 159, 67, 0.3)',
+    color: 'rgba(255, 255, 255, 0.3)',
+  },
 });
 
 function Settings() {
@@ -412,13 +461,11 @@ function Settings() {
   };
 
   const handleCountryChange = (event: any) => {
-    const country = euCountries.find(c => c.code === event.target.value);
-    if (country) {
-      setSelectedCountry(country);
-      // Ak je telefónne číslo prázdne, pridáme predvolbu
-      if (!localUserData?.phone) {
-        handleUserDataChange('phone', country.prefix);
-      }
+    if (companyData) {
+      setCompanyData({
+        ...companyData,
+        country: event.target.value as string
+      });
     }
   };
 
@@ -455,171 +502,70 @@ function Settings() {
           <SettingsCard>
             <CardHeader>
               <SectionTitle>Profil používateľa</SectionTitle>
-              {!isEditingProfile ? (
-                <IconButton 
-                  onClick={() => setIsEditingProfile(true)}
-                  sx={{ color: colors.accent.main }}
-                >
-                  <EditIcon />
-                </IconButton>
-              ) : (
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <IconButton 
-                    onClick={handleProfileCancel}
-                    sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {isEditing ? (
+                  <>
+                    <StyledButton
+                      variant="contained"
+                      onClick={handleProfileSave}
+                      startIcon={<SaveIcon />}
+                    >
+                      Uložiť
+                    </StyledButton>
+                    <StyledButton
+                      variant="outlined"
+                      onClick={handleProfileCancel}
+                      startIcon={<CancelIcon />}
+                    >
+                      Zrušiť
+                    </StyledButton>
+                  </>
+                ) : (
+                  <StyledButton
+                    variant="outlined"
+                    onClick={() => setIsEditing(true)}
+                    startIcon={<EditIcon />}
                   >
-                    <CancelIcon />
-                  </IconButton>
-                  <IconButton 
-                    onClick={handleProfileSave}
-                    sx={{ color: colors.accent.main }}
-                  >
-                    <SaveIcon />
-                  </IconButton>
-                </Box>
-              )}
+                    Upraviť
+                  </StyledButton>
+                )}
+              </Box>
             </CardHeader>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TextField
+              <Grid item xs={12} sm={6}>
+                <StyledTextField
                   fullWidth
                   label="Meno"
                   value={localUserData?.firstName || ''}
                   onChange={(e) => handleUserDataChange('firstName', e.target.value)}
-                  disabled={!isEditingProfile}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: colors.accent.main,
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.7)',
-                    },
-                    '& .MuiInputBase-input': {
-                      color: '#ffffff',
-                    },
-                  }}
+                  disabled={!isEditing}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
+              <Grid item xs={12} sm={6}>
+                <StyledTextField
                   fullWidth
                   label="Priezvisko"
                   value={localUserData?.lastName || ''}
                   onChange={(e) => handleUserDataChange('lastName', e.target.value)}
-                  disabled={!isEditingProfile}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: colors.accent.main,
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.7)',
-                    },
-                    '& .MuiInputBase-input': {
-                      color: '#ffffff',
-                    },
-                  }}
+                  disabled={!isEditing}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
+              <Grid item xs={12} sm={6}>
+                <StyledTextField
                   fullWidth
                   label="Email"
                   value={localUserData?.email || ''}
                   disabled
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.7)',
-                    },
-                    '& .MuiInputBase-input': {
-                      color: '#ffffff',
-                    },
-                  }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <FormControl sx={{ minWidth: 120 }}>
-                    <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Predvoľba</InputLabel>
-                    <Select
-                      value={selectedCountry.code}
-                      onChange={handleCountryChange}
-                      disabled={!isEditingProfile}
-                      sx={{
-                        color: '#ffffff',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: colors.accent.main,
-                        },
-                      }}
-                    >
-                      {euCountries.map((country) => (
-                        <MenuItem key={country.code} value={country.code}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <span>{country.flag}</span>
-                            <span>{country.prefix}</span>
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <TextField
-                    fullWidth
-                    label="Telefón"
-                    value={localUserData?.phone?.replace(selectedCountry.prefix, '') || ''}
-                    onChange={(e) => handleUserDataChange('phone', selectedCountry.prefix + e.target.value)}
-                    disabled={!isEditingProfile}
-                    placeholder="9XX XXX XXX"
-                    helperText="Zadajte telefónne číslo bez predvoľby"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: colors.accent.main,
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#ffffff',
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: 'rgba(255, 255, 255, 0.5)',
-                      },
-                    }}
-                  />
-                </Box>
+              <Grid item xs={12} sm={6}>
+                <StyledTextField
+                  fullWidth
+                  label="Telefón"
+                  value={localUserData?.phone || ''}
+                  onChange={(e) => handleUserDataChange('phone', e.target.value)}
+                  disabled={!isEditing}
+                />
               </Grid>
             </Grid>
           </SettingsCard>
@@ -628,162 +574,41 @@ function Settings() {
             <SettingsCard>
               <CardHeader>
                 <SectionTitle>Firemné údaje</SectionTitle>
-                {!isEditing ? (
-                  <IconButton 
-                    onClick={() => setIsEditing(true)}
-                    sx={{ color: colors.accent.main }}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <StyledButton
+                    variant="contained"
+                    onClick={handleSave}
+                    startIcon={<SaveIcon />}
                   >
-                    <EditIcon />
-                  </IconButton>
-                ) : (
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <IconButton 
-                      onClick={handleCancel}
-                      sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
-                    >
-                      <CancelIcon />
-                    </IconButton>
-                    <IconButton 
-                      onClick={handleSave}
-                      sx={{ color: colors.accent.main }}
-                    >
-                      <SaveIcon />
-                    </IconButton>
-                  </Box>
-                )}
+                    Uložiť
+                  </StyledButton>
+                  <StyledButton
+                    variant="outlined"
+                    onClick={handleCancel}
+                    startIcon={<CancelIcon />}
+                  >
+                    Zrušiť
+                  </StyledButton>
+                </Box>
               </CardHeader>
               <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
                     fullWidth
                     label="Názov firmy"
                     value={companyData?.companyName || ''}
-                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, companyName: e.target.value } : null)}
+                    onChange={(e) => setCompanyData(prev => ({ ...prev!, companyName: e.target.value }))}
                     disabled={!isEditing}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: colors.accent.main,
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#ffffff',
-                      },
-                    }}
                   />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="IČO"
-                    value={companyData?.ico || ''}
-                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, ico: e.target.value } : null)}
-                    disabled={!isEditing}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: colors.accent.main,
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#ffffff',
-                      },
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="DIČ"
-                    value={companyData?.dic || ''}
-                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, dic: e.target.value } : null)}
-                    disabled={!isEditing}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: colors.accent.main,
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#ffffff',
-                      },
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="IČ DPH"
-                    value={companyData?.icDph || ''}
-                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, icDph: e.target.value } : null)}
-                    disabled={!isEditing}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: colors.accent.main,
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#ffffff',
-                      },
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
-                    <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Krajina</InputLabel>
-                    <Select
-                      value={companyData?.country || 'SK'}
-                      onChange={(e) => setCompanyData(prev => prev ? { ...prev, country: e.target.value } : null)}
+                    <InputLabel sx={{ color: colors.text.secondary }}>Krajina</InputLabel>
+                    <StyledSelect
+                      value={companyData?.country || ''}
+                      onChange={handleCountryChange}
                       disabled={!isEditing}
-                      sx={{
-                        color: '#ffffff',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: colors.accent.main,
-                        },
-                      }}
+                      label="Krajina"
                     >
                       {euCountries.map((country) => (
                         <MenuItem key={country.code} value={country.code}>
@@ -793,91 +618,61 @@ function Settings() {
                           </Box>
                         </MenuItem>
                       ))}
-                    </Select>
+                    </StyledSelect>
                   </FormControl>
                 </Grid>
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
+                    fullWidth
+                    label="IČO"
+                    value={companyData?.ico || ''}
+                    onChange={(e) => setCompanyData(prev => ({ ...prev!, ico: e.target.value }))}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
+                    fullWidth
+                    label="IČ DPH"
+                    value={companyData?.icDph || ''}
+                    onChange={(e) => setCompanyData(prev => ({ ...prev!, icDph: e.target.value }))}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
+                    fullWidth
+                    label="DIČ"
+                    value={companyData?.dic || ''}
+                    onChange={(e) => setCompanyData(prev => ({ ...prev!, dic: e.target.value }))}
+                    disabled={!isEditing}
+                  />
+                </Grid>
                 <Grid item xs={12}>
-                  <TextField
+                  <StyledTextField
                     fullWidth
                     label="Ulica"
                     value={companyData?.street || ''}
-                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, street: e.target.value } : null)}
+                    onChange={(e) => setCompanyData(prev => ({ ...prev!, street: e.target.value }))}
                     disabled={!isEditing}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: colors.accent.main,
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#ffffff',
-                      },
-                    }}
                   />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
                     fullWidth
                     label="PSČ"
                     value={companyData?.zipCode || ''}
-                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, zipCode: e.target.value } : null)}
+                    onChange={(e) => setCompanyData(prev => ({ ...prev!, zipCode: e.target.value }))}
                     disabled={!isEditing}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: colors.accent.main,
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#ffffff',
-                      },
-                    }}
                   />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
                     fullWidth
                     label="Mesto"
                     value={companyData?.city || ''}
-                    onChange={(e) => setCompanyData(prev => prev ? { ...prev, city: e.target.value } : null)}
+                    onChange={(e) => setCompanyData(prev => ({ ...prev!, city: e.target.value }))}
                     disabled={!isEditing}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: colors.accent.main,
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                      '& .MuiInputBase-input': {
-                        color: '#ffffff',
-                      },
-                    }}
                   />
                 </Grid>
               </Grid>

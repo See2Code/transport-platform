@@ -99,6 +99,16 @@ const colors = {
     light: 'rgba(35, 35, 66, 0.95)',
     dark: '#12121f',
   },
+  background: {
+    main: 'rgba(28, 28, 45, 0.95)',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  text: {
+    primary: '#ffffff',
+    secondary: 'rgba(255, 255, 255, 0.9)',
+    disabled: 'rgba(255, 255, 255, 0.7)',
+  },
   secondary: {
     main: '#ff6b6b',
     light: '#ff8787',
@@ -197,7 +207,7 @@ const AddButton = styled('button')({
 });
 
 const TeamCard = styled(Card)({
-  backgroundColor: colors.primary.light,
+  backgroundColor: colors.background.main,
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
   padding: '24px',
@@ -291,7 +301,7 @@ const fadeOut = {
 };
 
 const MobileTeamCard = styled(Paper)({
-  backgroundColor: colors.primary.light,
+  backgroundColor: colors.background.main,
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
   padding: '20px',
@@ -380,6 +390,50 @@ const StatusChip = styled(Chip)(({ status }: { status: string }) => ({
   fontWeight: 500,
   height: '24px'
 }));
+
+const StyledTableWrapper = styled(Paper)({
+  backgroundColor: 'rgba(28, 28, 45, 0.95)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: '16px',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
+  marginBottom: '24px',
+  '& .MuiTable-root': {
+    backgroundColor: 'transparent',
+  },
+  '& .MuiTableCell-root': {
+    color: colors.text.primary,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  '& .MuiTableHead-root .MuiTableCell-root': {
+    backgroundColor: 'rgba(28, 28, 45, 0.95)',
+    fontWeight: 600,
+  },
+  '& .MuiTableBody-root .MuiTableRow-root:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  }
+});
+
+const StyledTableCell = styled(TableCell)({
+  color: colors.text.primary,
+  '&.MuiTableCell-head': {
+    backgroundColor: colors.background.dark,
+    color: colors.text.primary,
+    fontWeight: 600,
+  }
+});
+
+const StyledTableRow = styled(TableRow)({
+  '&:nth-of-type(odd)': {
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+  },
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.03) !important',
+  },
+  '& .MuiTableCell-root': {
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  }
+});
 
 function Team() {
   const navigate = useNavigate();
@@ -841,14 +895,7 @@ function Team() {
         </Box>
       ) : (
         <>
-          <TableContainer component={Paper} sx={{
-            backgroundColor: colors.primary.light,
-            backdropFilter: 'blur(20px)',
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-            mb: 4
-          }}>
+          <TableContainer component={StyledTableWrapper}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -969,13 +1016,7 @@ function Team() {
             Čakajúce pozvánky
           </Typography>
 
-          <TableContainer component={Paper} sx={{
-            backgroundColor: colors.primary.light,
-            backdropFilter: 'blur(20px)',
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-          }}>
+          <TableContainer component={StyledTableWrapper}>
             <Table>
               <TableHead>
                 <TableRow>
