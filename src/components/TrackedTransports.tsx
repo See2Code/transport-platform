@@ -98,6 +98,16 @@ const colors = {
     light: 'rgba(35, 35, 66, 0.95)',
     dark: '#12121f',
   },
+  background: {
+    main: 'rgba(28, 28, 45, 0.95)',
+    light: 'rgba(35, 35, 66, 0.95)',
+    dark: '#12121f',
+  },
+  text: {
+    primary: '#ffffff',
+    secondary: 'rgba(255, 255, 255, 0.9)',
+    disabled: 'rgba(255, 255, 255, 0.7)',
+  },
   secondary: {
     main: '#ff6b6b',
     light: '#ff8787',
@@ -180,7 +190,7 @@ const AddButton = styled(Button)({
 });
 
 const TransportCard = styled(Paper)({
-  backgroundColor: colors.primary.light,
+  backgroundColor: 'rgba(28, 28, 45, 0.95)',
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
   padding: '24px',
