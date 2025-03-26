@@ -202,18 +202,25 @@ const MinimizedMenuList = styled(MenuList)({
 });
 
 const LogoImage = styled('img')({
-  height: '28px',
+  height: '24px',
   width: 'auto',
-  filter: 'brightness(1) contrast(1.1)',
-  transition: 'all 0.3s ease',
-  marginRight: '8px',
+  marginRight: '16px',
+  opacity: 0.9,
+  transition: 'all 0.2s ease',
   '&:hover': {
-    filter: 'brightness(1.2) contrast(1.1)',
+    opacity: 1,
     transform: 'scale(1.02)'
   },
   '@media (max-width: 600px)': {
-    height: '22px'
+    height: '20px',
+    marginRight: '12px'
   }
+});
+
+const BrandContainer = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
 });
 
 const MenuContainer = styled(Box)({
@@ -415,6 +422,26 @@ const MainContent = styled('main')({
   width: '100%',
 });
 
+const StyledListItem = styled(ListItem)<{ button?: boolean }>({
+  minWidth: 'auto',
+  padding: '6px 12px',
+  borderRadius: '8px',
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  '& .MuiListItemIcon-root': {
+    minWidth: '32px',
+    color: colors.text.secondary,
+  },
+  '& .MuiListItemText-root': {
+    margin: 0,
+    '& .MuiTypography-root': {
+      fontSize: '0.9rem',
+    },
+  },
+});
+
 const Navbar = () => {
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
   const theme = useTheme();
@@ -468,38 +495,87 @@ const Navbar = () => {
               >
                 <MenuIcon />
               </MenuButton>
-              <Typography variant="h6" noWrap component="div">
-                Transport Platform
-              </Typography>
+              <BrandContainer>
+                <LogoImage src="/AESA white.svg" alt="AESA Logo" />
+                <Typography variant="h6" noWrap component="div">
+                  Transport Platform
+                </Typography>
+              </BrandContainer>
               <Box sx={{ width: 40 }} />
             </>
           ) : (
             <>
-              <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                Transport Platform
-              </Typography>
-              <List sx={{ display: 'flex', gap: 1 }}>
+              <BrandContainer>
+                <LogoImage src="/AESA white.svg" alt="AESA Logo" />
+                <Typography variant="h6" noWrap component="div">
+                  Transport Platform
+                </Typography>
+              </BrandContainer>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 0.5,
+                alignItems: 'center',
+                height: '40px'
+              }}>
                 {menuItems.filter(item => !item.hidden).map((item) => (
-                  <ListItem
+                  <Box
                     key={item.text}
-                    button
                     onClick={() => item.path && navigate(item.path)}
                     sx={{
                       minWidth: 'auto',
-                      padding: '8px 16px',
+                      padding: '6px 12px',
                       borderRadius: '8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
                       '&:hover': {
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 40, color: colors.text.secondary }}>
+                    <ListItemIcon sx={{ minWidth: '32px', color: colors.text.secondary }}>
                       {item.icon}
                     </ListItemIcon>
-                    <ListItemText primary={item.text} />
-                  </ListItem>
+                    <ListItemText 
+                      primary={item.text}
+                      sx={{
+                        margin: 0,
+                        '& .MuiTypography-root': {
+                          fontSize: '0.9rem',
+                        },
+                      }} 
+                    />
+                  </Box>
                 ))}
-              </List>
+                <Box
+                  onClick={handleLogout}
+                  sx={{
+                    minWidth: 'auto',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginLeft: 1,
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: '32px', color: colors.text.secondary }}>
+                    <LogoutIcon />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Odhlásiť sa"
+                    sx={{
+                      margin: 0,
+                      '& .MuiTypography-root': {
+                        fontSize: '0.9rem',
+                      },
+                    }} 
+                  />
+                </Box>
+              </Box>
             </>
           )}
         </StyledToolbar>
