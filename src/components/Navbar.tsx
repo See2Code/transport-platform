@@ -258,6 +258,67 @@ const ContentWrapper = styled('div')({
   overflowX: 'hidden'
 });
 
+const BottomNav = styled(Box)({
+  position: 'fixed',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: colors.primary.light,
+  backdropFilter: 'blur(10px)',
+  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+  zIndex: 1000,
+  display: 'none',
+  '@media (max-width: 600px)': {
+    display: 'flex',
+    justifyContent: 'space-around',
+    padding: '8px 0'
+  }
+});
+
+const BottomNavItem = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  color: 'rgba(255, 255, 255, 0.7)',
+  padding: '4px 0',
+  minWidth: '64px',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': {
+    color: colors.accent.main
+  },
+  '&.active': {
+    color: colors.accent.main
+  },
+  '& .MuiSvgIcon-root': {
+    fontSize: '24px',
+    marginBottom: '2px'
+  },
+  '& .label': {
+    fontSize: '0.7rem',
+    textAlign: 'center'
+  }
+});
+
+const Drawer = styled('div')(({ theme }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+  boxSizing: 'border-box',
+  backgroundColor: colors.primary.light,
+  borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+  height: '100vh',
+  position: 'fixed',
+  overflowX: 'hidden',
+  transition: 'width 0.3s ease-in-out',
+  '&.drawer-closed': {
+    width: miniDrawerWidth,
+  },
+  '@media (max-width: 600px)': {
+    display: 'none'
+  }
+}));
+
 const Navbar = () => {
   const { currentUser, userData, logout } = useAuth();
   const navigate = useNavigate();
@@ -515,6 +576,32 @@ const Navbar = () => {
     </>
   );
 
+  const renderBottomNav = () => {
+    const location = window.location.pathname;
+    
+    const bottomNavItems = [
+      { icon: <DashboardIcon />, label: 'Dashboard', path: '/' },
+      { icon: <VisibilityIcon />, label: 'Prepravy', path: '/tracked-transports' },
+      { icon: <BusinessIcon />, label: 'Prípady', path: '/business-cases' },
+      { icon: <ContactsIcon />, label: 'Kontakty', path: '/contacts' },
+    ];
+
+    return (
+      <BottomNav>
+        {bottomNavItems.map((item) => (
+          <BottomNavItem
+            key={item.path}
+            className={location === item.path ? 'active' : ''}
+            onClick={() => navigate(item.path)}
+          >
+            {item.icon}
+            <span className="label">{item.label}</span>
+          </BottomNavItem>
+        ))}
+      </BottomNav>
+    );
+  };
+
   return (
     <AppWrapper>
       <CssBaseline />
@@ -528,6 +615,8 @@ const Navbar = () => {
           {/* Page content goes here */}
         </ContentWrapper>
       </MainWrapper>
+
+      {renderBottomNav()}
     </AppWrapper>
   );
 };

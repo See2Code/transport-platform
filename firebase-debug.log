@@ -1,0 +1,221 @@
+[debug] [2025-03-26T09:10:09.774Z] ----------------------------------------------------------------------
+[debug] [2025-03-26T09:10:09.776Z] Command:       /opt/homebrew/Cellar/node/23.10.0_1/bin/node /opt/homebrew/bin/firebase deploy
+[debug] [2025-03-26T09:10:09.776Z] CLI Version:   13.35.1
+[debug] [2025-03-26T09:10:09.776Z] Platform:      darwin
+[debug] [2025-03-26T09:10:09.776Z] Node Version:  v23.10.0
+[debug] [2025-03-26T09:10:09.776Z] Time:          Wed Mar 26 2025 10:10:09 GMT+0100 (Central European Standard Time)
+[debug] [2025-03-26T09:10:09.776Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-03-26T09:10:09.851Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-26T09:10:09.851Z] > authorizing via signed-in user (webpostup@gmail.com)
+[debug] [2025-03-26T09:10:09.851Z] [iam] checking project core-app-423c7 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-03-26T09:10:09.851Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:09.851Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:09.852Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions [none]
+[debug] [2025-03-26T09:10:09.852Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-26T09:10:09.852Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-03-26T09:10:10.954Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions 200
+[debug] [2025-03-26T09:10:10.954Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-03-26T09:10:10.955Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:10.955Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:10.955Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/core-app-423c7/serviceAccounts/core-app-423c7@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2025-03-26T09:10:10.955Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/core-app-423c7/serviceAccounts/core-app-423c7@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-03-26T09:10:11.966Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/core-app-423c7/serviceAccounts/core-app-423c7@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2025-03-26T09:10:11.966Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/core-app-423c7/serviceAccounts/core-app-423c7@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-03-26T09:10:11.967Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:11.967Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:11.967Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/core-app-423c7 [none]
+[debug] [2025-03-26T09:10:12.619Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/core-app-423c7 200
+[debug] [2025-03-26T09:10:12.619Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/core-app-423c7 {"projectId":"core-app-423c7","projectNumber":"869167769685","displayName":"core-app","name":"projects/core-app-423c7","resources":{"hostingSite":"core-app-423c7"},"state":"ACTIVE","etag":"1_a82ed5ac-a7f3-49c4-9db0-a3e5cf030ff6"}
+[info] 
+[info] === Deploying to 'core-app-423c7'...
+[info] 
+[info] i  deploying firestore, functions, hosting 
+[info] Running command: npm --prefix "$RESOURCE_DIR" run build
+[info] ✔  functions: Finished running predeploy script. 
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2025-03-26T09:10:15.343Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:15.343Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:15.343Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/core-app-423c7:test [none]
+[debug] [2025-03-26T09:10:15.344Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/core-app-423c7:test [omitted]
+[debug] [2025-03-26T09:10:16.341Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/core-app-423c7:test 200
+[debug] [2025-03-26T09:10:16.341Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/core-app-423c7:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2025-03-26T09:10:16.343Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:16.343Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:16.343Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 [none]
+[debug] [2025-03-26T09:10:17.271Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 200
+[debug] [2025-03-26T09:10:17.272Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 {"projectNumber":"869167769685","projectId":"core-app-423c7","lifecycleState":"ACTIVE","name":"core-app","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-03-23T09:54:58.346881Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[debug] [2025-03-26T09:10:17.274Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:17.274Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:17.274Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:17.274Z] Checked if tokens are valid: true, expires at: 1742983253324
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[debug] [2025-03-26T09:10:17.274Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:17.274Z] Checked if tokens are valid: true, expires at: 1742983253324
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2025-03-26T09:10:17.274Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:17.274Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:17.274Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudfunctions.googleapis.com [none]
+[debug] [2025-03-26T09:10:17.274Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-26T09:10:17.276Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/runtimeconfig.googleapis.com [none]
+[debug] [2025-03-26T09:10:17.276Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-26T09:10:17.277Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudbuild.googleapis.com [none]
+[debug] [2025-03-26T09:10:17.277Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudbuild.googleapis.com x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-26T09:10:17.278Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/artifactregistry.googleapis.com [none]
+[debug] [2025-03-26T09:10:17.278Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/artifactregistry.googleapis.com x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-26T09:10:18.402Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/runtimeconfig.googleapis.com 200
+[debug] [2025-03-26T09:10:18.402Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2025-03-26T09:10:18.407Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudfunctions.googleapis.com 200
+[debug] [2025-03-26T09:10:18.407Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudfunctions.googleapis.com [omitted]
+[info] ✔  functions: required API cloudfunctions.googleapis.com is enabled 
+[debug] [2025-03-26T09:10:18.409Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/artifactregistry.googleapis.com 200
+[debug] [2025-03-26T09:10:18.409Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/artifactregistry.googleapis.com [omitted]
+[info] ✔  artifactregistry: required API artifactregistry.googleapis.com is enabled 
+[debug] [2025-03-26T09:10:18.411Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudbuild.googleapis.com 200
+[debug] [2025-03-26T09:10:18.411Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudbuild.googleapis.com [omitted]
+[info] ✔  functions: required API cloudbuild.googleapis.com is enabled 
+[debug] [2025-03-26T09:10:18.411Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:18.411Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:18.411Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/core-app-423c7/adminSdkConfig [none]
+[debug] [2025-03-26T09:10:18.941Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/core-app-423c7/adminSdkConfig 200
+[debug] [2025-03-26T09:10:18.942Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/core-app-423c7/adminSdkConfig {"projectId":"core-app-423c7","storageBucket":"core-app-423c7.firebasestorage.app"}
+[debug] [2025-03-26T09:10:18.942Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:18.942Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:18.942Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs [none]
+[debug] [2025-03-26T09:10:19.425Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs 200
+[debug] [2025-03-26T09:10:19.425Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs {"configs":[{"name":"projects/core-app-423c7/configs/email"}]}
+[debug] [2025-03-26T09:10:19.425Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:19.425Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:19.425Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables [none]
+[debug] [2025-03-26T09:10:19.683Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables 200
+[debug] [2025-03-26T09:10:19.683Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables {"variables":[{"name":"projects/core-app-423c7/configs/email/variables/password","updateTime":"2025-03-23T19:18:53.997899644Z"},{"name":"projects/core-app-423c7/configs/email/variables/user","updateTime":"2025-03-23T19:18:54.014339774Z"}]}
+[debug] [2025-03-26T09:10:19.683Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:19.684Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:19.684Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:19.684Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:19.684Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables/password [none]
+[debug] [2025-03-26T09:10:19.684Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables/user [none]
+[debug] [2025-03-26T09:10:19.945Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables/password 200
+[debug] [2025-03-26T09:10:19.945Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables/password {"name":"projects/core-app-423c7/configs/email/variables/password","updateTime":"2025-03-23T19:18:53.997899644Z","text":"your-app-specific-password"}
+[debug] [2025-03-26T09:10:20.046Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables/user 200
+[debug] [2025-03-26T09:10:20.046Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/core-app-423c7/configs/email/variables/user {"name":"projects/core-app-423c7/configs/email/variables/user","updateTime":"2025-03-23T19:18:54.014339774Z","text":"core.transport.app@gmail.com"}
+[debug] [2025-03-26T09:10:20.047Z] Validating nodejs source
+[debug] [2025-03-26T09:10:20.427Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@mui/x-date-pickers": "^7.28.0",
+    "@types/cors": "^2.8.17",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "firebase-admin": "^11.11.1",
+    "firebase-functions": "^6.3.2",
+    "nodemailer": "^6.9.9"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^6.4.17",
+    "typescript": "^5.3.3"
+  },
+  "private": true
+}
+[debug] [2025-03-26T09:10:20.427Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2025-03-26T09:10:20.428Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-03-26T09:10:20.432Z] Found firebase-functions binary at '/Users/macbookm3pro/Documents/GitHub/core/transport-platform/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8097
+
+[debug] [2025-03-26T09:10:20.659Z] Got response from /__/functions.yaml {"endpoints":{"clearDatabase":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"region":["europe-west1"],"callableTrigger":{},"entryPoint":"clearDatabase"},"sendInvitationEmail":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"region":["europe-west1"],"callableTrigger":{},"entryPoint":"sendInvitationEmail"},"checkBusinessCaseReminders":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"region":["europe-west1"],"scheduleTrigger":{"schedule":"every 1 minutes","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetryDuration":null,"maxBackoffDuration":null,"minBackoffDuration":null},"timeZone":"Europe/Bratislava"},"labels":{},"entryPoint":"checkBusinessCaseReminders"},"checkTransportNotifications":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"region":["europe-west1"],"scheduleTrigger":{"schedule":"every 1 minutes","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetryDuration":null,"maxBackoffDuration":null,"minBackoffDuration":null},"timeZone":"Europe/Bratislava"},"labels":{},"entryPoint":"checkTransportNotifications"},"logFunctionMetrics":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"region":["europe-west1"],"scheduleTrigger":{"schedule":"every 1 hours","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetryDuration":null,"maxBackoffDuration":null,"minBackoffDuration":null},"timeZone":"Europe/Bratislava"},"labels":{},"entryPoint":"logFunctionMetrics"},"updateExistingRecords":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"region":["europe-west1"],"callableTrigger":{},"entryPoint":"updateExistingRecords"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[info] i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[debug] [2025-03-26T09:10:24.674Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:24.674Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:24.674Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/firebaseextensions.googleapis.com [none]
+[debug] [2025-03-26T09:10:24.674Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/firebaseextensions.googleapis.com x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-26T09:10:25.701Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/firebaseextensions.googleapis.com 200
+[debug] [2025-03-26T09:10:25.702Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/firebaseextensions.googleapis.com [omitted]
+[info] ✔  extensions: required API firebaseextensions.googleapis.com is enabled 
+[debug] [2025-03-26T09:10:25.702Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-26T09:10:25.702Z] > authorizing via signed-in user (webpostup@gmail.com)
+[debug] [2025-03-26T09:10:25.703Z] [iam] checking project core-app-423c7 for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[debug] [2025-03-26T09:10:25.703Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:25.703Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:25.703Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions [none]
+[debug] [2025-03-26T09:10:25.703Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-26T09:10:25.703Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2025-03-26T09:10:26.013Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions 200
+[debug] [2025-03-26T09:10:26.014Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2025-03-26T09:10:26.015Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:26.015Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:26.015Z] >>> [apiv2][query] GET https://firebaseextensions.googleapis.com/v1beta/projects/core-app-423c7/instances pageSize=100&pageToken=
+[debug] [2025-03-26T09:10:27.086Z] <<< [apiv2][status] GET https://firebaseextensions.googleapis.com/v1beta/projects/core-app-423c7/instances 200
+[debug] [2025-03-26T09:10:27.087Z] <<< [apiv2][body] GET https://firebaseextensions.googleapis.com/v1beta/projects/core-app-423c7/instances {}
+[info] i  functions: preparing functions directory for uploading... 
+[info] i  functions: packaged /Users/macbookm3pro/Documents/GitHub/core/transport-platform/functions (56.29 KB) for uploading 
+[debug] [2025-03-26T09:10:27.114Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:27.114Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:27.114Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/core-app-423c7/locations/-/functions [none]
+[debug] [2025-03-26T09:10:27.988Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/core-app-423c7/locations/-/functions 200
+[debug] [2025-03-26T09:10:27.988Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/core-app-423c7/locations/-/functions {"functions":[{"name":"projects/core-app-423c7/locations/europe-west1/functions/clearDatabase","httpsTrigger":{"url":"https://europe-west1-core-app-423c7.cloudfunctions.net/clearDatabase","securityLevel":"SECURE_ALWAYS"},"status":"ACTIVE","entryPoint":"clearDatabase","timeout":"60s","availableMemoryMb":256,"serviceAccountEmail":"core-app-423c7@appspot.gserviceaccount.com","updateTime":"2025-03-25T23:35:00.594Z","versionId":"10","labels":{"deployment-tool":"cli-firebase","deployment-callable":"true","firebase-functions-hash":"0a2a74b5c467957fac0e886b3456d36329df40b3"},"sourceUploadUrl":"https://storage.googleapis.com/uploads-176395417328.europe-west1.cloudfunctions.appspot.com/159f43bd-248a-4d47-819c-82e202f5db6f.zip","environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"core-app-423c7\",\"storageBucket\":\"core-app-423c7.firebasestorage.app\"}","GCLOUD_PROJECT":"core-app-423c7","EVENTARC_CLOUD_EVENT_SOURCE":"projects/core-app-423c7/locations/europe-west1/functions/clearDatabase"},"runtime":"nodejs20","ingressSettings":"ALLOW_ALL","buildId":"5d740560-1ef4-4168-b746-5de67776125b","buildEnvironmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"buildName":"projects/869167769685/locations/europe-west1/builds/5d740560-1ef4-4168-b746-5de67776125b","dockerRegistry":"ARTIFACT_REGISTRY","automaticUpdatePolicy":{},"buildServiceAccount":"projects/core-app-423c7/serviceAccounts/869167769685-compute@developer.gserviceaccount.com"},{"name":"projects/core-app-423c7/locations/europe-west1/functions/sendInvitationEmail","httpsTrigger":{"url":"https://europe-west1-core-app-423c7.cloudfunctions.net/sendInvitationEmail","securityLevel":"SECURE_ALWAYS"},"status":"ACTIVE","entryPoint":"sendInvitationEmail","timeout":"60s","availableMemoryMb":256,"serviceAccountEmail":"core-app-423c7@appspot.gserviceaccount.com","updateTime":"2025-03-25T23:35:08.152Z","versionId":"11","labels":{"deployment-tool":"cli-firebase","deployment-callable":"true","firebase-functions-hash":"0a2a74b5c467957fac0e886b3456d36329df40b3"},"sourceUploadUrl":"https://storage.googleapis.com/uploads-176395417328.europe-west1.cloudfunctions.appspot.com/159f43bd-248a-4d47-819c-82e202f5db6f.zip","environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"core-app-423c7\",\"storageBucket\":\"core-app-423c7.firebasestorage.app\"}","GCLOUD_PROJECT":"core-app-423c7","EVENTARC_CLOUD_EVENT_SOURCE":"projects/core-app-423c7/locations/europe-west1/functions/sendInvitationEmail"},"runtime":"nodejs20","ingressSettings":"ALLOW_ALL","buildId":"5d740560-1ef4-4168-b746-5de67776125b","buildEnvironmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"buildName":"projects/869167769685/locations/europe-west1/builds/5d740560-1ef4-4168-b746-5de67776125b","dockerRegistry":"ARTIFACT_REGISTRY","automaticUpdatePolicy":{},"buildServiceAccount":"projects/core-app-423c7/serviceAccounts/869167769685-compute@developer.gserviceaccount.com"},{"name":"projects/core-app-423c7/locations/europe-west1/functions/updateExistingRecords","httpsTrigger":{"url":"https://europe-west1-core-app-423c7.cloudfunctions.net/updateExistingRecords","securityLevel":"SECURE_ALWAYS"},"status":"ACTIVE","entryPoint":"updateExistingRecords","timeout":"60s","availableMemoryMb":256,"serviceAccountEmail":"core-app-423c7@appspot.gserviceaccount.com","updateTime":"2025-03-25T23:35:09.026Z","versionId":"10","labels":{"deployment-tool":"cli-firebase","deployment-callable":"true","firebase-functions-hash":"0a2a74b5c467957fac0e886b3456d36329df40b3"},"sourceUploadUrl":"https://storage.googleapis.com/uploads-176395417328.europe-west1.cloudfunctions.appspot.com/159f43bd-248a-4d47-819c-82e202f5db6f.zip","environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"core-app-423c7\",\"storageBucket\":\"core-app-423c7.firebasestorage.app\"}","GCLOUD_PROJECT":"core-app-423c7","EVENTARC_CLOUD_EVENT_SOURCE":"projects/core-app-423c7/locations/europe-west1/functions/updateExistingRecords"},"runtime":"nodejs20","ingressSettings":"ALLOW_ALL","buildId":"5d740560-1ef4-4168-b746-5de67776125b","buildEnvironmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"buildName":"projects/869167769685/locations/europe-west1/builds/5d740560-1ef4-4168-b746-5de67776125b","dockerRegistry":"ARTIFACT_REGISTRY","automaticUpdatePolicy":{},"buildServiceAccount":"projects/core-app-423c7/serviceAccounts/869167769685-compute@developer.gserviceaccount.com"},{"name":"projects/core-app-423c7/locations/europe-west1/functions/checkBusinessCaseReminders","eventTrigger":{"eventType":"google.pubsub.topic.publish","resource":"projects/core-app-423c7/topics/firebase-schedule-checkBusinessCaseReminders-europe-west1","service":"pubsub.googleapis.com","failurePolicy":{}},"status":"ACTIVE","entryPoint":"checkBusinessCaseReminders","timeout":"60s","availableMemoryMb":256,"serviceAccountEmail":"core-app-423c7@appspot.gserviceaccount.com","updateTime":"2025-03-25T23:35:04.787Z","versionId":"30","labels":{"deployment-tool":"cli-firebase","deployment-scheduled":"true","firebase-functions-hash":"0a2a74b5c467957fac0e886b3456d36329df40b3"},"sourceUploadUrl":"https://storage.googleapis.com/uploads-176395417328.europe-west1.cloudfunctions.appspot.com/159f43bd-248a-4d47-819c-82e202f5db6f.zip","environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"core-app-423c7\",\"storageBucket\":\"core-app-423c7.firebasestorage.app\"}","GCLOUD_PROJECT":"core-app-423c7","EVENTARC_CLOUD_EVENT_SOURCE":"projects/core-app-423c7/locations/europe-west1/functions/checkBusinessCaseReminders"},"runtime":"nodejs20","maxInstances":3000,"ingressSettings":"ALLOW_ALL","buildId":"5d740560-1ef4-4168-b746-5de67776125b","buildEnvironmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"buildName":"projects/869167769685/locations/europe-west1/builds/5d740560-1ef4-4168-b746-5de67776125b","dockerRegistry":"ARTIFACT_REGISTRY","automaticUpdatePolicy":{},"buildServiceAccount":"projects/core-app-423c7/serviceAccounts/869167769685-compute@developer.gserviceaccount.com"},{"name":"projects/core-app-423c7/locations/europe-west1/functions/logFunctionMetrics","eventTrigger":{"eventType":"google.pubsub.topic.publish","resource":"projects/core-app-423c7/topics/firebase-schedule-logFunctionMetrics-europe-west1","service":"pubsub.googleapis.com","failurePolicy":{}},"status":"ACTIVE","entryPoint":"logFunctionMetrics","timeout":"60s","availableMemoryMb":256,"serviceAccountEmail":"core-app-423c7@appspot.gserviceaccount.com","updateTime":"2025-03-25T23:35:04.522Z","versionId":"30","labels":{"deployment-tool":"cli-firebase","deployment-scheduled":"true","firebase-functions-hash":"0a2a74b5c467957fac0e886b3456d36329df40b3"},"sourceUploadUrl":"https://storage.googleapis.com/uploads-176395417328.europe-west1.cloudfunctions.appspot.com/159f43bd-248a-4d47-819c-82e202f5db6f.zip","environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"core-app-423c7\",\"storageBucket\":\"core-app-423c7.firebasestorage.app\"}","GCLOUD_PROJECT":"core-app-423c7","EVENTARC_CLOUD_EVENT_SOURCE":"projects/core-app-423c7/locations/europe-west1/functions/logFunctionMetrics"},"runtime":"nodejs20","maxInstances":3000,"ingressSettings":"ALLOW_ALL","buildId":"5d740560-1ef4-4168-b746-5de67776125b","buildEnvironmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"buildName":"projects/869167769685/locations/europe-west1/builds/5d740560-1ef4-4168-b746-5de67776125b","dockerRegistry":"ARTIFACT_REGISTRY","automaticUpdatePolicy":{},"buildServiceAccount":"projects/core-app-423c7/serviceAccounts/869167769685-compute@developer.gserviceaccount.com"},{"name":"projects/core-app-423c7/locations/europe-west1/functions/checkTransportNotifications","eventTrigger":{"eventType":"google.pubsub.topic.publish","resource":"projects/core-app-423c7/topics/firebase-schedule-checkTransportNotifications-europe-west1","service":"pubsub.googleapis.com","failurePolicy":{}},"status":"ACTIVE","entryPoint":"checkTransportNotifications","timeout":"60s","availableMemoryMb":256,"serviceAccountEmail":"core-app-423c7@appspot.gserviceaccount.com","updateTime":"2025-03-25T23:35:07.136Z","versionId":"30","labels":{"deployment-tool":"cli-firebase","deployment-scheduled":"true","firebase-functions-hash":"0a2a74b5c467957fac0e886b3456d36329df40b3"},"sourceUploadUrl":"https://storage.googleapis.com/uploads-176395417328.europe-west1.cloudfunctions.appspot.com/159f43bd-248a-4d47-819c-82e202f5db6f.zip","environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"core-app-423c7\",\"storageBucket\":\"core-app-423c7.firebasestorage.app\"}","GCLOUD_PROJECT":"core-app-423c7","EVENTARC_CLOUD_EVENT_SOURCE":"projects/core-app-423c7/locations/europe-west1/functions/checkTransportNotifications"},"runtime":"nodejs20","maxInstances":3000,"ingressSettings":"ALLOW_ALL","buildId":"5d740560-1ef4-4168-b746-5de67776125b","buildEnvironmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"buildName":"projects/869167769685/locations/europe-west1/builds/5d740560-1ef4-4168-b746-5de67776125b","dockerRegistry":"ARTIFACT_REGISTRY","automaticUpdatePolicy":{},"buildServiceAccount":"projects/core-app-423c7/serviceAccounts/869167769685-compute@developer.gserviceaccount.com"}]}
+[debug] [2025-03-26T09:10:27.989Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:27.989Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:27.989Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/core-app-423c7/locations/-/functions filter=environment%3D%22GEN_2%22
+[debug] [2025-03-26T09:10:29.011Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/core-app-423c7/locations/-/functions 200
+[debug] [2025-03-26T09:10:29.011Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/core-app-423c7/locations/-/functions {}
+[info] i  functions: ensuring required API cloudscheduler.googleapis.com is enabled... 
+[debug] [2025-03-26T09:10:29.012Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:29.012Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:29.012Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudscheduler.googleapis.com [none]
+[debug] [2025-03-26T09:10:29.012Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudscheduler.googleapis.com x-goog-quota-user=projects/core-app-423c7
+[debug] [2025-03-26T09:10:29.979Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudscheduler.googleapis.com 200
+[debug] [2025-03-26T09:10:29.979Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/core-app-423c7/services/cloudscheduler.googleapis.com [omitted]
+[info] ✔  functions: required API cloudscheduler.googleapis.com is enabled 
+[debug] [2025-03-26T09:10:29.981Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:29.981Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:29.982Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 [none]
+[debug] [2025-03-26T09:10:30.198Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 200
+[debug] [2025-03-26T09:10:30.198Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/core-app-423c7 {"projectNumber":"869167769685","projectId":"core-app-423c7","lifecycleState":"ACTIVE","name":"core-app","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-03-23T09:54:58.346881Z"}
+[debug] [2025-03-26T09:10:30.200Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:30.200Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:30.200Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/core-app-423c7/versions [none]
+[debug] [2025-03-26T09:10:30.200Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/core-app-423c7/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2025-03-26T09:10:32.248Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/core-app-423c7/versions 200
+[debug] [2025-03-26T09:10:32.248Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/core-app-423c7/versions {"name":"projects/869167769685/sites/core-app-423c7/versions/d225766c21137f55","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2025-03-26T09:10:32.249Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:32.249Z] Checked if tokens are valid: true, expires at: 1742983253324
+[info] i  firestore: deploying indexes... 
+[debug] [2025-03-26T09:10:32.250Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:32.250Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:32.251Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/releases pageSize=10&pageToken=
+[debug] [2025-03-26T09:10:32.252Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2025-03-26T09:10:32.695Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/indexes 200
+[debug] [2025-03-26T09:10:32.696Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/indexes {"indexes":[{"name":"projects/core-app-423c7/databases/(default)/collectionGroups/reminders/indexes/CICAgOjXh4EK","queryScope":"COLLECTION","fields":[{"fieldPath":"sent","order":"ASCENDING"},{"fieldPath":"reminderDateTime","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY"},{"name":"projects/core-app-423c7/databases/(default)/collectionGroups/reminders/indexes/CICAgJiUpoMK","queryScope":"COLLECTION","fields":[{"fieldPath":"sent","order":"ASCENDING"},{"fieldPath":"reminderDateTime","order":"ASCENDING"},{"fieldPath":"transportId","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY"}]}
+[debug] [2025-03-26T09:10:32.696Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:32.696Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:32.696Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2025-03-26T09:10:32.840Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 200
+[debug] [2025-03-26T09:10:32.840Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/core-app-423c7/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"fields":[{"name":"projects/core-app-423c7/databases/(default)/collectionGroups/__default__/fields/*","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"DESCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","arrayConfig":"CONTAINS"}],"state":"READY"}]}}]}
+[info] i  firestore: The following indexes are defined in your project but are not present in your firestore indexes file:
+	(reminders) -- (sent,ASCENDING) (reminderDateTime,ASCENDING)  
+[debug] [2025-03-26T09:10:33.129Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/releases 200
+[debug] [2025-03-26T09:10:33.129Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/releases {"releases":[{"name":"projects/core-app-423c7/releases/cloud.firestore","rulesetName":"projects/core-app-423c7/rulesets/7f5cc172-f51c-46f7-bcd6-71c32a8f8f86","createTime":"2025-03-23T10:47:52.691285Z","updateTime":"2025-03-26T09:05:15.460185Z"}]}
+[debug] [2025-03-26T09:10:33.130Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:33.130Z] Checked if tokens are valid: true, expires at: 1742983253324
+[debug] [2025-03-26T09:10:33.130Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/rulesets/7f5cc172-f51c-46f7-bcd6-71c32a8f8f86 [none]
+[debug] [2025-03-26T09:10:33.852Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/rulesets/7f5cc172-f51c-46f7-bcd6-71c32a8f8f86 200
+[debug] [2025-03-26T09:10:33.852Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/core-app-423c7/rulesets/7f5cc172-f51c-46f7-bcd6-71c32a8f8f86 [omitted]
+[info] i  firestore: latest version of firestore.rules already up to date, skipping upload... 

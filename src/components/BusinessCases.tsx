@@ -127,7 +127,9 @@ const PageHeader = styled(Box)({
   backgroundColor: colors.primary.main,
   '@media (max-width: 600px)': {
     flexDirection: 'column',
-    gap: '16px'
+    gap: '16px',
+    alignItems: 'flex-start',
+    padding: '16px 0'
   }
 });
 
@@ -145,6 +147,14 @@ const PageTitle = styled(Typography)({
     height: '4px',
     backgroundColor: colors.accent.main,
     borderRadius: '2px',
+  },
+  '@media (max-width: 600px)': {
+    fontSize: '1.5rem',
+    width: '100%',
+    textAlign: 'left',
+    '&::after': {
+      width: '40px'
+    }
   }
 });
 
@@ -160,7 +170,9 @@ const AddButton = styled(Button)({
   boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
   whiteSpace: 'nowrap',
   '@media (max-width: 600px)': {
-    width: '100%'
+    alignSelf: 'flex-end',
+    padding: '6px 16px',
+    fontSize: '0.9rem'
   },
   '&:hover': {
     backgroundColor: colors.accent.light,
