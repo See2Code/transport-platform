@@ -719,8 +719,10 @@ const Contacts = () => {
             borderRadius: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            zIndex: 999999,
           }
         }}
+        sx={{ zIndex: 999999 }}
       >
         <DialogTitle sx={{ 
           color: '#ffffff',
@@ -880,8 +882,10 @@ const Contacts = () => {
             borderRadius: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            zIndex: 999999,
           }
         }}
+        sx={{ zIndex: 999999 }}
       >
         <DialogTitle sx={{ 
           color: '#ffffff',

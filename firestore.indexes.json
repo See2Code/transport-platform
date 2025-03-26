@@ -4,18 +4,42 @@
       "collectionGroup": "reminders",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "sent",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "reminderDateTime",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "transportId",
-          "order": "ASCENDING"
-        }
+        { "fieldPath": "companyID", "order": "ASCENDING" },
+        { "fieldPath": "sent", "order": "ASCENDING" },
+        { "fieldPath": "reminderDateTime", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reminders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sent", "order": "ASCENDING" },
+        { "fieldPath": "reminderDateTime", "order": "ASCENDING" },
+        { "fieldPath": "transportId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "companyID", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "contacts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "companyID", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "businessCases",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "companyID", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     }
   ],

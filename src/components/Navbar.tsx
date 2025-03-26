@@ -30,6 +30,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import ContactsIcon from '@mui/icons-material/Contacts';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -360,7 +361,7 @@ const StyledAppBar = styled(AppBar)({
   top: 0,
   left: 0,
   right: 0,
-  zIndex: 9999,
+  zIndex: 1000,
 });
 
 const StyledToolbar = styled(Toolbar)({
@@ -380,33 +381,98 @@ const MenuButton = styled(IconButton)({
   },
 });
 
-const StyledMenu = styled(Menu)({
+const StyledMenu = styled(Menu)(({ theme }) => ({
   '& .MuiPaper-root': {
-    backgroundColor: 'rgba(28, 28, 45, 0.50)',
-    backdropFilter: 'blur(4px)',
+    background: 'rgba(35, 35, 66, 0.95)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: '20px',
     border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '12px',
+    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
     marginTop: '8px',
-    minWidth: '250px',
-    maxHeight: 'calc(100vh - 64px)',
-    overflowY: 'auto',
-    zIndex: 99999,
-    '&::-webkit-scrollbar': {
-      width: '8px',
+    minWidth: 'auto',
+    width: 'auto',
+    zIndex: 1200,
+    [theme.breakpoints.down('sm')]: {
+      position: 'fixed',
+      top: 'auto',
+      bottom: 0,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: 'auto',
+      minWidth: 'auto',
+      maxWidth: '90%',
+      margin: 0,
+      borderRadius: '20px',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+      zIndex: 1200,
+      marginBottom: '16px'
+    }
+  },
+  '& .MuiList-root': {
+    padding: '8px',
+    position: 'relative',
+    whiteSpace: 'nowrap',
+    [theme.breakpoints.down('sm')]: {
+      padding: '16px',
+    }
+  },
+  '& .MuiMenuItem-root': {
+    borderRadius: '12px',
+    padding: '12px 16px',
+    margin: '4px 0',
+    color: '#ffffff',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 0.1)',
     },
-    '&::-webkit-scrollbar-track': {
-      background: 'rgba(255, 255, 255, 0.05)',
-      borderRadius: '4px',
-    },
-    '&::-webkit-scrollbar-thumb': {
-      background: 'rgba(255, 255, 255, 0.2)',
-      borderRadius: '4px',
+    [theme.breakpoints.down('sm')]: {
+      padding: '16px',
+      margin: '8px 0',
+    }
+  },
+  '& .MuiListItemIcon-root': {
+    minWidth: '40px',
+    color: '#ffffff',
+  },
+  '& .MuiListItemText-root': {
+    margin: 0,
+  },
+  '& .MuiListItemText-primary': {
+    fontSize: '1rem',
+    fontWeight: 500,
+  },
+  '& .MuiListItemText-secondary': {
+    fontSize: '0.875rem',
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  '& .MuiDivider-root': {
+    margin: '8px 0',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  '& .MuiButton-root': {
+    width: '100%',
+    marginTop: '8px',
+    padding: '12px',
+    borderRadius: '12px',
+    textTransform: 'none',
+    fontSize: '1rem',
+    fontWeight: 600,
+    '&.MuiButton-contained': {
+      background: colors.primary.main,
+      color: '#ffffff',
       '&:hover': {
-        background: 'rgba(255, 255, 255, 0.3)',
+        background: colors.primary.light,
+      },
+    },
+    '&.MuiButton-outlined': {
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      color: '#ffffff',
+      '&:hover': {
+        borderColor: 'rgba(255, 255, 255, 0.3)',
       },
     },
   },
-});
+}));
 
 const PageWrapper = styled('div')({
   display: 'flex',
@@ -589,6 +655,28 @@ const Navbar = () => {
           horizontal: 'right',
         }}
       >
+        <Box sx={{ 
+          display: { xs: 'flex', sm: 'none' },
+          justifyContent: 'flex-end',
+          padding: '8px 16px',
+          position: 'sticky',
+          top: 0,
+          backgroundColor: 'rgba(35, 35, 66, 0.95)',
+          zIndex: 1,
+          backdropFilter: 'blur(10px)',
+        }}>
+          <IconButton
+            onClick={handleMobileMenuClose}
+            sx={{
+              color: colors.text.primary,
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
         {menuItems.filter(item => !item.hidden).map((item) => (
           <MenuItem
             key={item.text}
