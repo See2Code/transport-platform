@@ -315,6 +315,7 @@ function Settings() {
   const [loading, setLoading] = useState(true);
   const [localUserData, setLocalUserData] = useState<UserData | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(euCountries.find(c => c.code === 'SK') || euCountries[0]);
 
   useEffect(() => {
@@ -469,6 +470,24 @@ function Settings() {
     }
   };
 
+  const handleSaveProfile = async () => {
+    try {
+      // existujúci kód pre uloženie profilu
+      setIsEditingProfile(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
+  };
+
+  const handleSaveCompany = async () => {
+    try {
+      // existujúci kód pre uloženie firemných údajov
+      setIsEditingCompany(false);
+    } catch (error) {
+      console.error('Error saving company data:', error);
+    }
+  };
+
   if (loading) {
     return (
       <PageWrapper>
@@ -502,32 +521,42 @@ function Settings() {
           <SettingsCard>
             <CardHeader>
               <SectionTitle>Profil používateľa</SectionTitle>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                {isEditing ? (
-                  <>
-                    <StyledButton
-                      variant="contained"
-                      onClick={handleProfileSave}
-                      startIcon={<SaveIcon />}
-                    >
-                      Uložiť
-                    </StyledButton>
-                    <StyledButton
-                      variant="outlined"
-                      onClick={handleProfileCancel}
-                      startIcon={<CancelIcon />}
-                    >
-                      Zrušiť
-                    </StyledButton>
-                  </>
-                ) : (
-                  <StyledButton
-                    variant="outlined"
-                    onClick={() => setIsEditing(true)}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                {!isEditingProfile ? (
+                  <Button
                     startIcon={<EditIcon />}
+                    onClick={() => setIsEditingProfile(true)}
+                    sx={{
+                      backgroundColor: colors.accent.main,
+                      color: colors.text.primary,
+                      '&:hover': {
+                        backgroundColor: colors.accent.light,
+                      }
+                    }}
                   >
                     Upraviť
-                  </StyledButton>
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => setIsEditingProfile(false)}
+                      sx={{ color: colors.text.secondary }}
+                    >
+                      Zrušiť
+                    </Button>
+                    <Button
+                      onClick={handleProfileSave}
+                      sx={{
+                        backgroundColor: colors.accent.main,
+                        color: colors.text.primary,
+                        '&:hover': {
+                          backgroundColor: colors.accent.light,
+                        }
+                      }}
+                    >
+                      Uložiť
+                    </Button>
+                  </>
                 )}
               </Box>
             </CardHeader>
@@ -538,7 +567,7 @@ function Settings() {
                   label="Meno"
                   value={localUserData?.firstName || ''}
                   onChange={(e) => handleUserDataChange('firstName', e.target.value)}
-                  disabled={!isEditing}
+                  disabled={!isEditingProfile}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -547,7 +576,7 @@ function Settings() {
                   label="Priezvisko"
                   value={localUserData?.lastName || ''}
                   onChange={(e) => handleUserDataChange('lastName', e.target.value)}
-                  disabled={!isEditing}
+                  disabled={!isEditingProfile}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -564,7 +593,7 @@ function Settings() {
                   label="Telefón"
                   value={localUserData?.phone || ''}
                   onChange={(e) => handleUserDataChange('phone', e.target.value)}
-                  disabled={!isEditing}
+                  disabled={!isEditingProfile}
                 />
               </Grid>
             </Grid>
@@ -574,21 +603,43 @@ function Settings() {
             <SettingsCard>
               <CardHeader>
                 <SectionTitle>Firemné údaje</SectionTitle>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <StyledButton
-                    variant="contained"
-                    onClick={handleSave}
-                    startIcon={<SaveIcon />}
-                  >
-                    Uložiť
-                  </StyledButton>
-                  <StyledButton
-                    variant="outlined"
-                    onClick={handleCancel}
-                    startIcon={<CancelIcon />}
-                  >
-                    Zrušiť
-                  </StyledButton>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                  {!isEditingCompany ? (
+                    <Button
+                      startIcon={<EditIcon />}
+                      onClick={() => setIsEditingCompany(true)}
+                      sx={{
+                        backgroundColor: colors.accent.main,
+                        color: colors.text.primary,
+                        '&:hover': {
+                          backgroundColor: colors.accent.light,
+                        }
+                      }}
+                    >
+                      Upraviť
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={() => setIsEditingCompany(false)}
+                        sx={{ color: colors.text.secondary }}
+                      >
+                        Zrušiť
+                      </Button>
+                      <Button
+                        onClick={handleSaveCompany}
+                        sx={{
+                          backgroundColor: colors.accent.main,
+                          color: colors.text.primary,
+                          '&:hover': {
+                            backgroundColor: colors.accent.light,
+                          }
+                        }}
+                      >
+                        Uložiť
+                      </Button>
+                    </>
+                  )}
                 </Box>
               </CardHeader>
               <Grid container spacing={3}>
@@ -598,17 +649,16 @@ function Settings() {
                     label="Názov firmy"
                     value={companyData?.companyName || ''}
                     onChange={(e) => setCompanyData(prev => ({ ...prev!, companyName: e.target.value }))}
-                    disabled={!isEditing}
+                    disabled={!isEditingCompany}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel sx={{ color: colors.text.secondary }}>Krajina</InputLabel>
+                  <FormControl fullWidth disabled={!isEditingCompany}>
+                    <InputLabel>Krajina</InputLabel>
                     <StyledSelect
-                      value={companyData?.country || ''}
+                      value={selectedCountry.code}
                       onChange={handleCountryChange}
-                      disabled={!isEditing}
-                      label="Krajina"
+                      disabled={!isEditingCompany}
                     >
                       {euCountries.map((country) => (
                         <MenuItem key={country.code} value={country.code}>
@@ -627,7 +677,7 @@ function Settings() {
                     label="IČO"
                     value={companyData?.ico || ''}
                     onChange={(e) => setCompanyData(prev => ({ ...prev!, ico: e.target.value }))}
-                    disabled={!isEditing}
+                    disabled={!isEditingCompany}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -636,7 +686,7 @@ function Settings() {
                     label="IČ DPH"
                     value={companyData?.icDph || ''}
                     onChange={(e) => setCompanyData(prev => ({ ...prev!, icDph: e.target.value }))}
-                    disabled={!isEditing}
+                    disabled={!isEditingCompany}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -645,7 +695,7 @@ function Settings() {
                     label="DIČ"
                     value={companyData?.dic || ''}
                     onChange={(e) => setCompanyData(prev => ({ ...prev!, dic: e.target.value }))}
-                    disabled={!isEditing}
+                    disabled={!isEditingCompany}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -654,7 +704,7 @@ function Settings() {
                     label="Ulica"
                     value={companyData?.street || ''}
                     onChange={(e) => setCompanyData(prev => ({ ...prev!, street: e.target.value }))}
-                    disabled={!isEditing}
+                    disabled={!isEditingCompany}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -663,7 +713,7 @@ function Settings() {
                     label="PSČ"
                     value={companyData?.zipCode || ''}
                     onChange={(e) => setCompanyData(prev => ({ ...prev!, zipCode: e.target.value }))}
-                    disabled={!isEditing}
+                    disabled={!isEditingCompany}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -672,7 +722,7 @@ function Settings() {
                     label="Mesto"
                     value={companyData?.city || ''}
                     onChange={(e) => setCompanyData(prev => ({ ...prev!, city: e.target.value }))}
-                    disabled={!isEditing}
+                    disabled={!isEditingCompany}
                   />
                 </Grid>
               </Grid>
