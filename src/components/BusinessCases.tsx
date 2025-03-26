@@ -223,16 +223,14 @@ const AddButton = styled(Button)({
   textTransform: 'none',
   transition: 'all 0.2s ease-in-out',
   boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
-  whiteSpace: 'nowrap',
-  '@media (max-width: 600px)': {
-    alignSelf: 'flex-end',
-    padding: '6px 16px',
-    fontSize: '0.9rem'
-  },
   '&:hover': {
     backgroundColor: colors.accent.light,
     transform: 'translateY(-2px)',
     boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
+  },
+  '@media (max-width: 600px)': {
+    width: '100%',
+    justifyContent: 'center'
   }
 });
 
@@ -508,7 +506,7 @@ export default function BusinessCases() {
       <MobileCardHeader>
         <Box>
           <MobileCompanyName>{businessCase.companyName}</MobileCompanyName>
-          <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
             {businessCase.vatNumber}
           </Typography>
         </Box>
@@ -535,7 +533,15 @@ export default function BusinessCases() {
 
         <MobileInfoRow>
           <PhoneIcon />
-          <Typography>{businessCase.contactPerson.phone}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <img
+              loading="lazy"
+              width="20"
+              src={`https://flagcdn.com/${businessCase.countryCode?.toLowerCase()}.svg`}
+              alt=""
+            />
+            {businessCase.contactPerson.phone}
+          </Box>
         </MobileInfoRow>
 
         <MobileInfoRow>
@@ -559,33 +565,47 @@ export default function BusinessCases() {
         )}
 
         {businessCase.reminderNote && (
-          <Typography 
-            sx={{ 
-              mt: 1, 
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '0.9rem',
-              fontStyle: 'italic'
-            }}
-          >
-            {businessCase.reminderNote}
-          </Typography>
+          <MobileInfoRow>
+            <Box sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.85rem' }}>
+              {businessCase.reminderNote}
+            </Box>
+          </MobileInfoRow>
+        )}
+
+        {businessCase.createdBy && (
+          <MobileInfoRow>
+            <PersonIcon />
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              {businessCase.createdBy.firstName} {businessCase.createdBy.lastName}
+            </Typography>
+          </MobileInfoRow>
         )}
       </MobileCardContent>
 
       <MobileCardActions>
-        <IconButton
-          size="small"
+        <IconButton 
           onClick={() => handleEdit(businessCase)}
-          sx={{ color: colors.accent.main }}
+          sx={{ 
+            color: colors.accent.main,
+            backgroundColor: 'rgba(255, 159, 67, 0.1)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 159, 67, 0.2)'
+            }
+          }}
         >
-          <EditIcon fontSize="small" />
+          <EditIcon />
         </IconButton>
-        <IconButton
-          size="small"
+        <IconButton 
           onClick={() => handleDelete(businessCase.id!)}
-          sx={{ color: colors.secondary.main }}
+          sx={{ 
+            color: colors.secondary.main,
+            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 107, 107, 0.2)'
+            }
+          }}
         >
-          <DeleteIcon fontSize="small" />
+          <DeleteIcon />
         </IconButton>
       </MobileCardActions>
     </MobileBusinessCard>
@@ -650,9 +670,24 @@ export default function BusinessCases() {
             xs: 'none', 
             md: 'block' 
           },
-          backgroundColor: 'transparent',
-          backgroundImage: 'none',
-          boxShadow: 'none'
+          backgroundColor: colors.primary.light,
+          backdropFilter: 'blur(20px)',
+          borderRadius: '16px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          '& .MuiTableCell-root': {
+            color: '#ffffff',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            padding: '16px',
+            fontSize: '0.9rem'
+          },
+          '& .MuiTableHead-root .MuiTableCell-root': {
+            fontWeight: 600,
+            backgroundColor: 'rgba(255, 255, 255, 0.05)'
+          },
+          '& .MuiTableBody-root .MuiTableRow-root:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.05)'
+          }
         }}
       >
         <Table>

@@ -32,6 +32,7 @@ import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
 import SearchField from './common/SearchField';
 import { useMediaQuery } from '@mui/material';
+import { Phone as PhoneIcon, Email as EmailIcon, Person as PersonIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
 
 interface Country {
   code: string;
@@ -92,7 +93,13 @@ const colors = {
 
 const PageWrapper = styled('div')({
   padding: '24px',
-  position: 'relative'
+  position: 'relative',
+  maxWidth: '100%',
+  overflowX: 'hidden',
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    paddingBottom: '80px'
+  }
 });
 
 const PageHeader = styled(Box)({
@@ -102,6 +109,13 @@ const PageHeader = styled(Box)({
   marginBottom: '32px',
   position: 'relative',
   zIndex: 1,
+  backgroundColor: colors.primary.main,
+  '@media (max-width: 600px)': {
+    flexDirection: 'column',
+    gap: '16px',
+    alignItems: 'flex-start',
+    padding: '16px 0'
+  }
 });
 
 const PageTitle = styled(Typography)({
@@ -118,6 +132,9 @@ const PageTitle = styled(Typography)({
     height: '4px',
     backgroundColor: colors.accent.main,
     borderRadius: '2px',
+  },
+  '@media (max-width: 600px)': {
+    fontSize: '1.5rem'
   }
 });
 
@@ -135,6 +152,10 @@ const AddButton = styled(Button)({
     backgroundColor: colors.accent.light,
     transform: 'translateY(-2px)',
     boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
+  },
+  '@media (max-width: 600px)': {
+    width: '100%',
+    justifyContent: 'center'
   }
 });
 
@@ -203,79 +224,54 @@ const SearchLabel = styled(Typography)({
   fontWeight: 500,
 });
 
-const MobileContactCard = styled(Paper)({
+const MobileContactCard = styled(Box)({
   backgroundColor: colors.primary.light,
-  backdropFilter: 'blur(20px)',
   borderRadius: '16px',
-  padding: '20px',
+  padding: '16px',
   color: '#ffffff',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
   border: '1px solid rgba(255, 255, 255, 0.06)',
   marginBottom: '16px',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
-  }
+  width: '100%'
 });
 
-const MobileContactHeader = styled(Box)({
+const MobileCardHeader = styled(Box)({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'flex-start',
-  marginBottom: '16px',
+  marginBottom: '12px'
 });
 
-const MobileContactName = styled(Typography)({
+const MobileCompanyName = styled(Typography)({
   fontSize: '1.1rem',
   fontWeight: 600,
-  color: colors.accent.main,
-  marginBottom: '4px',
+  color: colors.accent.main
 });
 
-const MobileContactCompany = styled(Typography)({
-  fontSize: '0.9rem',
-  color: 'rgba(255, 255, 255, 0.7)',
-});
-
-const MobileContactInfo = styled(Box)({
+const MobileCardContent = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
-  gap: '12px',
+  gap: '12px'
 });
 
-const MobileInfoItem = styled(Box)({
+const MobileInfoRow = styled(Box)({
   display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-});
-
-const MobileInfoLabel = styled(Typography)({
-  fontSize: '0.8rem',
-  color: 'rgba(255, 255, 255, 0.5)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.5px',
-});
-
-const MobileInfoValue = styled(Typography)({
-  fontSize: '0.95rem',
-  color: '#ffffff',
-});
-
-const MobileActions = styled(Box)({
-  display: 'flex',
+  alignItems: 'center',
   gap: '8px',
-  marginTop: '16px',
-  justifyContent: 'flex-end',
+  fontSize: '0.9rem',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.1rem',
+    color: colors.accent.main
+  }
 });
 
-const ActionButton = styled(IconButton)({
-  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  color: '#ffffff',
-  padding: '8px',
-  '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  }
+const MobileCardActions = styled(Box)({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: '8px',
+  marginTop: '12px',
+  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+  paddingTop: '12px'
 });
 
 const Contacts = () => {
@@ -516,55 +512,91 @@ const Contacts = () => {
 
   const renderMobileContact = (contact: Contact) => (
     <MobileContactCard key={contact.id}>
-      <MobileContactHeader>
+      <MobileCardHeader>
         <Box>
-          <MobileContactName>
+          <MobileCompanyName>{contact.company}</MobileCompanyName>
+          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
             {contact.firstName} {contact.lastName}
-          </MobileContactName>
-          <MobileContactCompany>
-            {contact.company}
-          </MobileContactCompany>
+          </Typography>
         </Box>
-      </MobileContactHeader>
-      
-      <MobileContactInfo>
-        <MobileInfoItem>
-          <MobileInfoLabel>Telefón</MobileInfoLabel>
-          <MobileInfoValue>
+      </MobileCardHeader>
+
+      <MobileCardContent>
+        <MobileInfoRow>
+          <PhoneIcon />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <img
+              loading="lazy"
+              width="20"
+              src={`https://flagcdn.com/${contact.countryCode}.svg`}
+              alt=""
+            />
             {contact.phonePrefix} {contact.phoneNumber}
-          </MobileInfoValue>
-        </MobileInfoItem>
-        
-        <MobileInfoItem>
-          <MobileInfoLabel>Email</MobileInfoLabel>
-          <MobileInfoValue>{contact.email}</MobileInfoValue>
-        </MobileInfoItem>
-        
+          </Box>
+        </MobileInfoRow>
+
+        <MobileInfoRow>
+          <EmailIcon />
+          {contact.email}
+        </MobileInfoRow>
+
         {contact.notes && (
-          <MobileInfoItem>
-            <MobileInfoLabel>Poznámky</MobileInfoLabel>
-            <MobileInfoValue>{contact.notes}</MobileInfoValue>
-          </MobileInfoItem>
+          <MobileInfoRow>
+            <Box sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.85rem' }}>
+              {contact.notes}
+            </Box>
+          </MobileInfoRow>
         )}
-        
+
         {contact.createdBy && (
-          <MobileInfoItem>
-            <MobileInfoLabel>Vytvoril</MobileInfoLabel>
-            <MobileInfoValue>
+          <MobileInfoRow>
+            <PersonIcon />
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               {contact.createdBy.firstName} {contact.createdBy.lastName}
-            </MobileInfoValue>
-          </MobileInfoItem>
+            </Typography>
+          </MobileInfoRow>
         )}
-      </MobileContactInfo>
-      
-      <MobileActions>
-        <ActionButton onClick={() => handleEdit(contact)}>
+
+        <MobileInfoRow>
+          <AccessTimeIcon />
+          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            {contact.createdAt?.toDate().toLocaleString('sk-SK', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </Typography>
+        </MobileInfoRow>
+      </MobileCardContent>
+
+      <MobileCardActions>
+        <IconButton 
+          onClick={() => handleEdit(contact)}
+          sx={{ 
+            color: colors.accent.main,
+            backgroundColor: 'rgba(255, 159, 67, 0.1)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 159, 67, 0.2)'
+            }
+          }}
+        >
           <EditIcon />
-        </ActionButton>
-        <ActionButton onClick={() => handleDelete(contact.id)}>
+        </IconButton>
+        <IconButton 
+          onClick={() => handleDelete(contact.id)}
+          sx={{ 
+            color: colors.secondary.main,
+            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 107, 107, 0.2)'
+            }
+          }}
+        >
           <DeleteIcon />
-        </ActionButton>
-      </MobileActions>
+        </IconButton>
+      </MobileCardActions>
     </MobileContactCard>
   );
 
@@ -573,7 +605,6 @@ const Contacts = () => {
       <PageHeader>
         <PageTitle>Kontakty</PageTitle>
         <AddButton
-          variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setOpenDialog(true)}
         >
@@ -583,9 +614,9 @@ const Contacts = () => {
 
       <SearchWrapper>
         <SearchField
+          placeholder="Vyhľadať kontakt..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          label="Vyhľadať kontakt"
         />
       </SearchWrapper>
 
@@ -594,51 +625,13 @@ const Contacts = () => {
           {filteredContacts.map(contact => renderMobileContact(contact))}
         </Box>
       ) : (
-        <TableContainer 
-          component={Paper} 
-          sx={{ 
-            marginTop: 2, 
-            backgroundColor: 'transparent',
-            overflowX: 'auto',
-            width: '100%',
-            '& .MuiTable-root': {
-              width: {
-                xs: '800px',
-                md: '100%'
-              }
-            },
-            '& .MuiTableCell-root': {
-              padding: {
-                xs: '12px 8px',
-                sm: '16px'
-              },
-              fontSize: {
-                xs: '0.8rem',
-                sm: '0.875rem'
-              },
-              whiteSpace: 'nowrap',
-              color: '#ffffff',
-              backgroundColor: colors.primary.light,
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-            },
-            '& .MuiTableHead-root': {
-              '& .MuiTableCell-root': {
-                fontWeight: 600,
-                backgroundColor: colors.primary.light,
-                borderBottom: '2px solid rgba(255, 255, 255, 0.15)'
-              }
-            },
-            '& .MuiTableBody-root': {
-              '& .MuiTableRow-root': {
-                '&:hover': {
-                  '& .MuiTableCell-root': {
-                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                  }
-                }
-              }
-            }
-          }}
-        >
+        <TableContainer component={Paper} sx={{
+          backgroundColor: colors.primary.light,
+          backdropFilter: 'blur(20px)',
+          borderRadius: '16px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+        }}>
           <Table>
             <TableHead>
               <TableRow>
