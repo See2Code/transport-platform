@@ -43,6 +43,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import SearchField from './common/SearchField';
 import TransportMap from './common/TransportMap';
 import PersonIcon from '@mui/icons-material/Person';
+import CloseIcon from '@mui/icons-material/Close';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -1102,7 +1103,6 @@ function TrackedTransports() {
       >
         <DialogTitle sx={{ 
           color: '#ffffff',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '24px',
           fontSize: '1.5rem',
           fontWeight: 600,
@@ -1315,12 +1315,29 @@ function TrackedTransports() {
       >
         <DialogTitle sx={{ 
           color: '#ffffff',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '24px',
           fontSize: '1.5rem',
           fontWeight: 600,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
         }}>
           Trasa prepravy
+          <IconButton
+            onClick={() => {
+              setMapDialogOpen(false);
+              setSelectedTransport(null);
+            }}
+            sx={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&:hover': {
+                color: '#ffffff',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
         <DialogContent sx={{ padding: '24px', minHeight: '600px' }}>
           {selectedTransport && (
