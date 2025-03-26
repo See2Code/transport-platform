@@ -13,13 +13,13 @@ import {
   Divider
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, updateDoc, setDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 function RegisterUser() {
-  const [searchParams] = useSearchParams();
+  const { invitationId } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     password: '',
@@ -33,40 +33,42 @@ function RegisterUser() {
   const [companyLoading, setCompanyLoading] = useState(true);
 
   useEffect(() => {
-    const invitationId = searchParams.get('invitationId');
-    if (invitationId) {
-      const fetchInvitation = async () => {
-        try {
-          const invitationDoc = await getDoc(doc(db, 'invitations', invitationId));
-          if (!invitationDoc.exists()) {
-            setError('Pozvánka nebola nájdená');
-            return;
-          }
-
-          const invitationData = invitationDoc.data();
-          if (invitationData.status !== 'pending') {
-            setError('Táto pozvánka už bola použitá');
-            return;
-          }
-
-          setInvitation(invitationData);
-
-          // Načítanie informácií o firme
-          const companyDoc = await getDoc(doc(db, 'companies', invitationData.companyID));
-          if (companyDoc.exists()) {
-            setCompany(companyDoc.data());
-          }
-        } catch (err) {
-          console.error('Chyba pri načítaní pozvánky:', err);
-          setError('Nepodarilo sa načítať pozvánku');
-        } finally {
-          setCompanyLoading(false);
-        }
-      };
-
-      fetchInvitation();
+    if (!invitationId) {
+      setError('Chýba ID pozvánky');
+      return;
     }
-  }, [searchParams]);
+
+    const fetchInvitation = async () => {
+      try {
+        const invitationDoc = await getDoc(doc(db, 'invitations', invitationId));
+        if (!invitationDoc.exists()) {
+          setError('Pozvánka nebola nájdená');
+          return;
+        }
+
+        const invitationData = invitationDoc.data();
+        if (invitationData.status !== 'pending') {
+          setError('Táto pozvánka už bola použitá');
+          return;
+        }
+
+        setInvitation(invitationData);
+
+        // Načítanie informácií o firme
+        const companyDoc = await getDoc(doc(db, 'companies', invitationData.companyID));
+        if (companyDoc.exists()) {
+          setCompany(companyDoc.data());
+        }
+      } catch (err) {
+        console.error('Chyba pri načítaní pozvánky:', err);
+        setError('Nepodarilo sa načítať pozvánku');
+      } finally {
+        setCompanyLoading(false);
+      }
+    };
+
+    fetchInvitation();
+  }, [invitationId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -79,7 +81,7 @@ function RegisterUser() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!invitation) {
+    if (!invitation || !invitationId) {
       setError('Chýbajúce údaje pozvánky');
       return;
     }
@@ -122,7 +124,7 @@ function RegisterUser() {
       await setDoc(doc(db, 'users', userCredential.user.uid), userData);
 
       // Aktualizácia pozvánky
-      await updateDoc(doc(db, 'invitations', searchParams.get('invitationId')!), {
+      await updateDoc(doc(db, 'invitations', invitationId), {
         status: 'accepted',
         userId: userCredential.user.uid,
         acceptedAt: new Date().toISOString()

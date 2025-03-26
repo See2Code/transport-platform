@@ -14,6 +14,7 @@ import Register from './components/Register';
 import Home from './components/Home';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import RegisterUser from './components/RegisterUser';
 
 const theme = createTheme({
   palette: {
@@ -89,6 +90,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/register-user" element={<RegisterUser />} />
+              <Route path="/accept-invitation/:invitationId" element={<RegisterUser />} />
               
               {/* Chránené cesty */}
               <Route path="/dashboard" element={
