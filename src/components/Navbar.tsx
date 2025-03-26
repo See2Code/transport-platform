@@ -53,14 +53,14 @@ const colors = {
     dark: '#f57c00',
   },
   background: {
-    main: 'rgba(28, 28, 45, 0.95)',
-    light: 'rgba(35, 35, 66, 0.95)',
+    main: 'rgba(28, 28, 45, 0.35)',
+    light: 'rgba(35, 35, 66, 0.35)',
     dark: '#12121f',
   },
   text: {
     primary: '#ffffff',
-    secondary: 'rgba(255, 255, 255, 0.7)',
-    disabled: 'rgba(255, 255, 255, 0.5)',
+    secondary: 'rgba(255, 255, 255, 0.9)',
+    disabled: 'rgba(255, 255, 255, 0.7)',
   }
 };
 
