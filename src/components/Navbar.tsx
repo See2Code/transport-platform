@@ -382,15 +382,14 @@ const MenuButton = styled(IconButton)({
 
 const StyledMenu = styled(Menu)({
   '& .MuiPaper-root': {
-    backgroundColor: colors.background.main,
-    backdropFilter: 'blur(10px)',
+    backgroundColor: 'rgba(28, 28, 45, 0.50)',
+    backdropFilter: 'blur(4px)',
     border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '12px',
     marginTop: '8px',
-    minWidth: '200px',
+    minWidth: '250px',
     maxHeight: 'calc(100vh - 64px)',
     overflowY: 'auto',
-    position: 'absolute',
     zIndex: 99999,
     '&::-webkit-scrollbar': {
       width: '8px',
@@ -487,21 +486,17 @@ const Navbar = () => {
         <StyledToolbar>
           {isMobile ? (
             <>
+              <BrandContainer>
+                <LogoImage src="/AESA white.svg" alt="AESA Logo" />
+              </BrandContainer>
               <MenuButton
-                edge="start"
+                edge="end"
                 color="inherit"
                 aria-label="menu"
                 onClick={handleMobileMenuClick}
               >
                 <MenuIcon />
               </MenuButton>
-              <BrandContainer>
-                <LogoImage src="/AESA white.svg" alt="AESA Logo" />
-                <Typography variant="h6" noWrap component="div">
-                  Transport Platform
-                </Typography>
-              </BrandContainer>
-              <Box sx={{ width: 40 }} />
             </>
           ) : (
             <>
@@ -587,16 +582,11 @@ const Navbar = () => {
         onClose={handleMobileMenuClose}
         anchorOrigin={{
           vertical: 'top',
-          horizontal: 'left',
+          horizontal: 'right',
         }}
         transformOrigin={{
           vertical: 'top',
-          horizontal: 'left',
-        }}
-        sx={{
-          '& .MuiMenu-paper': {
-            marginTop: '56px',
-          },
+          horizontal: 'right',
         }}
       >
         {menuItems.filter(item => !item.hidden).map((item) => (
@@ -604,31 +594,68 @@ const Navbar = () => {
             key={item.text}
             onClick={() => item.path && handleNavigation(item.path)}
             sx={{
+              padding: '12px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
               color: colors.text.primary,
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40, color: colors.text.secondary }}>
+            <ListItemIcon sx={{ 
+              minWidth: 'auto',
+              color: colors.text.secondary,
+              '& .MuiSvgIcon-root': {
+                fontSize: '1.25rem',
+              },
+            }}>
               {item.icon}
             </ListItemIcon>
-            <ListItemText primary={item.text} />
+            <ListItemText 
+              primary={item.text}
+              sx={{
+                '& .MuiTypography-root': {
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                },
+              }}
+            />
           </MenuItem>
         ))}
+        <Divider sx={{ margin: '8px 0', backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
         <MenuItem
           onClick={handleLogout}
           sx={{
-            color: colors.text.primary,
+            padding: '12px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            color: '#d64545',
             '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              backgroundColor: 'rgba(214, 69, 69, 0.08)',
             },
           }}
         >
-          <ListItemIcon sx={{ minWidth: 40, color: colors.text.secondary }}>
+          <ListItemIcon sx={{ 
+            minWidth: 'auto',
+            color: 'inherit',
+            '& .MuiSvgIcon-root': {
+              fontSize: '1.25rem',
+            },
+          }}>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText primary="Odhlásiť sa" />
+          <ListItemText 
+            primary="Odhlásiť sa"
+            sx={{
+              '& .MuiTypography-root': {
+                fontSize: '0.95rem',
+                fontWeight: 500,
+              },
+            }}
+          />
         </MenuItem>
       </StyledMenu>
     </PageWrapper>
