@@ -9,6 +9,10 @@ import Settings from './components/Settings';
 import Transport from './components/Transport';
 import TrackedTransports from './components/TrackedTransports';
 import BusinessCases from './components/BusinessCases';
+import Login from './components/Login';
+import Register from './components/Register';
+import Home from './components/Home';
+import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './contexts/AuthContext';
 
 const theme = createTheme({
@@ -80,19 +84,70 @@ function App() {
       <AuthProvider>
         <Router>
           <AppContainer>
-            <Navbar />
-            <PageContent>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/team" element={<Team />} />
-                <Route path="/contacts" element={<Contacts />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/transports" element={<Transport />} />
-                <Route path="/tracked-transports" element={<TrackedTransports />} />
-                <Route path="/business-cases" element={<BusinessCases />} />
-              </Routes>
-            </PageContent>
+            <Routes>
+              {/* Verejné cesty */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              
+              {/* Chránené cesty */}
+              <Route path="/dashboard" element={
+                <PrivateRoute>
+                  <PageContent>
+                    <Navbar />
+                    <Dashboard />
+                  </PageContent>
+                </PrivateRoute>
+              } />
+              <Route path="/team" element={
+                <PrivateRoute>
+                  <PageContent>
+                    <Navbar />
+                    <Team />
+                  </PageContent>
+                </PrivateRoute>
+              } />
+              <Route path="/contacts" element={
+                <PrivateRoute>
+                  <PageContent>
+                    <Navbar />
+                    <Contacts />
+                  </PageContent>
+                </PrivateRoute>
+              } />
+              <Route path="/settings" element={
+                <PrivateRoute>
+                  <PageContent>
+                    <Navbar />
+                    <Settings />
+                  </PageContent>
+                </PrivateRoute>
+              } />
+              <Route path="/transports" element={
+                <PrivateRoute>
+                  <PageContent>
+                    <Navbar />
+                    <Transport />
+                  </PageContent>
+                </PrivateRoute>
+              } />
+              <Route path="/tracked-transports" element={
+                <PrivateRoute>
+                  <PageContent>
+                    <Navbar />
+                    <TrackedTransports />
+                  </PageContent>
+                </PrivateRoute>
+              } />
+              <Route path="/business-cases" element={
+                <PrivateRoute>
+                  <PageContent>
+                    <Navbar />
+                    <BusinessCases />
+                  </PageContent>
+                </PrivateRoute>
+              } />
+            </Routes>
           </AppContainer>
         </Router>
       </AuthProvider>

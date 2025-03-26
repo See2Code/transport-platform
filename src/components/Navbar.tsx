@@ -512,7 +512,12 @@ const Navbar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { currentUser, logout } = useAuth();
+
+  // Ak užívateľ nie je prihlásený, nezobrazujeme navbar
+  if (!currentUser) {
+    return null;
+  }
 
   const handleMobileMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setMobileMenuAnchor(event.currentTarget);
