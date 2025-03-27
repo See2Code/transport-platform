@@ -192,6 +192,7 @@ const StyledCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
   transition: 'all 0.3s ease',
+  marginBottom: '10px',
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: '0 8px 24px rgba(255, 159, 67, 0.2)',
@@ -206,30 +207,29 @@ const StyledCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   '& .MuiTypography-body1': {
     color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   },
+  '@media (max-width: 600px)': {
+    marginBottom: '8px'
+  }
 }));
 
-const TransportCard = styled(Paper)({
-  backgroundColor: 'rgba(28, 28, 45, 0.95)',
-  backdropFilter: 'blur(20px)',
-  borderRadius: '16px',
-  padding: '24px',
-  color: '#ffffff',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
-  marginBottom: '24px',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+const TransportCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(2),
+  marginBottom: '10px',
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(35, 35, 66, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+  backdropFilter: 'blur(10px)',
+  borderRadius: '20px',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+  transition: 'all 0.3s ease',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 12px 40px 0 rgba(0, 0, 0, 0.5)',
   },
-  '@media (max-width: 600px)': {
-    padding: '16px',
-    marginBottom: '16px',
-    '&:hover': {
-      transform: 'none'
-    }
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1.5),
+    marginBottom: '8px',
   }
-});
+}));
 
 const TransportInfo = styled(Box)({
   display: 'grid',
