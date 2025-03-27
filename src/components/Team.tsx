@@ -548,35 +548,38 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   }
 }));
 
-const LoadingDialog = styled(Dialog)(({ theme }) => ({
+const LoadingDialog = styled(Dialog)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
   '& .MuiDialog-paper': {
-    background: 'rgba(255, 255, 255, 0.95)',
+    background: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
     borderRadius: '16px',
     padding: '24px',
     minWidth: '300px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+    boxShadow: isDarkMode ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   },
 }));
 
-const LoadingText = styled(Typography)({
-  color: '#000000',
+const LoadingText = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  color: isDarkMode ? '#ffffff' : '#000000',
   textAlign: 'center',
   marginBottom: '20px',
   fontSize: '1.1rem',
-});
+}));
 
 const LoadingDots = styled(Box)({
   display: 'flex',
   justifyContent: 'center',
   gap: '8px',
-  marginTop: '20px',
+  marginTop: '0',
+  height: '24px',
+  alignItems: 'center'
 });
 
-const Dot = styled(Box)({
-  width: '8px',
-  height: '8px',
+const Dot = styled(Box)<{ isDarkMode?: boolean }>(({ isDarkMode = true }) => ({
+  width: '6px',
+  height: '6px',
   borderRadius: '50%',
-  backgroundColor: '#ff9f43',
+  backgroundColor: isDarkMode ? '#ffffff' : '#000000',
   animation: 'bounce 1.4s infinite ease-in-out',
   '&:nth-of-type(1)': {
     animationDelay: '-0.32s',
@@ -592,7 +595,7 @@ const Dot = styled(Box)({
       transform: 'scale(1)',
     },
   },
-});
+}));
 
 function Team() {
   const navigate = useNavigate();
@@ -631,6 +634,7 @@ function Team() {
     message: '',
     severity: 'info'
   });
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -744,7 +748,7 @@ function Team() {
     }
 
     try {
-      setLoading(true);
+      setIsCreating(true);
       setError('');
       setSuccess('');
 
@@ -789,7 +793,10 @@ function Team() {
       console.error('Chyba pri odosielaní pozvánky:', err);
       setError(err.message || 'Nastala chyba pri odosielaní pozvánky.');
     } finally {
-      setLoading(false);
+      // Zatiahneme zatvorenie dialogu o 1 sekundu, aby sa užívateľ stihol pozrieť na loading stav
+      setTimeout(() => {
+        setIsCreating(false);
+      }, 1000);
     }
   };
 
@@ -972,8 +979,11 @@ function Team() {
         severity: 'error'
       });
     } finally {
-      setIsResending(false);
-      setResendingInvitationId(null);
+      // Zatiahneme zatvorenie dialogu o 1 sekundu, aby sa užívateľ stihol pozrieť na loading stav
+      setTimeout(() => {
+        setIsResending(false);
+        setResendingInvitationId(null);
+      }, 1000);
     }
   };
 
@@ -1459,6 +1469,7 @@ function Team() {
                 color: '#ffffff',
                 fontWeight: 600,
                 padding: '8px 24px',
+                minWidth: '150px',
                 '&:hover': {
                   backgroundColor: colors.accent.light,
                 },
@@ -1468,7 +1479,13 @@ function Team() {
                 }
               }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Pridať člena'}
+              {loading ? (
+                <LoadingDots>
+                  <Dot isDarkMode={true} />
+                  <Dot isDarkMode={true} />
+                  <Dot isDarkMode={true} />
+                </LoadingDots>
+              ) : 'Pridať člena'}
             </Button>
           </DialogActions>
         </StyledDialogContent>
@@ -1607,6 +1624,7 @@ function Team() {
                 color: '#ffffff',
                 fontWeight: 600,
                 padding: '8px 24px',
+                minWidth: '150px',
                 '&:hover': {
                   backgroundColor: colors.accent.light,
                 },
@@ -1616,7 +1634,13 @@ function Team() {
                 }
               }}
             >
-              Uložiť zmeny
+              {loading ? (
+                <LoadingDots>
+                  <Dot isDarkMode={true} />
+                  <Dot isDarkMode={true} />
+                  <Dot isDarkMode={true} />
+                </LoadingDots>
+              ) : 'Uložiť zmeny'}
             </Button>
           </DialogActions>
         </StyledDialogContent>
@@ -1661,33 +1685,41 @@ function Team() {
               disabled={loading}
               aria-label={inviteToDelete && 'userId' in inviteToDelete ? 'Vymazať člena z tímu' : 'Zrušiť pozvánku'}
             >
-              {loading ? <CircularProgress size={24} /> : `${inviteToDelete && 'userId' in inviteToDelete ? 'Vymazať člena z tímu' : 'Zrušiť pozvánku'}`}
+              {loading ? (
+                <LoadingDots>
+                  <Dot isDarkMode={true} />
+                  <Dot isDarkMode={true} />
+                  <Dot isDarkMode={true} />
+                </LoadingDots>
+              ) : `${inviteToDelete && 'userId' in inviteToDelete ? 'Vymazať člena z tímu' : 'Zrušiť pozvánku'}`}
             </Button>
           </DialogActions>
         </StyledDialogContent>
       </Dialog>
 
       <LoadingDialog
-        open={isResending}
+        open={isResending || isCreating}
         onClose={() => {}}
+        isDarkMode={isDarkMode}
         PaperProps={{
           sx: {
-            background: 'rgba(255, 255, 255, 0.95)',
+            background: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
             borderRadius: '16px',
             padding: '24px',
             minWidth: '300px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            boxShadow: isDarkMode ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
           }
         }}
       >
         <DialogContent>
-          <LoadingText>
-            Preposielanie pozvánky...
+          <LoadingText isDarkMode={isDarkMode}>
+            {isCreating ? 'Vytváranie pozvánky...' : 'Preposielanie pozvánky...'}
           </LoadingText>
           <LoadingDots>
-            <Dot />
-            <Dot />
-            <Dot />
+            <Dot isDarkMode={isDarkMode} />
+            <Dot isDarkMode={isDarkMode} />
+            <Dot isDarkMode={isDarkMode} />
           </LoadingDots>
         </DialogContent>
       </LoadingDialog>
