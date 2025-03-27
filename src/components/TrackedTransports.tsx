@@ -353,15 +353,33 @@ const SearchWrapper = styled(Box)({
 
 const MapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
-    background: 'rgba(35, 35, 66, 0.7)',
-    backdropFilter: 'blur(10px)',
-    borderRadius: '20px',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-    minWidth: '800px',
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(26, 26, 26, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+    borderRadius: '12px',
+    padding: '24px',
     maxWidth: '90vw',
-    maxHeight: '80vh',
-    margin: '24px'
+    width: '1200px',
+    height: '90vh',
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative',
+    overflow: 'hidden',
+    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    boxShadow: theme.palette.mode === 'dark' 
+      ? '0 8px 32px rgba(0, 0, 0, 0.4)' 
+      : '0 8px 32px rgba(0, 0, 0, 0.1)',
+    backdropFilter: 'blur(10px)',
+  },
+  '& .MuiDialogTitle-root': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  },
+  '& .MuiDialogContent-root': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  },
+  '& .MuiBackdrop-root': {
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(0, 0, 0, 0.7)' 
+      : 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(4px)',
   }
 }));
 
@@ -1356,7 +1374,7 @@ function TrackedTransports() {
         maxWidth={false}
       >
         <DialogTitle sx={{ 
-          color: '#ffffff',
+          color: isDarkMode ? '#ffffff' : '#000000',
           padding: '24px',
           fontSize: '1.5rem',
           fontWeight: 600,
@@ -1371,10 +1389,10 @@ function TrackedTransports() {
               setSelectedTransport(null);
             }}
             sx={{
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
               '&:hover': {
-                color: '#ffffff',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                color: isDarkMode ? '#ffffff' : '#000000',
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
               }
             }}
           >
@@ -1383,16 +1401,24 @@ function TrackedTransports() {
         </DialogTitle>
         <DialogContent sx={{ padding: '24px', minHeight: '600px' }}>
           {selectedTransport && (
-            <Box sx={{ height: '100%' }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ mb: 2 }}>
-                <Typography sx={{ color: '#ffffff', mb: 1 }}>
+                <Typography sx={{ color: isDarkMode ? '#ffffff' : '#000000', mb: 1 }}>
                   <strong>Nakládka:</strong> {selectedTransport.loading}
                 </Typography>
-                <Typography sx={{ color: '#ffffff' }}>
+                <Typography sx={{ color: isDarkMode ? '#ffffff' : '#000000' }}>
                   <strong>Vykládka:</strong> {selectedTransport.unloading}
                 </Typography>
               </Box>
-              <Box sx={{ height: 'calc(100% - 80px)', minHeight: '500px' }}>
+              <Box sx={{ 
+                flex: 1, 
+                minHeight: '500px', 
+                padding: '20px',
+                border: 'none',
+                borderRadius: '12px',
+                backgroundColor: 'transparent',
+                marginBottom: '20px'
+              }}>
                 <TransportMap
                   origin={selectedTransport.loading}
                   destination={selectedTransport.unloading}
@@ -1403,14 +1429,14 @@ function TrackedTransports() {
         </DialogContent>
         <DialogActions sx={{ 
           padding: '24px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
         }}>
           <Button 
             onClick={() => {
               setMapDialogOpen(false);
               setSelectedTransport(null);
             }}
-            sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+            sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}
           >
             Zavrieť
           </Button>
