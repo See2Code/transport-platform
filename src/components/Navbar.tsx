@@ -42,6 +42,9 @@ import BusinessIcon from '@mui/icons-material/Business';
 import MenuIcon from '@mui/icons-material/Menu';
 import PersonIcon from '@mui/icons-material/Person';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import { useThemeMode } from '../contexts/ThemeContext';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -381,13 +384,13 @@ const MenuButton = styled(IconButton)({
   },
 });
 
-const StyledMenu = styled(Menu)(({ theme }) => ({
+const StyledMenu = styled(Menu)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
   '& .MuiPaper-root': {
-    background: 'rgba(35, 35, 66, 0.95)',
+    background: isDarkMode ? 'rgba(35, 35, 66, 0.95)' : 'rgba(255, 255, 255, 0.95)',
     backdropFilter: 'blur(10px)',
     borderRadius: '20px',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
     marginTop: '8px',
     minWidth: 'auto',
     width: 'auto',
@@ -421,9 +424,9 @@ const StyledMenu = styled(Menu)(({ theme }) => ({
     borderRadius: '12px',
     padding: '12px 16px',
     margin: '4px 0',
-    color: '#ffffff',
+    color: isDarkMode ? '#ffffff' : '#000000',
     '&:hover': {
-      background: 'rgba(255, 255, 255, 0.1)',
+      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
     },
     [theme.breakpoints.down('sm')]: {
       padding: '16px',
@@ -432,7 +435,7 @@ const StyledMenu = styled(Menu)(({ theme }) => ({
   },
   '& .MuiListItemIcon-root': {
     minWidth: '40px',
-    color: '#ffffff',
+    color: isDarkMode ? '#ffffff' : '#000000',
   },
   '& .MuiListItemText-root': {
     margin: 0,
@@ -440,14 +443,15 @@ const StyledMenu = styled(Menu)(({ theme }) => ({
   '& .MuiListItemText-primary': {
     fontSize: '1rem',
     fontWeight: 500,
+    color: isDarkMode ? '#ffffff' : '#000000',
   },
   '& .MuiListItemText-secondary': {
     fontSize: '0.875rem',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   },
   '& .MuiDivider-root': {
     margin: '8px 0',
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
   },
   '& .MuiButton-root': {
     width: '100%',
@@ -487,37 +491,34 @@ const MainContent = styled('main')({
   width: '100%',
 });
 
-const StyledListItem = styled(ListItem)<{ button?: boolean }>({
+const StyledListItem = styled(ListItem)<{ button?: boolean; isDarkMode?: boolean }>(({ isDarkMode = true }) => ({
   minWidth: 'auto',
   padding: '6px 12px',
   borderRadius: '8px',
   cursor: 'pointer',
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
   },
   '& .MuiListItemIcon-root': {
     minWidth: '32px',
-    color: colors.text.secondary,
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   },
   '& .MuiListItemText-root': {
     margin: 0,
     '& .MuiTypography-root': {
       fontSize: '0.9rem',
+      color: isDarkMode ? '#ffffff' : '#000000',
     },
   },
-});
+}));
 
 const Navbar = () => {
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
-
-  // Ak užívateľ nie je prihlásený, nezobrazujeme navbar
-  if (!currentUser) {
-    return null;
-  }
+  const { logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useThemeMode();
 
   const handleMobileMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setMobileMenuAnchor(event.currentTarget);
@@ -600,7 +601,10 @@ const Navbar = () => {
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: '32px', color: colors.text.secondary }}>
+                    <ListItemIcon sx={{ 
+                      minWidth: '32px', 
+                      color: isDarkMode ? colors.text.secondary : 'rgba(0, 0, 0, 0.7)' 
+                    }}>
                       {item.icon}
                     </ListItemIcon>
                     <ListItemText 
@@ -609,11 +613,26 @@ const Navbar = () => {
                         margin: 0,
                         '& .MuiTypography-root': {
                           fontSize: '0.9rem',
+                          color: isDarkMode ? '#ffffff' : '#000000',
                         },
                       }} 
                     />
                   </Box>
                 ))}
+                <IconButton
+                  onClick={toggleTheme}
+                  sx={{
+                    minWidth: 'auto',
+                    padding: '6px',
+                    borderRadius: '8px',
+                    color: isDarkMode ? colors.text.secondary : 'rgba(0, 0, 0, 0.7)',
+                    '&:hover': {
+                      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                    },
+                  }}
+                >
+                  {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+                </IconButton>
                 <Box
                   onClick={handleLogout}
                   sx={{
@@ -649,6 +668,7 @@ const Navbar = () => {
       </StyledAppBar>
 
       <StyledMenu
+        isDarkMode={isDarkMode}
         anchorEl={mobileMenuAnchor}
         open={Boolean(mobileMenuAnchor)}
         onClose={handleMobileMenuClose}
@@ -718,7 +738,39 @@ const Navbar = () => {
             />
           </MenuItem>
         ))}
-        <Divider sx={{ margin: '8px 0', backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+        <Divider sx={{ margin: '8px 0', backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }} />
+        <MenuItem
+          onClick={toggleTheme}
+          sx={{
+            padding: '12px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            color: isDarkMode ? '#ffffff' : '#000000',
+            '&:hover': {
+              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+            },
+          }}
+        >
+          <ListItemIcon sx={{ 
+            minWidth: 'auto',
+            color: 'inherit',
+            '& .MuiSvgIcon-root': {
+              fontSize: '1.25rem',
+            },
+          }}>
+            {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+          </ListItemIcon>
+          <ListItemText 
+            primary={isDarkMode ? "Svetlý režim" : "Tmavý režim"}
+            sx={{
+              '& .MuiTypography-root': {
+                fontSize: '0.95rem',
+                fontWeight: 500,
+              },
+            }}
+          />
+        </MenuItem>
         <MenuItem
           onClick={handleLogout}
           sx={{

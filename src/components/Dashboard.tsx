@@ -26,6 +26,7 @@ import {
 } from 'recharts';
 import CountUp from 'react-countup';
 import { motion } from 'framer-motion';
+import { useThemeMode } from '../contexts/ThemeContext';
 
 interface BusinessCase {
   id?: string;
@@ -91,43 +92,25 @@ const PageHeader = styled(Box)(({ theme }) => ({
   border: 'none'
 }));
 
-const PageTitle = styled(Typography)(({ theme }) => ({
-  fontSize: '1.75rem',
-  fontWeight: 700,
-  color: '#ffffff',
-  position: 'relative',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '1.5rem',
-  },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: '-8px',
-    left: 0,
-    width: '60px',
-    height: '4px',
-    backgroundColor: '#ff9f43',
-    borderRadius: '2px',
-  }
+const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  fontSize: '2rem',
+  fontWeight: 600,
+  marginBottom: '24px',
+  color: isDarkMode ? '#ffffff' : '#000000',
 }));
 
-const StatsCard = styled(motion(Card))(({ theme }) => ({
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  borderRadius: '16px',
+const StatsCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
   backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  color: '#ffffff',
-  height: '100%',
-  transition: 'all 0.3s ease',
-  overflow: 'hidden',
-  '&:hover': {
-    transform: 'translateY(-5px)',
-    boxShadow: '0 8px 24px rgba(255, 159, 67, 0.2)',
-    border: '1px solid rgba(255, 159, 67, 0.2)',
-    '& .MuiCardContent-root': {
-      background: 'linear-gradient(180deg, rgba(255, 159, 67, 0.1) 0%, rgba(255, 159, 67, 0) 100%)',
-    }
-  }
+  borderRadius: '20px',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+  '& .MuiTypography-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+  },
+  '& .MuiTypography-body1': {
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  },
 }));
 
 const StatsCardContent = styled(CardContent)({
@@ -141,24 +124,30 @@ const StatsCardContent = styled(CardContent)({
   }
 });
 
-const ChartContainer = styled(Box)(({ theme }) => ({
-  background: 'rgba(255, 255, 255, 0.03)',
-  borderRadius: '16px',
+const ChartContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  borderRadius: '20px',
   padding: '24px',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  '@media (max-width: 600px)': {
-    padding: '16px'
-  }
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  '& .recharts-text': {
+    fill: isDarkMode ? '#ffffff' : '#000000',
+  },
+  '& .recharts-cartesian-grid-horizontal line, & .recharts-cartesian-grid-vertical line': {
+    stroke: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+  },
 }));
 
-const DataTableContainer = styled(Box)(({ theme }) => ({
-  background: 'rgba(255, 255, 255, 0.03)',
-  borderRadius: '16px',
-  padding: '24px',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  '@media (max-width: 600px)': {
-    padding: '16px'
-  }
+const DataTableContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  '& .MuiTableCell-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+  },
+  '& .MuiTableCell-head': {
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  },
+  '& .MuiTableRow-root:hover': {
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+  },
 }));
 
 const COLORS = ['#ff9f43', '#ffd43b', '#ff6b6b', '#ff9ff3', '#48dbfb'];
@@ -329,6 +318,7 @@ const progressVariants = {
 
 export default function Dashboard() {
   const { userData } = useAuth();
+  const { isDarkMode } = useThemeMode();
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({
@@ -580,18 +570,13 @@ export default function Dashboard() {
   return (
     <PageWrapper>
       <PageHeader>
-        <PageTitle>Dashboard</PageTitle>
+        <PageTitle isDarkMode={isDarkMode}>Dashboard</PageTitle>
       </PageHeader>
 
       <Grid container spacing={3}>
         {/* Štatistické karty */}
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <StatsCard isDarkMode={isDarkMode}>
             <StatsCardContent>
               <Box sx={{ 
                 display: 'flex', 
@@ -622,12 +607,7 @@ export default function Dashboard() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <StatsCard isDarkMode={isDarkMode}>
             <StatsCardContent>
               <Box sx={{ 
                 display: 'flex', 
@@ -658,12 +638,7 @@ export default function Dashboard() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <StatsCard isDarkMode={isDarkMode}>
             <StatsCardContent>
               <Box sx={{ 
                 display: 'flex', 
@@ -694,12 +669,7 @@ export default function Dashboard() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <StatsCard isDarkMode={isDarkMode}>
             <StatsCardContent>
               <Box sx={{ 
                 display: 'flex', 
@@ -731,11 +701,11 @@ export default function Dashboard() {
 
         {/* Grafy */}
         <Grid item xs={12}>
-          <StatsCard>
+          <StatsCard isDarkMode={isDarkMode}>
             <StatsCardContent>
               <Typography variant="h6" sx={{ 
                 mb: { xs: 2, sm: 3 }, 
-                color: '#ffffff',
+                color: isDarkMode ? '#ffffff' : '#000000',
                 fontSize: { xs: '1.1rem', sm: '1.25rem' }
               }}>
                 Rozdelenie podľa statusu
@@ -771,7 +741,7 @@ export default function Dashboard() {
                   borderRadius: { xs: '10px', sm: '12px' },
                   overflow: 'hidden',
                   display: 'flex',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                 }}>
                   {stats.statusDistribution.map((item, index) => {
                     const percentage = (item.value / (item.total || 1)) * 100;
@@ -886,29 +856,30 @@ export default function Dashboard() {
 
         {/* Najnovšie obchodné prípady */}
         <Grid item xs={12}>
-          <StatsCard>
+          <StatsCard isDarkMode={isDarkMode}>
             <StatsCardContent>
               <Typography variant="h6" sx={{ 
                 mb: { xs: 1.5, sm: 2 },
-                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                color: isDarkMode ? '#ffffff' : '#000000'
               }}>Najnovšie obchodné prípady</Typography>
-              <DataTableContainer>
+              <DataTableContainer isDarkMode={isDarkMode}>
                 <MuiTableContainer>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ 
-                          color: 'rgba(255, 255, 255, 0.7)',
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
                         }}>Firma</TableCell>
                         <TableCell sx={{ 
-                          color: 'rgba(255, 255, 255, 0.7)',
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
                         }}>Status</TableCell>
                         <TableCell sx={{ 
-                          color: 'rgba(255, 255, 255, 0.7)',
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
                         }}>Dátum</TableCell>
@@ -918,17 +889,17 @@ export default function Dashboard() {
                       {stats.recentBusinessCases.map((bc: BusinessCase) => (
                         <TableRow key={bc.id}>
                           <TableCell sx={{ 
-                            color: '#ffffff',
+                            color: isDarkMode ? '#ffffff' : '#000000',
                             padding: { xs: '8px', sm: '16px' },
                             fontSize: { xs: '0.8rem', sm: '0.9rem' }
                           }}>{bc.companyName}</TableCell>
                           <TableCell sx={{ 
-                            color: '#ffffff',
+                            color: isDarkMode ? '#ffffff' : '#000000',
                             padding: { xs: '8px', sm: '16px' },
                             fontSize: { xs: '0.8rem', sm: '0.9rem' }
                           }}>{bc.status}</TableCell>
                           <TableCell sx={{ 
-                            color: '#ffffff',
+                            color: isDarkMode ? '#ffffff' : '#000000',
                             padding: { xs: '8px', sm: '16px' },
                             fontSize: { xs: '0.8rem', sm: '0.9rem' }
                           }}>
@@ -948,29 +919,30 @@ export default function Dashboard() {
 
         {/* Nadchádzajúce pripomienky */}
         <Grid item xs={12}>
-          <StatsCard>
+          <StatsCard isDarkMode={isDarkMode}>
             <StatsCardContent>
               <Typography variant="h6" sx={{ 
                 mb: { xs: 1.5, sm: 2 },
-                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                color: isDarkMode ? '#ffffff' : '#000000'
               }}>Nadchádzajúce pripomienky</Typography>
-              <DataTableContainer>
+              <DataTableContainer isDarkMode={isDarkMode}>
                 <MuiTableContainer>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ 
-                          color: 'rgba(255, 255, 255, 0.7)',
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
                         }}>Firma</TableCell>
                         <TableCell sx={{ 
-                          color: 'rgba(255, 255, 255, 0.7)',
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
                         }}>Poznámka</TableCell>
                         <TableCell sx={{ 
-                          color: 'rgba(255, 255, 255, 0.7)',
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                           padding: { xs: '8px', sm: '16px' },
                           fontSize: { xs: '0.8rem', sm: '0.9rem' }
                         }}>Dátum a čas</TableCell>
@@ -980,17 +952,17 @@ export default function Dashboard() {
                       {stats.upcomingReminders.map((reminder: Reminder) => (
                         <TableRow key={reminder.id}>
                           <TableCell sx={{ 
-                            color: '#ffffff',
+                            color: isDarkMode ? '#ffffff' : '#000000',
                             padding: { xs: '8px', sm: '16px' },
                             fontSize: { xs: '0.8rem', sm: '0.9rem' }
                           }}>{reminder.companyName}</TableCell>
                           <TableCell sx={{ 
-                            color: '#ffffff',
+                            color: isDarkMode ? '#ffffff' : '#000000',
                             padding: { xs: '8px', sm: '16px' },
                             fontSize: { xs: '0.8rem', sm: '0.9rem' }
                           }}>{reminder.reminderNote}</TableCell>
                           <TableCell sx={{ 
-                            color: '#ffffff',
+                            color: isDarkMode ? '#ffffff' : '#000000',
                             padding: { xs: '8px', sm: '16px' },
                             fontSize: { xs: '0.8rem', sm: '0.9rem' }
                           }}>
@@ -1008,6 +980,18 @@ export default function Dashboard() {
           </StatsCard>
         </Grid>
       </Grid>
+
+      <Box mt={4}>
+        <ChartContainer isDarkMode={isDarkMode}>
+          {/* ... existing chart content ... */}
+        </ChartContainer>
+      </Box>
+
+      <Box mt={4}>
+        <DataTableContainer isDarkMode={isDarkMode}>
+          {/* ... existing table content ... */}
+        </DataTableContainer>
+      </Box>
     </PageWrapper>
   );
 } 
