@@ -1080,7 +1080,7 @@ function Team() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="sync">
                   {teamMembers.map((member) => (
                     <StyledTableRow isDarkMode={isDarkMode} key={member.id}>
                       <TableCell>{member.firstName} {member.lastName}</TableCell>

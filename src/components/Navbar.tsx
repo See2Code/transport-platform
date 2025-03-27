@@ -70,6 +70,11 @@ const colors = {
     primary: '#ffffff',
     secondary: 'rgba(255, 255, 255, 0.9)',
     disabled: 'rgba(255, 255, 255, 0.7)',
+  },
+  accent: {
+    main: '#ff9f43',
+    light: '#ffc107',
+    dark: '#f57c00',
   }
 };
 
@@ -362,10 +367,11 @@ const Overlay = styled('div')({
 });
 
 const StyledAppBar = styled(AppBar)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.85)' : 'rgba(255, 255, 255, 0.75)',
-  backdropFilter: 'blur(12px)',
-  boxShadow: 'none',
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  backdropFilter: 'blur(20px)',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
   borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  color: isDarkMode ? '#ffffff' : '#000000',
   position: 'fixed',
   top: 0,
   left: 0,
@@ -392,7 +398,7 @@ const MenuButton = styled(IconButton)({
 
 const StyledMenu = styled(Menu)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
   '& .MuiPaper-root': {
-    background: isDarkMode ? 'rgba(28, 28, 45, 0.75)' : 'rgba(255, 255, 255, 0.75)',
+    background: isDarkMode ? 'rgba(28, 28, 45, 0.75)' : 'rgba(255, 255, 255, 0.95)',
     backdropFilter: 'blur(12px)',
     borderRadius: '20px',
     border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
@@ -416,7 +422,7 @@ const StyledMenu = styled(Menu)<{ isDarkMode: boolean }>(({ theme, isDarkMode })
       overflowY: 'auto',
       zIndex: 1200,
       marginBottom: '16px',
-      background: isDarkMode ? 'rgba(28, 28, 45, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+      background: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
     }
   },
   '& .MuiList-root': {
@@ -481,7 +487,7 @@ const StyledListItem = styled(ListItem)<{ button?: boolean; isDarkMode?: boolean
 
 const StyledDialog = styled(Dialog)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   '& .MuiDialog-paper': {
-    backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.95)' : '#ffffff',
     backdropFilter: 'blur(10px)',
     borderRadius: '12px',
     border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
@@ -715,16 +721,16 @@ const Navbar = () => {
           padding: '8px 16px',
           position: 'sticky',
           top: 0,
-          backgroundColor: 'rgba(35, 35, 66, 0.95)',
+          backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.95)' : 'rgba(255, 255, 255, 0.95)',
           zIndex: 1,
           backdropFilter: 'blur(10px)',
         }}>
           <IconButton
             onClick={handleMobileMenuClose}
             sx={{
-              color: colors.text.primary,
+              color: isDarkMode ? '#ffffff' : '#000000',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
               },
             }}
           >
@@ -740,15 +746,15 @@ const Navbar = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '16px',
-              color: colors.text.primary,
+              color: isDarkMode ? '#ffffff' : '#000000',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
               },
             }}
           >
             <ListItemIcon sx={{ 
               minWidth: 'auto',
-              color: colors.text.secondary,
+              color: isDarkMode ? '#ffffff' : '#000000',
               '& .MuiSvgIcon-root': {
                 fontSize: '1.25rem',
               },
@@ -761,6 +767,7 @@ const Navbar = () => {
                 '& .MuiTypography-root': {
                   fontSize: '0.95rem',
                   fontWeight: 500,
+                  color: isDarkMode ? '#ffffff' : '#000000',
                 },
               }}
             />

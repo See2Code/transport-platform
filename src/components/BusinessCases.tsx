@@ -124,50 +124,52 @@ interface BusinessCase {
   countryCode?: string;
 }
 
-const MobileBusinessCard = styled(Box)({
-  backgroundColor: colors.background.main,
-  borderRadius: '16px',
-  padding: '16px',
-  color: '#ffffff',
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
-  marginBottom: '16px',
-  width: '100%',
+const MobileBusinessCard = styled(Box)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
+  backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+  borderRadius: theme.spacing(1),
+  padding: theme.spacing(2),
+  marginBottom: theme.spacing(2),
+  boxShadow: isDarkMode ? '0 2px 4px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.1)',
+  color: isDarkMode ? '#ffffff' : '#000000',
   display: 'flex',
   flexDirection: 'column',
-  gap: '12px'
-});
+  gap: theme.spacing(1),
+}));
 
-const MobileCardHeader = styled(Box)({
+const MobileCardHeader = styled(Box)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  width: '100%'
-});
+  marginBottom: theme.spacing(2),
+  color: isDarkMode ? '#ffffff' : '#000000',
+  width: '100%',
+}));
 
-const MobileCompanyName = styled(Typography)({
-  fontSize: '1.1rem',
+const MobileCompanyName = styled(Typography)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
   fontWeight: 600,
-  color: colors.accent.main
-});
+  color: isDarkMode ? '#ffffff' : '#000000',
+  fontSize: '1.1rem',
+}));
 
-const MobileCardContent = styled(Box)({
+const MobileCardContent = styled(Box)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: '12px'
-});
+  gap: theme.spacing(1),
+  color: isDarkMode ? '#ffffff' : '#000000',
+  width: '100%',
+}));
 
-const MobileInfoRow = styled(Box)({
+const MobileInfoRow = styled(Box)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
   display: 'flex',
+  justifyContent: 'space-between',
   alignItems: 'center',
-  gap: '8px',
-  fontSize: '0.9rem',
-  color: 'rgba(255, 255, 255, 0.9)',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  width: '100%',
   '& .MuiSvgIcon-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
     fontSize: '1.1rem',
-    color: colors.accent.main
   }
-});
+}));
 
 const MobileCardActions = styled(Box)({
   display: 'flex',
@@ -615,7 +617,7 @@ export default function BusinessCases() {
     }
   };
 
-  const filteredCases = cases.filter(businessCase =>
+  const filteredCases = cases.filter((businessCase: BusinessCase) =>
     Object.values(businessCase)
       .join(' ')
       .toLowerCase()
@@ -623,9 +625,9 @@ export default function BusinessCases() {
   );
 
   const renderMobileCase = (businessCase: BusinessCase) => (
-    <MobileBusinessCard>
-      <MobileCardHeader>
-        <MobileCompanyName>
+    <MobileBusinessCard isDarkMode={isDarkMode}>
+      <MobileCardHeader isDarkMode={isDarkMode}>
+        <MobileCompanyName isDarkMode={isDarkMode}>
           {businessCase.companyName}
         </MobileCompanyName>
         <Chip
@@ -638,8 +640,8 @@ export default function BusinessCases() {
           }}
         />
       </MobileCardHeader>
-      <MobileCardContent>
-        <MobileInfoRow>
+      <MobileCardContent isDarkMode={isDarkMode}>
+        <MobileInfoRow isDarkMode={isDarkMode}>
           <AccessTimeIcon />
           {businessCase.createdAt instanceof Timestamp ? 
             businessCase.createdAt.toDate().toLocaleString('sk-SK', {
@@ -657,19 +659,19 @@ export default function BusinessCases() {
               minute: '2-digit'
             }).replace(',', '')}
         </MobileInfoRow>
-        <MobileInfoRow>
+        <MobileInfoRow isDarkMode={isDarkMode}>
           <BusinessIcon />
           {businessCase.vatNumber}
         </MobileInfoRow>
-        <MobileInfoRow>
+        <MobileInfoRow isDarkMode={isDarkMode}>
           <BusinessIcon />
           {businessCase.companyAddress}
         </MobileInfoRow>
-        <MobileInfoRow>
+        <MobileInfoRow isDarkMode={isDarkMode}>
           <PersonIcon />
           {`${businessCase.contactPerson.firstName} ${businessCase.contactPerson.lastName}`}
         </MobileInfoRow>
-        <MobileInfoRow>
+        <MobileInfoRow isDarkMode={isDarkMode}>
           <PhoneIcon />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <img
@@ -681,22 +683,22 @@ export default function BusinessCases() {
             {businessCase.contactPerson.phone}
           </Box>
         </MobileInfoRow>
-        <MobileInfoRow>
+        <MobileInfoRow isDarkMode={isDarkMode}>
           <EmailIcon />
           {businessCase.contactPerson.email}
         </MobileInfoRow>
-        <MobileInfoRow>
+        <MobileInfoRow isDarkMode={isDarkMode}>
           <PersonIcon />
           Vytvoril: {businessCase.createdBy?.firstName} {businessCase.createdBy?.lastName}
         </MobileInfoRow>
         {businessCase.reminderDateTime && (
-          <MobileInfoRow>
+          <MobileInfoRow isDarkMode={isDarkMode}>
             <AccessTimeIcon />
             Pripomienka: {format(businessCase.reminderDateTime, 'dd.MM.yyyy HH:mm')}
           </MobileInfoRow>
         )}
         {businessCase.internalNote && (
-          <MobileInfoRow sx={{ 
+          <MobileInfoRow isDarkMode={isDarkMode} sx={{ 
             flexDirection: 'column', 
             alignItems: 'flex-start',
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -716,7 +718,7 @@ export default function BusinessCases() {
           </MobileInfoRow>
         )}
         {businessCase.reminderNote && (
-          <MobileInfoRow sx={{ 
+          <MobileInfoRow isDarkMode={isDarkMode} sx={{ 
             flexDirection: 'column', 
             alignItems: 'flex-start',
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -884,7 +886,11 @@ export default function BusinessCases() {
           md: 'none' 
         }
       }}>
-        {filteredCases.map(businessCase => renderMobileCase(businessCase))}
+        {filteredCases.map((businessCase: BusinessCase) => (
+          <Box key={businessCase.id}>
+            {renderMobileCase(businessCase)}
+          </Box>
+        ))}
       </Box>
 
       {/* Desktop zobrazenie */}
