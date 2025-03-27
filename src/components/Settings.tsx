@@ -16,8 +16,13 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  Snackbar
 } from '@mui/material';
+import { TypographyProps } from '@mui/material/Typography';
+import { CardProps } from '@mui/material/Card';
+import { TextFieldProps } from '@mui/material/TextField';
+import { SelectProps } from '@mui/material/Select';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -30,6 +35,8 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
+import { useThemeMode } from '../contexts/ThemeContext';
+import { SelectChangeEvent } from '@mui/material/Select';
 
 interface CompanyData {
   id: string;
@@ -59,6 +66,12 @@ interface UserData {
   phone: string;
   companyID: string;
   role: string;
+}
+
+interface SnackbarState {
+  open: boolean;
+  message: string;
+  severity: 'success' | 'error' | 'info' | 'warning';
 }
 
 const euCountries = [
@@ -124,7 +137,7 @@ const PageWrapper = styled('div')({
   '@media (max-width: 600px)': {
     padding: '16px',
   }
-});
+}) as unknown as React.FC<React.HTMLAttributes<HTMLDivElement>>;
 
 const PageHeader = styled(Box)({
   display: 'flex',
@@ -137,12 +150,12 @@ const PageHeader = styled(Box)({
     flexDirection: 'column',
     alignItems: 'stretch',
   }
-});
+}) as unknown as React.FC<React.HTMLAttributes<HTMLDivElement>>;
 
-const PageTitle = styled(Typography)({
+const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '1.75rem',
   fontWeight: 700,
-  color: '#ffffff',
+  color: isDarkMode ? '#ffffff' : '#000000',
   position: 'relative',
   '&::after': {
     content: '""',
@@ -157,16 +170,16 @@ const PageTitle = styled(Typography)({
   '@media (max-width: 600px)': {
     fontSize: '1.5rem',
   }
-});
+})) as unknown as React.FC<TypographyProps & { isDarkMode: boolean }>;
 
-const SettingsCard = styled(Card)({
-  backgroundColor: colors.background.main,
+const SettingsCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? colors.background.main : '#ffffff',
   backdropFilter: 'blur(20px)',
   borderRadius: '16px',
   padding: '24px',
-  color: colors.text.primary,
+  color: isDarkMode ? colors.text.primary : '#000000',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.1)'}`,
   marginBottom: '24px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
@@ -177,7 +190,7 @@ const SettingsCard = styled(Card)({
     padding: '16px',
     marginBottom: '16px',
   }
-});
+})) as unknown as React.FC<CardProps & { isDarkMode: boolean }>;
 
 const CardHeader = styled(Box)({
   display: 'flex',
@@ -190,16 +203,16 @@ const CardHeader = styled(Box)({
     flexDirection: 'column',
     alignItems: 'stretch',
   }
-});
+}) as unknown as React.FC<React.HTMLAttributes<HTMLDivElement>>;
 
-const SectionTitle = styled(Typography)({
+const SectionTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '1.1rem',
   fontWeight: 600,
   color: colors.accent.main,
   '@media (max-width: 600px)': {
     fontSize: '1rem',
   }
-});
+})) as unknown as React.FC<TypographyProps & { isDarkMode: boolean }>;
 
 const SettingsInfo = styled(Box)({
   display: 'grid',
@@ -222,87 +235,85 @@ const InfoSection = styled(Box)({
   }
 });
 
-const InfoLabel = styled(Typography)({
+const InfoLabel = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '0.85rem',
-  color: 'rgba(255, 255, 255, 0.5)',
+  color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
   textTransform: 'uppercase',
   letterSpacing: '0.5px',
   '@media (max-width: 600px)': {
     fontSize: '0.8rem',
   }
-});
+}));
 
-const InfoValue = styled(Typography)({
+const InfoValue = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '1rem',
-  color: '#ffffff',
+  color: isDarkMode ? '#ffffff' : '#000000',
   '@media (max-width: 600px)': {
     fontSize: '0.95rem',
   }
-});
+}));
 
-const StyledTextField = styled(TextField)({
+const StyledTextField = styled(TextField)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   '& .MuiOutlinedInput-root': {
-    color: colors.text.primary,
+    color: isDarkMode ? colors.text.primary : '#000000',
     '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.1)',
+      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
     },
     '&:hover fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.2)',
+      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
     },
     '&.Mui-focused fieldset': {
       borderColor: colors.accent.main,
     },
   },
   '& .MuiInputLabel-root': {
-    color: colors.text.secondary,
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     '&.Mui-focused': {
       color: colors.accent.main,
     },
   },
   '& .MuiInputBase-input': {
-    color: colors.text.primary,
-  },
-});
+    color: isDarkMode ? '#ffffff' : '#000000',
+  }
+})) as unknown as React.FC<TextFieldProps & { isDarkMode: boolean }>;
 
-const StyledSelect = styled(Select)({
-  color: colors.text.primary,
+const StyledSelect = styled(Select)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+  color: isDarkMode ? '#ffffff' : '#000000',
   '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
   },
   '&:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
   },
   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
     borderColor: colors.accent.main,
   },
   '& .MuiSelect-icon': {
-    color: colors.text.secondary,
-  },
-});
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+  }
+})) as unknown as React.FC<SelectProps & { isDarkMode: boolean }>;
 
-const StyledButton = styled(Button)({
+const ActionButton = styled(Button)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   backgroundColor: colors.accent.main,
-  color: colors.text.primary,
-  padding: '8px 24px',
-  borderRadius: '8px',
-  textTransform: 'none',
+  color: isDarkMode ? '#ffffff' : '#000000',
   fontWeight: 600,
+  padding: '8px 24px',
   '&:hover': {
     backgroundColor: colors.accent.light,
   },
-  '&.MuiButton-outlined': {
-    borderColor: colors.accent.main,
-    color: colors.accent.main,
-    backgroundColor: 'transparent',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 159, 67, 0.1)',
-    },
-  },
   '&.Mui-disabled': {
     backgroundColor: 'rgba(255, 159, 67, 0.3)',
-    color: 'rgba(255, 255, 255, 0.3)',
-  },
-});
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+  }
+}));
+
+const CancelButton = styled(Button)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  '&:hover': {
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+  }
+}));
 
 function Settings() {
   const navigate = useNavigate();
@@ -317,6 +328,8 @@ function Settings() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(euCountries.find(c => c.code === 'SK') || euCountries[0]);
+  const { isDarkMode } = useThemeMode();
+  const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     if (userData) {
@@ -356,7 +369,7 @@ function Settings() {
   }, [userData]);
 
   const handleUserDataChange = (field: keyof UserData, value: string) => {
-    setLocalUserData(prev => prev ? { ...prev, [field]: value } : null);
+    setLocalUserData((prev: UserData | null) => prev ? { ...prev, [field]: value } : null);
   };
 
   const handleUserUpdate = async (e: React.FormEvent) => {
@@ -461,13 +474,17 @@ function Settings() {
     setIsEditingProfile(false);
   };
 
-  const handleCountryChange = (event: any) => {
+  const handleCountryChange = (event: SelectChangeEvent<unknown>) => {
     if (companyData) {
       setCompanyData({
         ...companyData,
         country: event.target.value as string
       });
     }
+  };
+
+  const handleCompanyDataChange = (field: keyof CompanyData, value: string) => {
+    setCompanyData((prev: CompanyData | null) => prev ? { ...prev, [field]: value } : null);
   };
 
   const handleSaveProfile = async () => {
@@ -501,7 +518,7 @@ function Settings() {
   return (
     <PageWrapper>
       <PageHeader>
-        <PageTitle>Nastavenia</PageTitle>
+        <PageTitle isDarkMode={isDarkMode}>Nastavenia</PageTitle>
       </PageHeader>
 
       {error && (
@@ -518,47 +535,23 @@ function Settings() {
 
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <SettingsCard>
+          <SettingsCard isDarkMode={isDarkMode}>
             <CardHeader>
-              <SectionTitle>Profil používateľa</SectionTitle>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-                {!isEditingProfile ? (
-                  <Button
-                    startIcon={<EditIcon />}
-                    onClick={() => setIsEditingProfile(true)}
-                    sx={{
-                      backgroundColor: colors.accent.main,
-                      color: colors.text.primary,
-                      '&:hover': {
-                        backgroundColor: colors.accent.light,
-                      }
-                    }}
-                  >
-                    Upraviť
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      onClick={() => setIsEditingProfile(false)}
-                      sx={{ color: colors.text.secondary }}
-                    >
-                      Zrušiť
-                    </Button>
-                    <Button
-                      onClick={handleProfileSave}
-                      sx={{
-                        backgroundColor: colors.accent.main,
-                        color: colors.text.primary,
-                        '&:hover': {
-                          backgroundColor: colors.accent.light,
-                        }
-                      }}
-                    >
-                      Uložiť
-                    </Button>
-                  </>
-                )}
-              </Box>
+              <SectionTitle isDarkMode={isDarkMode}>Profil používateľa</SectionTitle>
+              {!isEditingProfile ? (
+                <IconButton onClick={() => setIsEditingProfile(true)} sx={{ color: colors.accent.main }}>
+                  <EditIcon />
+                </IconButton>
+              ) : (
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <IconButton onClick={handleProfileSave} sx={{ color: colors.accent.main }}>
+                    <SaveIcon />
+                  </IconButton>
+                  <IconButton onClick={handleProfileCancel} sx={{ color: colors.secondary.main }}>
+                    <CancelIcon />
+                  </IconButton>
+                </Box>
+              )}
             </CardHeader>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
@@ -566,8 +559,9 @@ function Settings() {
                   fullWidth
                   label="Meno"
                   value={localUserData?.firstName || ''}
-                  onChange={(e) => handleUserDataChange('firstName', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUserDataChange('firstName', e.target.value)}
                   disabled={!isEditingProfile}
+                  isDarkMode={isDarkMode}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -575,8 +569,9 @@ function Settings() {
                   fullWidth
                   label="Priezvisko"
                   value={localUserData?.lastName || ''}
-                  onChange={(e) => handleUserDataChange('lastName', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUserDataChange('lastName', e.target.value)}
                   disabled={!isEditingProfile}
+                  isDarkMode={isDarkMode}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -585,6 +580,7 @@ function Settings() {
                   label="Email"
                   value={localUserData?.email || ''}
                   disabled
+                  isDarkMode={isDarkMode}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -592,55 +588,32 @@ function Settings() {
                   fullWidth
                   label="Telefón"
                   value={localUserData?.phone || ''}
-                  onChange={(e) => handleUserDataChange('phone', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUserDataChange('phone', e.target.value)}
                   disabled={!isEditingProfile}
+                  isDarkMode={isDarkMode}
                 />
               </Grid>
             </Grid>
           </SettingsCard>
 
           {isAdmin && (
-            <SettingsCard>
+            <SettingsCard isDarkMode={isDarkMode}>
               <CardHeader>
-                <SectionTitle>Firemné údaje</SectionTitle>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-                  {!isEditingCompany ? (
-                    <Button
-                      startIcon={<EditIcon />}
-                      onClick={() => setIsEditingCompany(true)}
-                      sx={{
-                        backgroundColor: colors.accent.main,
-                        color: colors.text.primary,
-                        '&:hover': {
-                          backgroundColor: colors.accent.light,
-                        }
-                      }}
-                    >
-                      Upraviť
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        onClick={() => setIsEditingCompany(false)}
-                        sx={{ color: colors.text.secondary }}
-                      >
-                        Zrušiť
-                      </Button>
-                      <Button
-                        onClick={handleSaveCompany}
-                        sx={{
-                          backgroundColor: colors.accent.main,
-                          color: colors.text.primary,
-                          '&:hover': {
-                            backgroundColor: colors.accent.light,
-                          }
-                        }}
-                      >
-                        Uložiť
-                      </Button>
-                    </>
-                  )}
-                </Box>
+                <SectionTitle isDarkMode={isDarkMode}>Firemné údaje</SectionTitle>
+                {!isEditingCompany ? (
+                  <IconButton onClick={() => setIsEditingCompany(true)} sx={{ color: colors.accent.main }}>
+                    <EditIcon />
+                  </IconButton>
+                ) : (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton onClick={handleSaveCompany} sx={{ color: colors.accent.main }}>
+                      <SaveIcon />
+                    </IconButton>
+                    <IconButton onClick={() => setIsEditingCompany(false)} sx={{ color: colors.secondary.main }}>
+                      <CancelIcon />
+                    </IconButton>
+                  </Box>
+                )}
               </CardHeader>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
@@ -648,17 +621,19 @@ function Settings() {
                     fullWidth
                     label="Názov firmy"
                     value={companyData?.companyName || ''}
-                    onChange={(e) => setCompanyData(prev => ({ ...prev!, companyName: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('companyName', e.target.value)}
                     disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth disabled={!isEditingCompany}>
-                    <InputLabel>Krajina</InputLabel>
+                    <InputLabel sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}>Krajina</InputLabel>
                     <StyledSelect
                       value={selectedCountry.code}
                       onChange={handleCountryChange}
                       disabled={!isEditingCompany}
+                      isDarkMode={isDarkMode}
                     >
                       {euCountries.map((country) => (
                         <MenuItem key={country.code} value={country.code}>
@@ -676,8 +651,9 @@ function Settings() {
                     fullWidth
                     label="IČO"
                     value={companyData?.ico || ''}
-                    onChange={(e) => setCompanyData(prev => ({ ...prev!, ico: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('ico', e.target.value)}
                     disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -685,8 +661,9 @@ function Settings() {
                     fullWidth
                     label="IČ DPH"
                     value={companyData?.icDph || ''}
-                    onChange={(e) => setCompanyData(prev => ({ ...prev!, icDph: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('icDph', e.target.value)}
                     disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -694,8 +671,9 @@ function Settings() {
                     fullWidth
                     label="DIČ"
                     value={companyData?.dic || ''}
-                    onChange={(e) => setCompanyData(prev => ({ ...prev!, dic: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('dic', e.target.value)}
                     disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -703,8 +681,9 @@ function Settings() {
                     fullWidth
                     label="Ulica"
                     value={companyData?.street || ''}
-                    onChange={(e) => setCompanyData(prev => ({ ...prev!, street: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('street', e.target.value)}
                     disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -712,8 +691,9 @@ function Settings() {
                     fullWidth
                     label="PSČ"
                     value={companyData?.zipCode || ''}
-                    onChange={(e) => setCompanyData(prev => ({ ...prev!, zipCode: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('zipCode', e.target.value)}
                     disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -721,8 +701,9 @@ function Settings() {
                     fullWidth
                     label="Mesto"
                     value={companyData?.city || ''}
-                    onChange={(e) => setCompanyData(prev => ({ ...prev!, city: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('city', e.target.value)}
                     disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
                   />
                 </Grid>
               </Grid>
@@ -730,6 +711,27 @@ function Settings() {
           )}
         </Grid>
       </Grid>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{
+            backgroundColor: isDarkMode ? colors.background.main : '#ffffff',
+            color: isDarkMode ? '#ffffff' : '#000000',
+            '& .MuiAlert-icon': {
+              color: snackbar.severity === 'success' ? colors.accent.main : colors.secondary.main
+            }
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </PageWrapper>
   );
 }

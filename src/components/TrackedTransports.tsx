@@ -438,6 +438,53 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   backdropFilter: 'blur(20px)',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  '& .MuiDialog-paper': {
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    margin: 0,
+  },
+  '& .MuiDialogTitle-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+    padding: '24px 24px 16px 24px',
+    '& .MuiTypography-root': {
+      fontSize: '1.5rem',
+      fontWeight: 600,
+    }
+  },
+  '& .MuiDialogContent-root': {
+    padding: '16px 24px',
+    '& .MuiFormLabel-root': {
+      color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    },
+    '& .MuiInputBase-root': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+      '& fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      },
+      '&:hover fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 159, 67, 0.5)' : 'rgba(255, 159, 67, 0.5)',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: colors.accent.main,
+      }
+    },
+    '& .MuiInputBase-input': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+    },
+    '& .MuiSelect-select': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+    }
+  },
+  '& .MuiDialogActions-root': {
+    padding: '16px 24px 24px 24px',
+    borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    '& .MuiButton-root': {
+      borderRadius: '12px',
+      padding: '8px 24px',
+      textTransform: 'none',
+      fontSize: '1rem',
+    }
+  }
 }));
 
 function TrackedTransports() {
@@ -1115,8 +1162,8 @@ function TrackedTransports() {
         )}
       </PageWrapper>
 
-      <Dialog 
-        open={openDialog} 
+      <Dialog
+        open={openDialog}
         onClose={handleCloseDialog}
         maxWidth="md"
         fullWidth
@@ -1124,203 +1171,144 @@ function TrackedTransports() {
           style: {
             backgroundColor: 'transparent',
             boxShadow: 'none',
+            overflow: 'visible',
           },
         }}
       >
         <StyledDialogContent isDarkMode={isDarkMode}>
-          <Box sx={{ 
-            padding: '24px',
-            color: '#ffffff',
-            '& .MuiTextField-root': {
-              '& .MuiOutlinedInput-root': {
-                color: '#ffffff',
-                '& fieldset': {
-                  borderColor: 'rgba(255, 255, 255, 0.1)',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: colors.accent.main,
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: 'rgba(255, 255, 255, 0.5)',
-                '&.Mui-focused': {
-                  color: colors.accent.main,
-                },
-              },
-              '& .MuiFormHelperText-root': {
-                color: 'rgba(255, 255, 255, 0.5)',
-                fontSize: '0.75rem',
-                marginLeft: 0,
-                marginTop: '4px',
-              }
-            },
-            '& .MuiFormControl-root': {
-              '& .MuiInputLabel-root': {
-                color: 'rgba(255, 255, 255, 0.5)',
-                '&.Mui-focused': {
-                  color: colors.accent.main,
-                },
-              },
-              '& .MuiOutlinedInput-root': {
-                color: '#ffffff',
-                '& fieldset': {
-                  borderColor: 'rgba(255, 255, 255, 0.1)',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: colors.accent.main,
-                },
-              },
-            },
-            '& .MuiSelect-icon': {
-              color: 'rgba(255, 255, 255, 0.5)',
-            },
-            '& .MuiInputAdornment-root': {
-              color: 'rgba(255, 255, 255, 0.5)',
-            },
-            '& .MuiPickersLayout-root': {
-              backgroundColor: colors.primary.light,
-              color: '#ffffff',
-            },
-            '& .MuiPickersLayout-contentWrapper': {
-              '& .MuiDateTimePickerTabs-root': {
-                backgroundColor: colors.primary.light,
-              },
-            },
-          }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Číslo objednávky"
-                  value={formData.orderNumber}
-                  onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                  required
-                />
-              </Grid>
-
-              {/* Nakládka sekcia */}
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Nakládka
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Adresa nakládky"
-                  value={formData.loadingAddress}
-                  onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} md={8}>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                  <DateTimePicker
-                    label="Dátum a čas nakládky"
-                    value={formData.loadingDateTime}
-                    onChange={(newValue) => setFormData({ ...formData, loadingDateTime: newValue })}
-                    sx={{ width: '100%' }}
+          <DialogTitle>
+            {editingTransport ? 'Upraviť prepravu' : 'Pridať novú prepravu'}
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 2 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Číslo objednávky"
+                    value={formData.orderNumber}
+                    onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                    required
                   />
-                </LocalizationProvider>
-              </Grid>
+                </Grid>
 
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Pripomienka (minúty)"
-                  value={formData.loadingReminder || ''}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
-                    setFormData({ ...formData, loadingReminder: value });
-                  }}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">min</InputAdornment>,
-                  }}
-                />
-              </Grid>
+                {/* Nakládka sekcia */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Nakládka
+                  </Typography>
+                </Grid>
 
-              {/* Vykládka sekcia */}
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Vykládka
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Adresa vykládky"
-                  value={formData.unloadingAddress}
-                  onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} md={8}>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                  <DateTimePicker
-                    label="Dátum a čas vykládky"
-                    value={formData.unloadingDateTime}
-                    onChange={(newValue) => setFormData({ ...formData, unloadingDateTime: newValue })}
-                    sx={{ width: '100%' }}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Adresa nakládky"
+                    value={formData.loadingAddress}
+                    onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
+                    required
                   />
-                </LocalizationProvider>
-              </Grid>
+                </Grid>
 
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Pripomienka (minúty)"
-                  value={formData.unloadingReminder || ''}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
-                    setFormData({ ...formData, unloadingReminder: value });
-                  }}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">min</InputAdornment>,
-                  }}
-                />
+                <Grid item xs={12} md={8}>
+                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                    <DateTimePicker
+                      label="Dátum a čas nakládky"
+                      value={formData.loadingDateTime}
+                      onChange={(newValue) => setFormData({ ...formData, loadingDateTime: newValue })}
+                      sx={{ width: '100%' }}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Pripomienka (minúty)"
+                    value={formData.loadingReminder || ''}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
+                      setFormData({ ...formData, loadingReminder: value });
+                    }}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">min</InputAdornment>,
+                    }}
+                  />
+                </Grid>
+
+                {/* Vykládka sekcia */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Vykládka
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Adresa vykládky"
+                    value={formData.unloadingAddress}
+                    onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={8}>
+                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                    <DateTimePicker
+                      label="Dátum a čas vykládky"
+                      value={formData.unloadingDateTime}
+                      onChange={(newValue) => setFormData({ ...formData, unloadingDateTime: newValue })}
+                      sx={{ width: '100%' }}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Pripomienka (minúty)"
+                    value={formData.unloadingReminder || ''}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
+                      setFormData({ ...formData, unloadingReminder: value });
+                    }}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">min</InputAdornment>,
+                    }}
+                  />
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleCloseDialog}
+              sx={{
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                '&:hover': {
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                },
+              }}
+            >
+              Zrušiť
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              sx={{
+                backgroundColor: colors.accent.main,
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: colors.accent.light,
+                },
+              }}
+            >
+              {editingTransport ? 'Uložiť zmeny' : 'Pridať prepravu'}
+            </Button>
+          </DialogActions>
         </StyledDialogContent>
-        <DialogActions sx={{ 
-          padding: '24px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        }}>
-          <Button onClick={handleCloseDialog} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.accent.main,
-              color: '#ffffff',
-              fontWeight: 600,
-              padding: '8px 24px',
-              '&:hover': {
-                backgroundColor: colors.accent.light,
-              },
-              '&.Mui-disabled': {
-                backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                color: 'rgba(255, 255, 255, 0.3)',
-              }
-            }}
-          >
-            {editingTransport ? 'Uložiť zmeny' : 'Pridať prepravu'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <MapDialog
@@ -1395,85 +1383,51 @@ function TrackedTransports() {
 
       <Dialog
         open={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setTransportToDelete(null);
-        }}
+        onClose={() => setDeleteDialogOpen(false)}
         PaperProps={{
-          sx: {
-            background: 'rgba(35, 35, 66, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-            minWidth: '400px',
-            padding: '24px'
-          }
+          style: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+            overflow: 'visible',
+          },
         }}
       >
-        <DialogTitle sx={{ 
-          color: '#ffffff',
-          textAlign: 'center',
-          padding: '24px 24px 0 24px',
-          fontSize: '1.5rem',
-          fontWeight: 600
-        }}>
-          Vymazať prepravu
-        </DialogTitle>
-        <DialogContent sx={{ 
-          padding: '24px',
-          textAlign: 'center'
-        }}>
-          <Typography sx={{ color: '#ffffff', mb: 2 }}>
-            Naozaj chcete vymazať túto prepravu?
-          </Typography>
-          {transportToDelete && (
-            <Box sx={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '8px' }}>
-              <Typography sx={{ color: '#ffffff', fontWeight: 500 }}>
-                Objednávka: {transportToDelete.orderNumber}
-              </Typography>
-              <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9rem', mt: 1 }}>
-                Nakládka: {transportToDelete.loadingAddress}
-              </Typography>
-              <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9rem' }}>
-                Vykládka: {transportToDelete.unloadingAddress}
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ 
-          padding: '0 24px 24px 24px',
-          justifyContent: 'center',
-          gap: '16px'
-        }}>
-          <Button 
-            onClick={() => {
-              setDeleteDialogOpen(false);
-              setTransportToDelete(null);
-            }}
-            sx={{ 
-              color: 'rgba(255, 255, 255, 0.7)',
-              minWidth: '120px'
-            }}
-          >
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleConfirmDelete}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.secondary.main,
-              color: '#ffffff',
-              fontWeight: 600,
-              minWidth: '120px',
-              '&:hover': {
-                backgroundColor: colors.secondary.dark,
-              }
-            }}
-          >
-            Vymazať
-          </Button>
-        </DialogActions>
+        <StyledDialogContent isDarkMode={isDarkMode}>
+          <DialogTitle>
+            Potvrdiť vymazanie
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              Naozaj chcete vymazať túto prepravu? Táto akcia je nenávratná.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setDeleteDialogOpen(false)}
+              sx={{
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                '&:hover': {
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                },
+              }}
+            >
+              Zrušiť
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              variant="contained"
+              sx={{
+                backgroundColor: colors.secondary.main,
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: colors.secondary.light,
+                },
+              }}
+            >
+              Vymazať
+            </Button>
+          </DialogActions>
+        </StyledDialogContent>
       </Dialog>
     </>
   );

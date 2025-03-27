@@ -442,6 +442,52 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   backdropFilter: 'blur(20px)',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  '& .MuiDialog-paper': {
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    margin: 0,
+  },
+  '& .MuiDialogTitle-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+    padding: '24px 24px 16px 24px',
+    '& .MuiTypography-root': {
+      fontSize: '1.5rem',
+      fontWeight: 600,
+    }
+  },
+  '& .MuiDialogContent-root': {
+    padding: '16px 24px',
+    '& .MuiFormLabel-root': {
+      color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    },
+    '& .MuiInputBase-root': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+      '& fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      },
+      '&:hover fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 159, 67, 0.5)' : 'rgba(255, 159, 67, 0.5)',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: colors.accent.main,
+      }
+    },
+    '& .MuiInputBase-input': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+    },
+    '& .MuiSelect-select': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+    }
+  },
+  '& .MuiDialogActions-root': {
+    padding: '16px 24px 24px 24px',
+    '& .MuiButton-root': {
+      borderRadius: '12px',
+      padding: '8px 24px',
+      textTransform: 'none',
+      fontSize: '1rem',
+    }
+  }
 }));
 
 function Team() {

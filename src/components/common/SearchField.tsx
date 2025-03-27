@@ -2,6 +2,7 @@ import React from 'react';
 import { TextField, InputAdornment } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import styled from '@emotion/styled';
+import { useThemeMode } from '../../contexts/ThemeContext';
 
 const colors = {
   primary: {
@@ -21,23 +22,23 @@ const colors = {
   }
 };
 
-const StyledTextField = styled(TextField)({
+const StyledTextField = styled(TextField)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   '& .MuiOutlinedInput-root': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
     borderRadius: '12px',
     '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.1)',
+      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
       transition: 'all 0.2s ease-in-out',
     },
     '&:hover fieldset': {
-      borderColor: 'rgba(255, 159, 67, 0.5)',
+      borderColor: isDarkMode ? 'rgba(255, 159, 67, 0.5)' : 'rgba(255, 159, 67, 0.5)',
     },
     '&.Mui-focused fieldset': {
       borderColor: colors.accent.main,
     },
   },
   '& .MuiInputLabel-root': {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     '&.Mui-focused': {
       color: colors.accent.main,
     },
@@ -48,11 +49,11 @@ const StyledTextField = styled(TextField)({
     }
   },
   '& .MuiInputBase-input': {
-    color: '#ffffff',
+    color: isDarkMode ? '#ffffff' : '#000000',
     padding: '16px 14px',
     paddingRight: '42px',
     '&::placeholder': {
-      color: 'rgba(255, 255, 255, 0.5)',
+      color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
       opacity: 1,
     }
   },
@@ -64,7 +65,7 @@ const StyledTextField = styled(TextField)({
     display: 'flex',
     alignItems: 'center',
     pointerEvents: 'none',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     '& .MuiSvgIcon-root': {
       fontSize: '20px',
       transition: 'color 0.2s ease-in-out',
@@ -73,7 +74,7 @@ const StyledTextField = styled(TextField)({
       color: colors.accent.main,
     }
   },
-});
+}));
 
 interface SearchFieldProps {
   value: string;
@@ -88,6 +89,8 @@ const SearchField: React.FC<SearchFieldProps> = ({
   placeholder,
   label,
 }) => {
+  const { isDarkMode } = useThemeMode();
+
   return (
     <StyledTextField
       fullWidth
@@ -96,6 +99,7 @@ const SearchField: React.FC<SearchFieldProps> = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      isDarkMode={isDarkMode}
       InputProps={{
         endAdornment: (
           <InputAdornment position="end">

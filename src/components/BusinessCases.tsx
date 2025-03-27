@@ -296,6 +296,80 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   backdropFilter: 'blur(20px)',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  maxHeight: '90vh',
+  overflowY: 'auto',
+  margin: '16px',
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    margin: '8px',
+    maxHeight: '95vh',
+  },
+  '& .MuiDialog-paper': {
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    margin: 0,
+  },
+  '& .MuiDialogTitle-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+    padding: '24px 24px 16px 24px',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
+    '& .MuiTypography-root': {
+      fontSize: '1.5rem',
+      fontWeight: 600,
+      '@media (max-width: 600px)': {
+        fontSize: '1.25rem',
+      }
+    }
+  },
+  '& .MuiDialogContent-root': {
+    padding: '16px 24px',
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
+    '& .MuiFormLabel-root': {
+      color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    },
+    '& .MuiInputBase-root': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+      '& fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      },
+      '&:hover fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 159, 67, 0.5)' : 'rgba(255, 159, 67, 0.5)',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: colors.accent.main,
+      }
+    },
+    '& .MuiInputBase-input': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+    },
+    '& .MuiSelect-select': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+    }
+  },
+  '& .MuiDialogActions-root': {
+    padding: '16px 24px 24px 24px',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+    borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
+    '& .MuiButton-root': {
+      borderRadius: '12px',
+      padding: '8px 24px',
+      textTransform: 'none',
+      fontSize: '1rem',
+      '@media (max-width: 600px)': {
+        padding: '8px 16px',
+        fontSize: '0.9rem',
+      }
+    }
+  }
 }));
 
 export default function BusinessCases() {
@@ -1034,357 +1108,303 @@ export default function BusinessCases() {
         maxWidth="md"
         fullWidth
         PaperProps={{
-          style: {
-            backgroundColor: 'transparent',
+          sx: {
+            background: 'none',
             boxShadow: 'none',
-          },
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
         }}
       >
         <StyledDialogContent isDarkMode={isDarkMode}>
-          <Box sx={{ 
-            padding: '24px',
-            color: isDarkMode ? '#ffffff' : '#000000',
-            '& .MuiTextField-root, & .MuiFormControl-root': {
-              '& .MuiOutlinedInput-root': {
-                color: isDarkMode ? '#ffffff' : '#000000',
-                '& fieldset': {
-                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                },
-                '&:hover fieldset': {
-                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#ff9f43',
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-                '&.Mui-focused': {
-                  color: '#ff9f43',
-                },
-              },
-              '& .MuiSelect-icon': {
-                color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
-              },
-            },
-            '& .MuiMenuItem-root': {
-              '&:hover': {
-                backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-              },
-              '&.Mui-selected': {
-                backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.2)' : 'rgba(0, 0, 0, 0.05)',
-                '&:hover': {
-                  backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(0, 0, 0, 0.05)',
-                },
-              },
-            }
-          }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Názov firmy"
-                  value={formData.companyName}
-                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="IČ DPH"
-                  value={formData.vatNumber}
-                  onChange={(e) => setFormData({ ...formData, vatNumber: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Adresa spoločnosti"
-                  value={formData.companyAddress}
-                  onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Meno"
-                  value={formData.contactPerson.firstName}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    contactPerson: { ...formData.contactPerson, firstName: e.target.value }
-                  })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Priezvisko"
-                  value={formData.contactPerson.lastName}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    contactPerson: { ...formData.contactPerson, lastName: e.target.value }
-                  })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <FormControl sx={{ minWidth: 120 }}>
-                    <Select
-                      value={selectedCountry.code}
-                      onChange={handleCountryChange}
+          <DialogTitle>
+            {editCase ? 'Upraviť obchodný prípad' : 'Pridať nový obchodný prípad'}
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 2 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Názov firmy"
+                    value={formData.companyName}
+                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="IČ DPH"
+                    value={formData.vatNumber}
+                    onChange={(e) => setFormData({ ...formData, vatNumber: e.target.value })}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Adresa spoločnosti"
+                    value={formData.companyAddress}
+                    onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Meno"
+                    value={formData.contactPerson.firstName}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      contactPerson: { ...formData.contactPerson, firstName: e.target.value }
+                    })}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Priezvisko"
+                    value={formData.contactPerson.lastName}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      contactPerson: { ...formData.contactPerson, lastName: e.target.value }
+                    })}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <FormControl sx={{ minWidth: 120 }}>
+                      <Select
+                        value={selectedCountry.code}
+                        onChange={handleCountryChange}
+                        sx={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          color: isDarkMode ? '#ffffff' : '#000000',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ff9f43',
+                          },
+                          '& .MuiSelect-icon': {
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                          }
+                        }}
+                      >
+                        {euCountries.map((country) => (
+                          <MenuItem key={country.code} value={country.code}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <span>{country.flag}</span>
+                              <span>{country.prefix}</span>
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <TextField
+                      fullWidth
+                      label="Telefónne číslo"
+                      value={formData.contactPerson.phone?.replace(selectedCountry.prefix, '') || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        contactPerson: { ...formData.contactPerson, phone: selectedCountry.prefix + e.target.value }
+                      })}
+                      placeholder="9XX XXX XXX"
+                      helperText="Zadajte telefónne číslo"
+                      required
                       sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        color: isDarkMode ? '#ffffff' : '#000000',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                        '& .MuiOutlinedInput-root': {
+                          color: isDarkMode ? '#ffffff' : '#000000',
+                          '& fieldset': {
+                            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#ff9f43',
+                          },
                         },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#ff9f43',
-                        },
-                        '& .MuiSelect-icon': {
+                        '& .MuiInputLabel-root': {
                           color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                          '&.Mui-focused': {
+                            color: '#ff9f43',
+                          },
+                        },
+                        '& .MuiFormHelperText-root': {
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                          fontSize: '0.75rem',
+                          marginLeft: 0,
+                          marginTop: '4px',
                         }
                       }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    value={formData.contactPerson.email}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      contactPerson: { ...formData.contactPerson, email: e.target.value }
+                    })}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Interná poznámka"
+                    multiline
+                    rows={4}
+                    value={formData.internalNote}
+                    onChange={(e) => setFormData({ ...formData, internalNote: e.target.value })}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      value={formData.status}
+                      label="Status"
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as keyof typeof caseStatuses })}
                     >
-                      {euCountries.map((country) => (
-                        <MenuItem key={country.code} value={country.code}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <span>{country.flag}</span>
-                            <span>{country.prefix}</span>
-                          </Box>
+                      {Object.entries(caseStatuses).map(([key, value]) => (
+                        <MenuItem key={key} value={key}>
+                          {value.label}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
+                    <DateTimePicker
+                      label="Dátum a čas pripomienky"
+                      value={formData.reminderDateTime}
+                      onChange={(newValue) => setFormData({ ...formData, reminderDateTime: newValue })}
+                      sx={{ width: '100%' }}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Telefónne číslo"
-                    value={formData.contactPerson.phone?.replace(selectedCountry.prefix, '') || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      contactPerson: { ...formData.contactPerson, phone: selectedCountry.prefix + e.target.value }
-                    })}
-                    placeholder="9XX XXX XXX"
-                    helperText="Zadajte telefónne číslo"
-                    required
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        color: isDarkMode ? '#ffffff' : '#000000',
-                        '& fieldset': {
-                          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#ff9f43',
-                        },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
-                        '&.Mui-focused': {
-                          color: '#ff9f43',
-                        },
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
-                        fontSize: '0.75rem',
-                        marginLeft: 0,
-                        marginTop: '4px',
-                      }
-                    }}
+                    label="Poznámka k pripomienke"
+                    multiline
+                    rows={2}
+                    value={formData.reminderNote}
+                    onChange={(e) => setFormData({ ...formData, reminderNote: e.target.value })}
+                    placeholder="Zadajte text pripomienky, ktorý vám príde emailom"
+                    helperText="Tento text vám príde emailom v čase pripomienky"
                   />
-                </Box>
+                </Grid>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  type="email"
-                  value={formData.contactPerson.email}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    contactPerson: { ...formData.contactPerson, email: e.target.value }
-                  })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Interná poznámka"
-                  multiline
-                  rows={4}
-                  value={formData.internalNote}
-                  onChange={(e) => setFormData({ ...formData, internalNote: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={formData.status}
-                    label="Status"
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as keyof typeof caseStatuses })}
-                  >
-                    {Object.entries(caseStatuses).map(([key, value]) => (
-                      <MenuItem key={key} value={key}>
-                        {value.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                  <DateTimePicker
-                    label="Dátum a čas pripomienky"
-                    value={formData.reminderDateTime}
-                    onChange={(newValue) => setFormData({ ...formData, reminderDateTime: newValue })}
-                    sx={{ width: '100%' }}
-                  />
-                </LocalizationProvider>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Poznámka k pripomienke"
-                  multiline
-                  rows={2}
-                  value={formData.reminderNote}
-                  onChange={(e) => setFormData({ ...formData, reminderNote: e.target.value })}
-                  placeholder="Zadajte text pripomienky, ktorý vám príde emailom"
-                  helperText="Tento text vám príde emailom v čase pripomienky"
-                />
-              </Grid>
-            </Grid>
-          </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setOpen(false);
+                setEditCase(null);
+              }}
+              sx={{
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                '&:hover': {
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                },
+              }}
+            >
+              Zrušiť
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              sx={{
+                backgroundColor: colors.accent.main,
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: colors.accent.light,
+                },
+              }}
+            >
+              {editCase ? 'Uložiť zmeny' : 'Pridať prípad'}
+            </Button>
+          </DialogActions>
         </StyledDialogContent>
-        <DialogActions sx={{ 
-          padding: '24px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        }}>
-          <Button onClick={() => {
-            setOpen(false);
-            setEditCase(null);
-          }} sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}>
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.accent.main,
-              color: isDarkMode ? '#ffffff' : '#000000',
-              fontWeight: 600,
-              padding: '8px 24px',
-              '&:hover': {
-                backgroundColor: colors.accent.light,
-              },
-              '&.Mui-disabled': {
-                backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                color: 'rgba(255, 255, 255, 0.3)',
-              }
-            }}
-            disabled={!formData.companyName || 
-                     !formData.contactPerson.firstName || 
-                     !formData.contactPerson.lastName || 
-                     !formData.contactPerson.email ||
-                     !formData.contactPerson.phone}
-          >
-            {editCase ? 'Uložiť zmeny' : 'Pridať prípad'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setCaseToDelete(null);
-        }}
+        onClose={() => setDeleteDialogOpen(false)}
         PaperProps={{
           sx: {
-            background: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+            background: 'none',
+            boxShadow: 'none',
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
+          }
+        }}
+        BackdropProps={{
+          sx: {
             backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-            minWidth: '400px'
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
           }
         }}
       >
-        <DialogTitle sx={{ 
-          color: isDarkMode ? '#ffffff' : '#000000',
-          fontSize: '1.5rem',
-          fontWeight: 600,
-          textAlign: 'center',
-          padding: '32px 32px 24px 32px'
-        }}>
-          Potvrdenie vymazania
-        </DialogTitle>
-        <DialogContent sx={{ 
-          padding: '0 32px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <Typography sx={{ 
-            color: isDarkMode ? '#ffffff' : '#000000',
-            textAlign: 'center',
-            fontSize: '1rem',
-            maxWidth: '400px',
-            lineHeight: 1.5
-          }}>
-            Naozaj chcete vymazať tento obchodný prípad? Táto akcia je nenávratná.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ 
-          padding: '32px',
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 2
-        }}>
-          <Button 
-            onClick={() => {
-              setDeleteDialogOpen(false);
-              setCaseToDelete(null);
-            }} 
-            sx={{ 
-              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-              padding: '8px 24px',
-              minWidth: '120px',
-              '&:hover': {
-                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
-              }
-            }}
-          >
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={confirmDelete}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.secondary.main,
-              color: isDarkMode ? '#ffffff' : '#000000',
-              fontWeight: 600,
-              padding: '8px 24px',
-              minWidth: '120px',
-              '&:hover': {
-                backgroundColor: colors.secondary.light,
-              }
-            }}
-          >
-            Vymazať
-          </Button>
-        </DialogActions>
+        <StyledDialogContent isDarkMode={isDarkMode}>
+          <DialogTitle>
+            Potvrdiť vymazanie
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              Naozaj chcete vymazať tento obchodný prípad? Táto akcia je nenávratná.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setDeleteDialogOpen(false)}
+              sx={{
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                '&:hover': {
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                },
+              }}
+            >
+              Zrušiť
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              variant="contained"
+              sx={{
+                backgroundColor: colors.secondary.main,
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: colors.secondary.light,
+                },
+              }}
+            >
+              Vymazať
+            </Button>
+          </DialogActions>
+        </StyledDialogContent>
       </Dialog>
 
       <Snackbar
