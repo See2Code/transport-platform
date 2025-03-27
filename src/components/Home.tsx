@@ -11,6 +11,23 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 // Styled komponenty
+const LogoContainer = styled(Box)({
+  width: '150px',
+  height: 'auto',
+  marginBottom: '20px',
+  opacity: 0.8,
+  transition: 'opacity 0.3s ease-in-out',
+  '&:hover': {
+    opacity: 1,
+  },
+});
+
+const LogoImage = styled('img')({
+  width: '100%',
+  height: 'auto',
+  filter: 'brightness(0)',
+});
+
 const GradientButton = styled(Button)(({ theme }) => ({
   padding: '15px 40px',
   fontSize: '1.1rem',
@@ -21,12 +38,12 @@ const GradientButton = styled(Button)(({ theme }) => ({
   transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
   '&:hover': {
     transform: 'translateY(-3px)',
-    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)',
+    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
   },
 }));
 
 const GreenGradientButton = styled(GradientButton)({
-  background: 'linear-gradient(135deg, #ff9f43 0%, #ffbe76 100%)',
+  background: 'linear-gradient(135deg, #00b894 0%, #55efc4 100%)',
   color: 'white',
 });
 
@@ -38,9 +55,10 @@ const OrangeGradientButton = styled(GradientButton)({
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
   borderRadius: '20px',
-  background: 'rgba(35, 35, 66, 0.7)',
+  background: 'rgba(255, 255, 255, 0.9)',
   backdropFilter: 'blur(10px)',
-  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
+  border: '1px solid rgba(0, 0, 0, 0.1)',
   animation: 'fadeIn 0.6s ease-out',
   '@keyframes fadeIn': {
     from: {
@@ -94,13 +112,16 @@ function Home() {
               mb: 6
             }}
           >
+            <LogoContainer>
+              <LogoImage src="/AESA black.svg" alt="AESA Logo" />
+            </LogoContainer>
             <Typography
               variant="h2"
               component="h1"
               sx={{
                 mb: 2,
                 fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #00b894 0%, #ffa502 100%)',
+                background: 'linear-gradient(135deg, #ff9f43 0%, #ffbe76 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}
@@ -111,7 +132,7 @@ function Home() {
               variant="h5"
               sx={{
                 mb: 4,
-                color: 'text.secondary',
+                color: 'rgba(0, 0, 0, 0.7)',
                 maxWidth: '600px'
               }}
             >
@@ -146,7 +167,7 @@ function Home() {
             <Typography
               variant="body1"
               sx={{
-                color: 'text.secondary',
+                color: 'rgba(0, 0, 0, 0.7)',
                 mb: 2
               }}
             >
@@ -174,7 +195,7 @@ function Home() {
                   key={index}
                   variant="body2"
                   sx={{
-                    color: 'text.secondary',
+                    color: 'rgba(0, 0, 0, 0.7)',
                     display: 'flex',
                     alignItems: 'center',
                     '&:before': {
