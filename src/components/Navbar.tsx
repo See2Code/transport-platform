@@ -714,17 +714,17 @@ const Navbar = () => {
         <Box sx={{ 
           display: { xs: 'flex', sm: 'none' },
           justifyContent: 'flex-end',
-          padding: '8px 16px',
+          padding: '8px',
           position: 'sticky',
           top: 0,
-          backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backgroundColor: 'transparent',
           zIndex: 1,
-          backdropFilter: 'blur(10px)',
         }}>
           <IconButton
             onClick={handleMobileMenuClose}
             sx={{
               color: isDarkMode ? '#ffffff' : '#000000',
+              padding: '8px',
               '&:hover': {
                 backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
               },
