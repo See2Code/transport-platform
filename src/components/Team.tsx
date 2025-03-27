@@ -1084,7 +1084,7 @@ function Team() {
               mb: 2,
               fontSize: '1.75rem',
               fontWeight: 700,
-              color: '#ffffff',
+              color: isDarkMode ? '#ffffff' : '#000000',
               position: 'relative',
               '&::after': {
                 content: '""',
@@ -1206,7 +1206,7 @@ function Team() {
               mb: 2,
               fontSize: '1.75rem',
               fontWeight: 700,
-              color: '#ffffff',
+              color: isDarkMode ? '#ffffff' : '#000000',
               position: 'relative',
               '&::after': {
                 content: '""',

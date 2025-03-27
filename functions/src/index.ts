@@ -126,152 +126,70 @@ export const sendInvitationEmail = functions
 
       const invitationLink = `https://core-app-423c7.web.app/accept-invitation/${data.invitationId}`;
       const emailTemplate = `
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      background: linear-gradient(135deg, #ff9f43 0%, #ff7f50 100%);
-      color: white;
-      padding: 40px 30px;
-      text-align: center;
-      border-radius: 8px 8px 0 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-    .content {
-      background-color: white;
-      padding: 40px 30px;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .content h2 {
-      color: #2c3e50;
-      margin-top: 0;
-      font-size: 24px;
-      font-weight: 600;
-    }
-    .content p {
-      color: #34495e;
-      margin-bottom: 20px;
-      font-size: 16px;
-    }
-    .company-info {
-      background-color: #f8f9fa;
-      padding: 25px;
-      border-radius: 8px;
-      margin: 25px 0;
-      border-left: 4px solid #ff9f43;
-    }
-    .company-info h3 {
-      color: #2c3e50;
-      margin-top: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .company-info p {
-      margin: 10px 0;
-      color: #34495e;
-    }
-    .button {
-      display: inline-block;
-      padding: 14px 32px;
-      background: linear-gradient(135deg, #ff9f43 0%, #ff7f50 100%);
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      margin: 25px 0;
-      font-weight: 600;
-      font-size: 16px;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(255, 159, 67, 0.3);
-      transition: all 0.3s ease;
-    }
-    .button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(255, 159, 67, 0.4);
-    }
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      color: #7f8c8d;
-      font-size: 13px;
-      padding: 20px;
-      border-top: 1px solid #eee;
-    }
-    .footer p {
-      margin: 5px 0;
-    }
-    .highlight {
-      color: #ff9f43;
-      font-weight: 600;
-    }
-    .info-box {
-      background-color: #fff8f0;
-      border: 1px solid #ffe0b2;
-      border-radius: 6px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    .info-box p {
-      margin: 10px 0;
-      color: #34495e;
-    }
-  </style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AESA Transport Platform</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>AESA Transport Platform</h1>
-    </div>
-    <div class="content">
-      {{content}}
-    </div>
-    <div class="footer">
-      <p>Toto je automaticky generovaný email. Prosím neodpovedajte naň.</p>
-      <p>&copy; ${new Date().getFullYear()} AESA Transport Platform. Všetky práva vyhradené.</p>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <tr>
+            <td align="center" bgcolor="#ff9f43" style="padding: 40px 30px; border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; font-family: 'Segoe UI', Arial, sans-serif;">AESA Transport Platform</h1>
+            </td>
+          </tr>
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px; background-color: #ffffff;">
+              {{content}}
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 20px 30px; background-color: #ffffff; border-top: 1px solid #eeeeee; border-radius: 0 0 8px 8px;">
+              <p style="margin: 5px 0; color: #7f8c8d; font-size: 13px;">Toto je automaticky generovaný email. Prosím neodpovedajte naň.</p>
+              <p style="margin: 5px 0; color: #7f8c8d; font-size: 13px;">&copy; ${new Date().getFullYear()} AESA Transport Platform. Všetky práva vyhradené.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
 `;
 
       const invitationContent = `
-        <h2>Dobrý deň ${data.firstName},</h2>
-        <p>Boli ste pozvaní do AESA Transport Platform spoločnosťou <strong>${companyData?.companyName}</strong>.</p>
+        <h2 style="color: #2c3e50; margin-top: 0; font-size: 24px; font-weight: 600;">Dobrý deň ${data.firstName},</h2>
+        <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Boli ste pozvaní do AESA Transport Platform spoločnosťou <strong>${companyData?.companyName}</strong>.</p>
         
-        <div class="company-info">
-          <h3>Informácie o spoločnosti:</h3>
-          <p><strong>Názov:</strong> ${companyData?.companyName}</p>
-          <p><strong>IČO:</strong> ${companyData?.ico || 'Neuvedené'}</p>
-          <p><strong>Adresa:</strong> ${companyData?.street}, ${companyData?.zipCode} ${companyData?.city}</p>
-        </div>
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8f9fa; margin: 25px 0; border-radius: 8px; border-left: 4px solid #ff9f43;">
+          <tr>
+            <td style="padding: 25px;">
+              <h3 style="color: #2c3e50; margin-top: 0; font-size: 18px; font-weight: 600;">Informácie o spoločnosti:</h3>
+              <p style="margin: 10px 0; color: #34495e;"><strong>Názov:</strong> ${companyData?.companyName}</p>
+              <p style="margin: 10px 0; color: #34495e;"><strong>IČO:</strong> ${companyData?.ico || 'Neuvedené'}</p>
+              <p style="margin: 10px 0; color: #34495e;"><strong>Adresa:</strong> ${companyData?.street}, ${companyData?.zipCode} ${companyData?.city}</p>
+            </td>
+          </tr>
+        </table>
 
-        <p>Pre dokončenie registrácie a prístup do platformy kliknite na nasledujúce tlačidlo:</p>
-        <div style="text-align: center;">
-          <a href="${invitationLink}" class="button">Prijať pozvánku</a>
-        </div>
-        <p>Ak tlačidlo nefunguje, skopírujte a vložte tento odkaz do prehliadača:</p>
-        <p style="word-break: break-all; color: #666;">${invitationLink}</p>
+        <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pre dokončenie registrácie a prístup do platformy kliknite na nasledujúce tlačidlo:</p>
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+          <tr>
+            <td align="center" style="padding: 25px 0;">
+              <a href="${invitationLink}" style="display: inline-block; padding: 14px 32px; background-color: #ff9f43; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Prijať pozvánku</a>
+            </td>
+          </tr>
+        </table>
+        <p style="color: #34495e; margin-bottom: 10px; font-size: 14px;">Ak tlačidlo nefunguje, skopírujte a vložte tento odkaz do prehliadača:</p>
+        <p style="word-break: break-all; color: #666666; font-size: 14px;">${invitationLink}</p>
       `;
 
       const emailHtml = emailTemplate.replace('{{content}}', invitationContent);
@@ -307,6 +225,7 @@ export const checkBusinessCaseReminders = functions
       const remindersSnapshot = await db.collection('reminders')
         .where('reminderDateTime', '<=', now)
         .where('sent', '==', false)
+        .where('type', '==', 'businessCase')
         .get();
 
       console.log('Počet nájdených pripomienok:', remindersSnapshot.size);
@@ -317,183 +236,121 @@ export const checkBusinessCaseReminders = functions
           id: doc.id,
           reminderDateTime: reminder.reminderDateTime?.toDate?.(),
           userEmail: reminder.userEmail,
-          companyName: reminder.companyName
+          companyName: reminder.companyName,
+          type: reminder.type,
+          sent: reminder.sent
         });
         
-        if (reminder.userEmail) {
+        if (!reminder.userEmail) {
+          console.error('Pripomienka nemá nastavený email:', doc.id);
+          continue;
+        }
+
+        if (!reminder.reminderDateTime) {
+          console.error('Pripomienka nemá nastavený čas:', doc.id);
+          continue;
+        }
+
+        try {
+          console.log('Generujem email pre pripomienku:', doc.id);
           const emailTemplate = `
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      background: linear-gradient(135deg, #ff9f43 0%, #ff7f50 100%);
-      color: white;
-      padding: 40px 30px;
-      text-align: center;
-      border-radius: 8px 8px 0 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-    .content {
-      background-color: white;
-      padding: 40px 30px;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .content h2 {
-      color: #2c3e50;
-      margin-top: 0;
-      font-size: 24px;
-      font-weight: 600;
-    }
-    .content p {
-      color: #34495e;
-      margin-bottom: 20px;
-      font-size: 16px;
-    }
-    .company-info {
-      background-color: #f8f9fa;
-      padding: 25px;
-      border-radius: 8px;
-      margin: 25px 0;
-      border-left: 4px solid #ff9f43;
-    }
-    .company-info h3 {
-      color: #2c3e50;
-      margin-top: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .company-info p {
-      margin: 10px 0;
-      color: #34495e;
-    }
-    .button {
-      display: inline-block;
-      padding: 14px 32px;
-      background: linear-gradient(135deg, #ff9f43 0%, #ff7f50 100%);
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      margin: 25px 0;
-      font-weight: 600;
-      font-size: 16px;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(255, 159, 67, 0.3);
-      transition: all 0.3s ease;
-    }
-    .button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(255, 159, 67, 0.4);
-    }
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      color: #7f8c8d;
-      font-size: 13px;
-      padding: 20px;
-      border-top: 1px solid #eee;
-    }
-    .footer p {
-      margin: 5px 0;
-    }
-    .highlight {
-      color: #ff9f43;
-      font-weight: 600;
-    }
-    .info-box {
-      background-color: #fff8f0;
-      border: 1px solid #ffe0b2;
-      border-radius: 6px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    .info-box p {
-      margin: 10px 0;
-      color: #34495e;
-    }
-  </style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AESA Transport Platform</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>AESA Transport Platform</h1>
-    </div>
-    <div class="content">
-      {{content}}
-    </div>
-    <div class="footer">
-      <p>Toto je automaticky generovaný email. Prosím neodpovedajte naň.</p>
-      <p>&copy; ${new Date().getFullYear()} AESA Transport Platform. Všetky práva vyhradené.</p>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <tr>
+            <td align="center" bgcolor="#ff9f43" style="padding: 40px 30px; border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; font-family: 'Segoe UI', Arial, sans-serif;">AESA Transport Platform</h1>
+            </td>
+          </tr>
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px; background-color: #ffffff;">
+              {{content}}
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 20px 30px; background-color: #ffffff; border-top: 1px solid #eeeeee; border-radius: 0 0 8px 8px;">
+              <p style="margin: 5px 0; color: #7f8c8d; font-size: 13px;">Toto je automaticky generovaný email. Prosím neodpovedajte naň.</p>
+              <p style="margin: 5px 0; color: #7f8c8d; font-size: 13px;">&copy; ${new Date().getFullYear()} AESA Transport Platform. Všetky práva vyhradené.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
 `;
 
-      const businessCaseReminderContent = `
-        <h2>Dobrý deň ${reminder.contactPerson.firstName},</h2>
-        <div class="info-box">
-          <p><strong>Obchodný prípad:</strong> "${reminder.companyName}"</p>
-          <p><strong>Dátum pripomienky:</strong> ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
-          <p><strong>Text pripomienky:</strong> ${reminder.reminderNote || 'Bez poznámky'}</p>
-        </div>
-        <p>Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
-        <div style="text-align: center;">
-          <a href="https://core-app-423c7.web.app/business-cases" class="button">Zobraziť obchodný prípad</a>
-        </div>
-      `;
+          const businessCaseReminderContent = `
+            <h2 style="color: #2c3e50; margin-top: 0; font-size: 24px; font-weight: 600;">Dobrý deň${reminder.contactPerson?.firstName ? ` ${reminder.contactPerson.firstName}` : ''},</h2>
+            <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pripomíname Vám naplánovanú aktivitu v obchodnom prípade:</p>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 10px 0; color: #34495e;"><strong>Obchodný prípad:</strong> "${reminder.companyName}"</p>
+              <p style="margin: 10px 0; color: #34495e;"><strong>Dátum a čas pripomienky:</strong> ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
+              <p style="margin: 10px 0; color: #34495e;"><strong>Text pripomienky:</strong> ${reminder.reminderNote || 'Bez poznámky'}</p>
+            </div>
+            <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td align="center" style="padding: 25px 0;">
+                  <a href="https://core-app-423c7.web.app/business-cases" style="display: inline-block; padding: 14px 32px; background-color: #ff9f43; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Zobraziť obchodný prípad</a>
+                </td>
+              </tr>
+            </table>
+          `;
 
-      const businessCaseEmailHtml = emailTemplate.replace('{{content}}', businessCaseReminderContent);
+          const businessCaseEmailHtml = emailTemplate.replace('{{content}}', businessCaseReminderContent);
 
-      try {
-        console.log('Pokus o odoslanie pripomienky na:', reminder.userEmail);
-        await sendEmail(reminder.userEmail, 'Pripomienka pre obchodný prípad', businessCaseEmailHtml);
-        
-        // Vymazanie pripomienky po úspešnom odoslaní
-        await doc.ref.delete();
-        console.log('Pripomienka úspešne odoslaná a vymazaná');
-        
-        // Aktualizujeme počítadlo metrík
-        const metricsRef = db.collection('functionMetrics').doc(now.toISOString().split('T')[0]);
-        await metricsRef.set({
-          businessCaseReminders: admin.firestore.FieldValue.increment(1)
-        }, { merge: true });
-      } catch (error) {
-        console.error('Chyba pri odosielaní pripomienky:', {
-          error: error,
-          reminderID: doc.id,
-          userEmail: reminder.userEmail
-        });
+          console.log('Odosielam email na:', reminder.userEmail);
+          await sendEmail(
+            reminder.userEmail,
+            'Pripomienka pre obchodný prípad',
+            businessCaseEmailHtml
+          );
+
+          console.log('Email úspešne odoslaný, označujem pripomienku ako odoslanú');
+          await doc.ref.update({
+            sent: true,
+            sentAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+
+          console.log('Pripomienka úspešne označená ako odoslaná');
+          
+          const metricsRef = db.collection('functionMetrics').doc(now.toISOString().split('T')[0]);
+          await metricsRef.set({
+            businessCaseReminders: admin.firestore.FieldValue.increment(1)
+          }, { merge: true });
+          
+          console.log('Metriky aktualizované');
+        } catch (error) {
+          console.error('Chyba pri spracovaní pripomienky:', {
+            error: error,
+            reminderID: doc.id,
+            userEmail: reminder.userEmail,
+            companyName: reminder.companyName
+          });
+        }
       }
-    } else {
-      console.warn('Pripomienka nemá nastavený email:', doc.id);
+
+      console.log('Kontrola pripomienok dokončená');
+      return null;
+    } catch (error) {
+      console.error('Chyba pri kontrole pripomienok:', error);
+      return null;
     }
-  }
-} catch (error) {
-  console.error('Chyba pri kontrole pripomienok:', error);
-}
-});
+  });
 
 // Funkcia na kontrolu notifikácií pre sledované prepravy
 export const checkTransportNotifications = functions
@@ -529,148 +386,64 @@ export const checkTransportNotifications = functions
         
         if (reminder.userEmail && reminder.transportId) {
           const emailTemplate = `
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      background: linear-gradient(135deg, #ff9f43 0%, #ff7f50 100%);
-      color: white;
-      padding: 40px 30px;
-      text-align: center;
-      border-radius: 8px 8px 0 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-    .content {
-      background-color: white;
-      padding: 40px 30px;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .content h2 {
-      color: #2c3e50;
-      margin-top: 0;
-      font-size: 24px;
-      font-weight: 600;
-    }
-    .content p {
-      color: #34495e;
-      margin-bottom: 20px;
-      font-size: 16px;
-    }
-    .company-info {
-      background-color: #f8f9fa;
-      padding: 25px;
-      border-radius: 8px;
-      margin: 25px 0;
-      border-left: 4px solid #ff9f43;
-    }
-    .company-info h3 {
-      color: #2c3e50;
-      margin-top: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .company-info p {
-      margin: 10px 0;
-      color: #34495e;
-    }
-    .button {
-      display: inline-block;
-      padding: 14px 32px;
-      background: linear-gradient(135deg, #ff9f43 0%, #ff7f50 100%);
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      margin: 25px 0;
-      font-weight: 600;
-      font-size: 16px;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(255, 159, 67, 0.3);
-      transition: all 0.3s ease;
-    }
-    .button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(255, 159, 67, 0.4);
-    }
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      color: #7f8c8d;
-      font-size: 13px;
-      padding: 20px;
-      border-top: 1px solid #eee;
-    }
-    .footer p {
-      margin: 5px 0;
-    }
-    .highlight {
-      color: #ff9f43;
-      font-weight: 600;
-    }
-    .info-box {
-      background-color: #fff8f0;
-      border: 1px solid #ffe0b2;
-      border-radius: 6px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    .info-box p {
-      margin: 10px 0;
-      color: #34495e;
-    }
-  </style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AESA Transport Platform</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>AESA Transport Platform</h1>
-    </div>
-    <div class="content">
-      {{content}}
-    </div>
-    <div class="footer">
-      <p>Toto je automaticky generovaný email. Prosím neodpovedajte naň.</p>
-      <p>&copy; ${new Date().getFullYear()} AESA Transport Platform. Všetky práva vyhradené.</p>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <tr>
+            <td align="center" bgcolor="#ff9f43" style="padding: 40px 30px; border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; font-family: 'Segoe UI', Arial, sans-serif;">AESA Transport Platform</h1>
+            </td>
+          </tr>
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px; background-color: #ffffff;">
+              {{content}}
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 20px 30px; background-color: #ffffff; border-top: 1px solid #eeeeee; border-radius: 0 0 8px 8px;">
+              <p style="margin: 5px 0; color: #7f8c8d; font-size: 13px;">Toto je automaticky generovaný email. Prosím neodpovedajte naň.</p>
+              <p style="margin: 5px 0; color: #7f8c8d; font-size: 13px;">&copy; ${new Date().getFullYear()} AESA Transport Platform. Všetky práva vyhradené.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
 `;
 
       const transportReminderContent = `
-        <h2>Dobrý deň,</h2>
-        <div class="info-box">
-          <p><strong>Číslo objednávky:</strong> "${reminder.orderNumber}"</p>
-          <p><strong>Typ:</strong> ${reminder.type === 'loading' ? 'Nakládka' : 'Vykládka'}</p>
-          <p><strong>Adresa:</strong> ${reminder.address}</p>
-          <p><strong>Dátum a čas:</strong> ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
-          ${reminder.reminderNote ? `<p><strong>Poznámka:</strong> ${reminder.reminderNote}</p>` : ''}
+        <h2 style="color: #2c3e50; margin-top: 0; font-size: 24px; font-weight: 600;">Dobrý deň,</h2>
+        <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pripomíname Vám blížiacu sa ${reminder.type === 'loading' ? 'nakládku' : 'vykládku'}:</p>
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 10px 0; color: #34495e;"><strong>Číslo objednávky:</strong> "${reminder.orderNumber}"</p>
+          <p style="margin: 10px 0; color: #34495e;"><strong>Typ:</strong> ${reminder.type === 'loading' ? 'Nakládka' : 'Vykládka'}</p>
+          <p style="margin: 10px 0; color: #34495e;"><strong>Adresa:</strong> ${reminder.address}</p>
+          <p style="margin: 10px 0; color: #34495e;"><strong>Dátum a čas ${reminder.type === 'loading' ? 'nakládky' : 'vykládky'}:</strong> ${reminder.dateTime.toDate().toLocaleString('sk-SK')}</p>
+          <p style="margin: 10px 0; color: #34495e;"><strong>Čas pripomienky:</strong> ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
+          ${reminder.reminderNote ? `<p style="margin: 10px 0; color: #34495e;"><strong>Poznámka k pripomienke:</strong> ${reminder.reminderNote}</p>` : ''}
         </div>
-        <p>Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
-        <div style="text-align: center;">
-          <a href="https://core-app-423c7.web.app/tracked-transports" class="button">Zobraziť prepravu</a>
-        </div>
+        <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+          <tr>
+            <td align="center" style="padding: 25px 0;">
+              <a href="https://core-app-423c7.web.app/tracked-transports" style="display: inline-block; padding: 14px 32px; background-color: #ff9f43; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Zobraziť prepravu</a>
+            </td>
+          </tr>
+        </table>
       `;
 
       const transportEmailHtml = emailTemplate.replace('{{content}}', transportReminderContent);
