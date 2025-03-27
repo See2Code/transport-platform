@@ -117,6 +117,15 @@ const StatsCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   borderRadius: '20px',
   border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 8px 24px rgba(255, 159, 67, 0.2)',
+    border: '1px solid rgba(255, 159, 67, 0.2)',
+    '& .MuiCardContent-root': {
+      background: 'linear-gradient(180deg, rgba(255, 159, 67, 0.1) 0%, rgba(255, 159, 67, 0) 100%)',
+    }
+  },
   '& .MuiTypography-root': {
     color: isDarkMode ? '#ffffff' : '#000000',
   },
@@ -131,6 +140,7 @@ const StatsCardContent = styled(CardContent)({
   display: 'flex',
   flexDirection: 'column',
   gap: '12px',
+  transition: 'all 0.3s ease',
   '&:last-child': {
     paddingBottom: '24px'
   }
@@ -285,7 +295,7 @@ const CustomLegend = ({ payload }: any) => {
 const ProgressBarTooltip = styled(Box)({
   position: 'absolute',
   backgroundColor: 'rgba(0, 0, 0, 0.85)',
-  color: '#fff',
+  color: '#ffffff',
   padding: '8px 12px',
   borderRadius: '8px',
   fontSize: '0.9rem',
@@ -295,6 +305,9 @@ const ProgressBarTooltip = styled(Box)({
   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
   border: '1px solid rgba(255, 255, 255, 0.1)',
   backdropFilter: 'blur(8px)',
+  '& .MuiTypography-root': {
+    color: '#ffffff',
+  }
 });
 
 // Add animation variants
@@ -738,10 +751,14 @@ export default function Dashboard() {
                       top: `${tooltipData.y}px`,
                     }}
                   >
-                    <Typography sx={{ fontWeight: 600, mb: 0.5 }}>
+                    <Typography sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      color: '#ffffff'
+                    }}>
                       {tooltipData.data.name}
                     </Typography>
-                    <Typography>
+                    <Typography sx={{ color: '#ffffff' }}>
                       {tooltipData.data.value} ({((tooltipData.data.value / (tooltipData.data.total || 1)) * 100).toFixed(1)}%)
                     </Typography>
                   </ProgressBarTooltip>
