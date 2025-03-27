@@ -26,6 +26,7 @@ import {
   TableBody,
   TableRow,
   CardContent,
+  CardActions,
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -313,16 +314,87 @@ const InfoValue = styled(Typography)({
 
 const LocationInfo = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
+  flexDirection: 'column',
+  gap: '24px',
   color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+  '& .location-section': {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    padding: '20px',
+    backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
+    borderRadius: '12px',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`,
+  },
+  '& .location-header': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontWeight: 600,
+    fontSize: '1.1rem',
+    color: isDarkMode ? '#ffffff' : '#000000',
+    '& .MuiSvgIcon-root': {
+      fontSize: '1.2rem',
+      color: colors.accent.main
+    }
+  },
+  '& .location-address': {
+    marginLeft: '32px',
+    fontSize: '1rem',
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  }
 }));
 
 const TimeInfo = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
+  flexDirection: 'column',
+  gap: '32px',
   color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+  '& .section': {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    padding: '20px',
+    backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
+    borderRadius: '12px',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`,
+  },
+  '& .section-title': {
+    fontWeight: 600,
+    color: isDarkMode ? '#ffffff' : '#000000',
+    fontSize: '1.1rem',
+    marginBottom: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    '& .MuiSvgIcon-root': {
+      fontSize: '1.2rem',
+      color: colors.accent.main
+    }
+  },
+  '& .time-row': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginLeft: '24px',
+    fontSize: '1rem',
+    '& .MuiSvgIcon-root': {
+      fontSize: '1.1rem',
+      color: colors.accent.main
+    }
+  },
+  '& .reminder-info': {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    marginLeft: '24px',
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+    fontSize: '0.9rem',
+    '& .MuiSvgIcon-root': {
+      fontSize: '0.9rem',
+      color: colors.accent.light
+    }
+  }
 }));
 
 const CardHeader = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
@@ -445,13 +517,36 @@ const MobileTransportLocation = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMo
 
 const MobileTransportTime = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
+  flexDirection: 'column',
+  gap: '12px',
   fontSize: '0.85rem',
   color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-  '& .MuiSvgIcon-root': {
-    fontSize: '1rem',
-    color: colors.accent.main
+  '& .time-label': {
+    fontWeight: 600,
+    color: isDarkMode ? '#ffffff' : '#000000',
+    marginBottom: '4px'
+  },
+  '& .time-row': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginLeft: '24px',
+    '& .MuiSvgIcon-root': {
+      fontSize: '1rem',
+      color: colors.accent.main
+    }
+  },
+  '& .reminder-info': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    marginLeft: '24px',
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+    fontSize: '0.8rem',
+    '& .MuiSvgIcon-root': {
+      fontSize: '0.9rem',
+      color: colors.accent.light
+    }
   }
 }));
 
@@ -912,35 +1007,69 @@ function TrackedTransports() {
       </MobileTransportHeader>
       
       <MobileTransportInfo isDarkMode={isDarkMode}>
-        <MobileTransportLocation isDarkMode={isDarkMode}>
-          <LocationOnIcon />
-          <Box>
-            <Typography variant="body2" sx={{ fontWeight: 500, color: isDarkMode ? '#ffffff' : '#000000' }}>Nakládka:</Typography>
-            {transport.loadingAddress}
-          </Box>
-        </MobileTransportLocation>
-        
-        <MobileTransportTime isDarkMode={isDarkMode}>
-          <AccessTimeIcon />
-          {transport.loadingDateTime instanceof Date 
-            ? format(transport.loadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })
-            : format(transport.loadingDateTime.toDate(), 'dd.MM.yyyy HH:mm', { locale: sk })}
-        </MobileTransportTime>
+        <Box>
+          <MobileTransportLocation isDarkMode={isDarkMode}>
+            <LocationOnIcon />
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: isDarkMode ? '#ffffff' : '#000000' }}>
+                Nakládka:
+              </Typography>
+              {transport.loadingAddress}
+            </Box>
+          </MobileTransportLocation>
+          
+          <MobileTransportTime isDarkMode={isDarkMode}>
+            <div className="time-label">Nakládka:</div>
+            <div className="time-row">
+              <AccessTimeIcon />
+              {transport.loadingDateTime instanceof Date 
+                ? format(transport.loadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })
+                : format(transport.loadingDateTime.toDate(), 'dd.MM.yyyy HH:mm', { locale: sk })}
+            </div>
+            <div className="reminder-info">
+              <NotificationsIcon />
+              {transport.loadingReminder} minút pred nakládkou
+              <br />
+              (pripomienka o {
+                transport.loadingDateTime instanceof Date 
+                  ? format(new Date(transport.loadingDateTime.getTime() - transport.loadingReminder * 60000), 'HH:mm', { locale: sk })
+                  : format(new Date(transport.loadingDateTime.toDate().getTime() - transport.loadingReminder * 60000), 'HH:mm', { locale: sk })
+              })
+            </div>
+          </MobileTransportTime>
+        </Box>
 
-        <MobileTransportLocation isDarkMode={isDarkMode}>
-          <LocationOnIcon />
-          <Box>
-            <Typography variant="body2" sx={{ fontWeight: 500, color: isDarkMode ? '#ffffff' : '#000000' }}>Vykládka:</Typography>
-            {transport.unloadingAddress}
-          </Box>
-        </MobileTransportLocation>
-        
-        <MobileTransportTime isDarkMode={isDarkMode}>
-          <AccessTimeIcon />
-          {transport.unloadingDateTime instanceof Date 
-            ? format(transport.unloadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })
-            : format(transport.unloadingDateTime.toDate(), 'dd.MM.yyyy HH:mm', { locale: sk })}
-        </MobileTransportTime>
+        <Box sx={{ mt: 2 }}>
+          <MobileTransportLocation isDarkMode={isDarkMode}>
+            <LocationOnIcon />
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: isDarkMode ? '#ffffff' : '#000000' }}>
+                Vykládka:
+              </Typography>
+              {transport.unloadingAddress}
+            </Box>
+          </MobileTransportLocation>
+          
+          <MobileTransportTime isDarkMode={isDarkMode}>
+            <div className="time-label">Vykládka:</div>
+            <div className="time-row">
+              <AccessTimeIcon />
+              {transport.unloadingDateTime instanceof Date 
+                ? format(transport.unloadingDateTime, 'dd.MM.yyyy HH:mm', { locale: sk })
+                : format(transport.unloadingDateTime.toDate(), 'dd.MM.yyyy HH:mm', { locale: sk })}
+            </div>
+            <div className="reminder-info">
+              <NotificationsIcon />
+              {transport.unloadingReminder} minút pred vykládkou
+              <br />
+              (pripomienka o {
+                transport.unloadingDateTime instanceof Date 
+                  ? format(new Date(transport.unloadingDateTime.getTime() - transport.unloadingReminder * 60000), 'HH:mm', { locale: sk })
+                  : format(new Date(transport.unloadingDateTime.toDate().getTime() - transport.unloadingReminder * 60000), 'HH:mm', { locale: sk })
+              })
+            </div>
+          </MobileTransportTime>
+        </Box>
       </MobileTransportInfo>
 
       <MobileTransportActions>
@@ -974,20 +1103,193 @@ function TrackedTransports() {
               {transport.status}
             </StatusChip>
           </CardHeader>
-          <InfoSection isDarkMode={isDarkMode}>
-            <LocationInfo isDarkMode={isDarkMode}>
-              <LocationOnIcon />
-              {transport.loadingAddress} → {transport.unloadingAddress}
-            </LocationInfo>
-            <TimeInfo isDarkMode={isDarkMode}>
-              <AccessTimeIcon />
-              {format(transport.loadingDateTime instanceof Timestamp ? transport.loadingDateTime.toDate() : transport.loadingDateTime, 'dd.MM.yyyy HH:mm')} → {format(transport.unloadingDateTime instanceof Timestamp ? transport.unloadingDateTime.toDate() : transport.unloadingDateTime, 'dd.MM.yyyy HH:mm')}
-            </TimeInfo>
-            <CreatorInfo isDarkMode={isDarkMode}>
-              <PersonIcon />
-              {transport.createdBy?.firstName} {transport.createdBy?.lastName}
-            </CreatorInfo>
-          </InfoSection>
+
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Box sx={{ 
+                padding: '20px',
+                backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
+                borderRadius: '12px',
+                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`,
+              }}>
+                <Typography variant="h6" sx={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  mb: 2,
+                  color: isDarkMode ? '#ffffff' : '#000000',
+                  '& .MuiSvgIcon-root': { color: colors.accent.main }
+                }}>
+                  <LocationOnIcon />
+                  Nakládka
+                </Typography>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, ml: 2 }}>
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+                    '& .MuiSvgIcon-root': { color: colors.accent.main }
+                  }}>
+                    <LocationOnIcon />
+                    {transport.loadingAddress}
+                  </Box>
+
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+                    '& .MuiSvgIcon-root': { color: colors.accent.main }
+                  }}>
+                    <AccessTimeIcon />
+                    {format(transport.loadingDateTime instanceof Timestamp ? transport.loadingDateTime.toDate() : transport.loadingDateTime, 'dd.MM.yyyy HH:mm')}
+                  </Box>
+
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                    fontSize: '0.9rem',
+                    '& .MuiSvgIcon-root': { color: colors.accent.light }
+                  }}>
+                    <NotificationsIcon />
+                    Pripomienka {transport.loadingReminder} minút pred nakládkou
+                    ({format(new Date((transport.loadingDateTime instanceof Timestamp ? transport.loadingDateTime.toDate() : transport.loadingDateTime).getTime() - transport.loadingReminder * 60000), 'dd.MM.yyyy HH:mm')})
+                  </Box>
+                </Box>
+              </Box>
+
+              <Box sx={{ 
+                padding: '20px',
+                backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
+                borderRadius: '12px',
+                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`,
+              }}>
+                <Typography variant="h6" sx={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  mb: 2,
+                  color: isDarkMode ? '#ffffff' : '#000000',
+                  '& .MuiSvgIcon-root': { color: colors.accent.main }
+                }}>
+                  <LocationOnIcon />
+                  Vykládka
+                </Typography>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, ml: 2 }}>
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+                    '& .MuiSvgIcon-root': { color: colors.accent.main }
+                  }}>
+                    <LocationOnIcon />
+                    {transport.unloadingAddress}
+                  </Box>
+
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+                    '& .MuiSvgIcon-root': { color: colors.accent.main }
+                  }}>
+                    <AccessTimeIcon />
+                    {format(transport.unloadingDateTime instanceof Timestamp ? transport.unloadingDateTime.toDate() : transport.unloadingDateTime, 'dd.MM.yyyy HH:mm')}
+                  </Box>
+
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                    fontSize: '0.9rem',
+                    '& .MuiSvgIcon-root': { color: colors.accent.light }
+                  }}>
+                    <NotificationsIcon />
+                    Pripomienka {transport.unloadingReminder} minút pred vykládkou
+                    ({format(new Date((transport.unloadingDateTime instanceof Timestamp ? transport.unloadingDateTime.toDate() : transport.unloadingDateTime).getTime() - transport.unloadingReminder * 60000), 'dd.MM.yyyy HH:mm')})
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+
+            <Box sx={{ 
+              width: '400px',
+              height: '100%',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+              '&:hover': {
+                border: `1px solid ${colors.accent.main}`,
+                transform: 'scale(1.02)',
+                transition: 'all 0.2s ease-in-out'
+              }
+            }} onClick={() => handleShowMap(transport.loadingAddress, transport.unloadingAddress)}>
+              <TransportMap
+                origin={transport.loadingAddress}
+                destination={transport.unloadingAddress}
+                isThumbnail={true}
+              />
+            </Box>
+          </Box>
+
+          <CardActions sx={{ 
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 2,
+            pt: 2,
+            borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}` 
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+              fontSize: '0.9rem'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <PersonIcon sx={{ fontSize: '1rem' }} />
+                Vytvoril: {transport.createdBy?.firstName} {transport.createdBy?.lastName}
+              </Box>
+              <Box component="span" sx={{ mx: 1 }}>•</Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <AccessTimeIcon sx={{ fontSize: '1rem' }} />
+                Uverejnené: {format(transport.createdAt instanceof Timestamp ? transport.createdAt.toDate() : transport.createdAt, 'dd.MM.yyyy HH:mm')}
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <IconButton 
+                size="small"
+                onClick={() => handleOpenDialog(transport)}
+                sx={{ color: colors.accent.main }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton 
+                size="small"
+                onClick={() => handleDelete(transport)}
+                sx={{ color: colors.secondary.main }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+              <IconButton 
+                size="small"
+                onClick={() => handleShowMap(transport.loadingAddress, transport.unloadingAddress)}
+                sx={{ color: colors.accent.main }}
+              >
+                <LocationOnIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </CardActions>
         </TransportCard>
       ))}
     </Box>
