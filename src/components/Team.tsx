@@ -30,7 +30,8 @@ import {
   Card,
   Avatar,
   styled,
-  useMediaQuery
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -51,6 +52,7 @@ import 'react-phone-input-2/lib/style.css';
 import { SelectChangeEvent } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useThemeMode } from '../contexts/ThemeContext';
 
 interface Country {
   code: string;
@@ -141,10 +143,10 @@ const PageHeader = styled(Box)({
   }
 });
 
-const PageTitle = styled(Typography)({
+const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '1.75rem',
   fontWeight: 700,
-  color: '#ffffff',
+  color: isDarkMode ? '#ffffff' : '#000000',
   position: 'relative',
   '&::after': {
     content: '""',
@@ -153,13 +155,13 @@ const PageTitle = styled(Typography)({
     left: 0,
     width: '60px',
     height: '4px',
-    backgroundColor: colors.accent.main,
+    backgroundColor: '#ff9f43',
     borderRadius: '2px',
   },
   '@media (max-width: 600px)': {
     fontSize: '1.5rem',
   }
-});
+}));
 
 const AddButton = styled('button')({
   backgroundColor: colors.accent.main,
@@ -414,26 +416,33 @@ const StyledTableWrapper = styled(Paper)({
   }
 });
 
-const StyledTableCell = styled(TableCell)({
-  color: colors.text.primary,
+const StyledTableCell = styled(TableCell)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  color: isDarkMode ? '#ffffff' : '#000000',
+  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
   '&.MuiTableCell-head': {
-    backgroundColor: colors.background.dark,
-    color: colors.text.primary,
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     fontWeight: 600,
   }
-});
+}));
 
-const StyledTableRow = styled(TableRow)({
-  '&:nth-of-type(odd)': {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-  },
+const StyledTableRow = styled(TableRow)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.03) !important',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
   },
   '& .MuiTableCell-root': {
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
   }
-});
+}));
+
+const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  padding: '24px',
+  borderRadius: '20px',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  backdropFilter: 'blur(20px)',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+}));
 
 function Team() {
   const navigate = useNavigate();
@@ -459,6 +468,8 @@ function Team() {
   const [role, setRole] = useState('user');
   const { userData } = useAuth();
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
+  const theme = useTheme();
+  const { isDarkMode } = useThemeMode();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -844,7 +855,7 @@ function Team() {
   return (
     <PageWrapper>
       <PageHeader>
-        <PageTitle>Tím</PageTitle>
+        <PageTitle isDarkMode={isDarkMode}>Tím</PageTitle>
         <AddButton onClick={() => setOpenInvite(true)}>
           <AddIcon /> Pridať člena
         </AddButton>
@@ -895,7 +906,12 @@ function Team() {
         </Box>
       ) : (
         <>
-          <TableContainer component={StyledTableWrapper}>
+          <TableContainer component={Paper} sx={{
+            backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+            borderRadius: '20px',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+          }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -910,14 +926,7 @@ function Team() {
               <TableBody>
                 <AnimatePresence mode="wait">
                   {teamMembers.map((member) => (
-                    <AnimatedTableRow
-                      key={member.id}
-                      variants={fadeOut}
-                      initial="initial"
-                      exit="exit"
-                      animate={deletingMemberId === member.id ? "exit" : "initial"}
-                      style={{ display: deletingMemberId === member.id ? 'none' : 'table-row' }}
-                    >
+                    <StyledTableRow isDarkMode={isDarkMode} key={member.id}>
                       <TableCell>{member.firstName} {member.lastName}</TableCell>
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.phone}</TableCell>
@@ -983,7 +992,7 @@ function Team() {
                           </Box>
                         </TableCell>
                       )}
-                    </AnimatedTableRow>
+                    </StyledTableRow>
                   ))}
                 </AnimatePresence>
               </TableBody>
@@ -1016,7 +1025,12 @@ function Team() {
             Čakajúce pozvánky
           </Typography>
 
-          <TableContainer component={StyledTableWrapper}>
+          <TableContainer component={Paper} sx={{
+            backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+            borderRadius: '20px',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+          }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -1031,14 +1045,7 @@ function Team() {
               <TableBody>
                 <AnimatePresence mode="sync">
                   {invitations.map((invite) => (
-                    <AnimatedTableRow
-                      key={invite.id}
-                      variants={fadeOut}
-                      initial="initial"
-                      exit="exit"
-                      animate={deletingMemberId === invite.id ? "exit" : "initial"}
-                      style={{ display: deletingMemberId === invite.id ? 'none' : 'table-row' }}
-                    >
+                    <StyledTableRow isDarkMode={isDarkMode} key={invite.id}>
                       <TableCell>{invite.firstName} {invite.lastName}</TableCell>
                       <TableCell>{invite.email}</TableCell>
                       <TableCell>{invite.phone}</TableCell>
@@ -1119,7 +1126,7 @@ function Team() {
                           </Box>
                         </TableCell>
                       )}
-                    </AnimatedTableRow>
+                    </StyledTableRow>
                   ))}
                 </AnimatePresence>
               </TableBody>
@@ -1155,7 +1162,7 @@ function Team() {
         }}>
           Pridať nového člena tímu
         </DialogTitle>
-        <DialogContent>
+        <StyledDialogContent isDarkMode={isDarkMode}>
           <Box sx={{ 
             padding: '24px',
             color: '#ffffff',
@@ -1246,7 +1253,7 @@ function Team() {
               </Grid>
             </Grid>
           </Box>
-        </DialogContent>
+        </StyledDialogContent>
         <DialogActions sx={{ 
           padding: '24px',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
@@ -1303,7 +1310,7 @@ function Team() {
         }}>
           Upraviť údaje člena tímu
         </DialogTitle>
-        <DialogContent>
+        <StyledDialogContent isDarkMode={isDarkMode}>
           <Box sx={{ 
             padding: '24px',
             color: '#ffffff',
@@ -1394,7 +1401,7 @@ function Team() {
               </Grid>
             </Grid>
           </Box>
-        </DialogContent>
+        </StyledDialogContent>
         <DialogActions sx={{ 
           padding: '24px',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',

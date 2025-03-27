@@ -26,6 +26,7 @@ import {
   Paper,
   Alert,
   Snackbar,
+  Card,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -48,6 +49,7 @@ import 'react-phone-input-2/lib/material.css';
 import { useNavigate } from 'react-router-dom';
 import SearchField from './common/SearchField';
 import { format } from 'date-fns';
+import { useThemeMode } from '../contexts/ThemeContext';
 
 const euCountries = [
   { code: 'SK', name: 'Slovensko', flag: '🇸🇰', prefix: '+421' },
@@ -202,10 +204,10 @@ const PageHeader = styled(Box)({
   }
 });
 
-const PageTitle = styled(Typography)({
+const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '1.75rem',
   fontWeight: 700,
-  color: '#ffffff',
+  color: isDarkMode ? '#ffffff' : '#000000',
   position: 'relative',
   marginBottom: '8px',
   '&::after': {
@@ -218,7 +220,7 @@ const PageTitle = styled(Typography)({
     backgroundColor: colors.accent.main,
     borderRadius: '2px',
   }
-});
+}));
 
 const AddButton = styled(Button)({
   color: '#ffffff',
@@ -244,6 +246,57 @@ const convertToDate = (dateTime: Date | Timestamp | null): Date | null => {
   if (dateTime instanceof Timestamp) return dateTime.toDate();
   return new Date(dateTime);
 };
+
+const StyledCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  backdropFilter: 'blur(10px)',
+  borderRadius: '20px',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 8px 24px rgba(255, 159, 67, 0.2)',
+    border: '1px solid rgba(255, 159, 67, 0.2)',
+    '& .MuiCardContent-root': {
+      background: 'linear-gradient(180deg, rgba(255, 159, 67, 0.1) 0%, rgba(255, 159, 67, 0) 100%)',
+    }
+  },
+  '& .MuiTypography-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+  },
+  '& .MuiTypography-body1': {
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  },
+}));
+
+const StyledTableCell = styled(TableCell)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  color: isDarkMode ? '#ffffff' : '#000000',
+  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+  '&.MuiTableCell-head': {
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    fontWeight: 600,
+  }
+}));
+
+const StyledTableRow = styled(TableRow)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  '&:hover': {
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+  },
+  '& .MuiTableCell-root': {
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+  }
+}));
+
+const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  padding: '24px',
+  borderRadius: '20px',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  backdropFilter: 'blur(20px)',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+}));
 
 export default function BusinessCases() {
   const [cases, setCases] = useState<BusinessCase[]>([]);
@@ -273,6 +326,7 @@ export default function BusinessCases() {
     createdAt: null as Date | null
   });
   const [selectedCountry, setSelectedCountry] = useState(euCountries[0]);
+  const { isDarkMode } = useThemeMode();
 
   useEffect(() => {
     if (!currentUser) {
@@ -642,7 +696,7 @@ export default function BusinessCases() {
   return (
     <PageWrapper>
       <PageHeader>
-        <PageTitle>Obchodné prípady</PageTitle>
+        <PageTitle isDarkMode={isDarkMode}>Obchodné prípady</PageTitle>
         <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
           <Button
             startIcon={<AddIcon />}
@@ -767,23 +821,23 @@ export default function BusinessCases() {
             xs: 'none', 
             md: 'block' 
           },
-          backgroundColor: colors.background.main,
+          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+          borderRadius: '20px',
+          border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
           backdropFilter: 'blur(20px)',
-          borderRadius: '16px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
           '& .MuiTableCell-root': {
-            color: colors.text.primary,
+            color: isDarkMode ? '#ffffff' : '#000000',
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             padding: '16px',
             fontSize: '0.9rem'
           },
           '& .MuiTableHead-root .MuiTableCell-root': {
             fontWeight: 600,
-            backgroundColor: colors.background.main
+            backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
           },
           '& .MuiTableBody-root .MuiTableRow-root:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.03)'
+            backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)'
           }
         }}
       >
@@ -804,7 +858,7 @@ export default function BusinessCases() {
           </TableHead>
           <TableBody>
             {filteredCases.map((businessCase) => (
-              <TableRow key={businessCase.id}>
+              <StyledTableRow isDarkMode={isDarkMode} key={businessCase.id}>
                 <TableCell>
                   {businessCase.createdAt instanceof Timestamp ? 
                     businessCase.createdAt.toDate().toLocaleString('sk-SK', {
@@ -948,7 +1002,7 @@ export default function BusinessCases() {
                     </Tooltip>
                   </Box>
                 </TableCell>
-              </TableRow>
+              </StyledTableRow>
             ))}
           </TableBody>
         </Table>
@@ -980,59 +1034,47 @@ export default function BusinessCases() {
         maxWidth="md"
         fullWidth
         PaperProps={{
-          sx: {
-            background: colors.background.main,
-            backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-          }
+          style: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+          },
         }}
       >
-        <DialogTitle sx={{ 
-          color: colors.text.primary,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '24px',
-          fontSize: '1.5rem',
-          fontWeight: 600,
-        }}>
-          {editCase ? 'Upraviť obchodný prípad' : 'Nový obchodný prípad'}
-        </DialogTitle>
-        <DialogContent>
+        <StyledDialogContent isDarkMode={isDarkMode}>
           <Box sx={{ 
             padding: '24px',
-            color: colors.text.primary,
+            color: isDarkMode ? '#ffffff' : '#000000',
             '& .MuiTextField-root, & .MuiFormControl-root': {
               '& .MuiOutlinedInput-root': {
-                color: colors.text.primary,
+                color: isDarkMode ? '#ffffff' : '#000000',
                 '& fieldset': {
-                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                 },
                 '&:hover fieldset': {
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: colors.accent.main,
+                  borderColor: '#ff9f43',
                 },
               },
               '& .MuiInputLabel-root': {
-                color: colors.text.secondary,
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                 '&.Mui-focused': {
-                  color: colors.accent.main,
+                  color: '#ff9f43',
                 },
               },
               '& .MuiSelect-icon': {
-                color: colors.text.secondary,
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
               },
             },
             '& .MuiMenuItem-root': {
               '&:hover': {
-                backgroundColor: 'rgba(255, 159, 67, 0.1)',
+                backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.1)' : 'rgba(0, 0, 0, 0.05)',
               },
               '&.Mui-selected': {
-                backgroundColor: 'rgba(255, 159, 67, 0.2)',
+                backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.2)' : 'rgba(0, 0, 0, 0.05)',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                  backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(0, 0, 0, 0.05)',
                 },
               },
             }
@@ -1095,18 +1137,18 @@ export default function BusinessCases() {
                       onChange={handleCountryChange}
                       sx={{
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        color: '#ffffff',
+                        color: isDarkMode ? '#ffffff' : '#000000',
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                         },
                         '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
                         },
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#ff9f43',
                         },
                         '& .MuiSelect-icon': {
-                          color: 'rgba(255, 255, 255, 0.5)',
+                          color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
                         }
                       }}
                     >
@@ -1133,25 +1175,25 @@ export default function BusinessCases() {
                     required
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        color: '#ffffff',
+                        color: isDarkMode ? '#ffffff' : '#000000',
                         '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                         },
                         '&:hover fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
+                          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
                         },
                         '&.Mui-focused fieldset': {
                           borderColor: '#ff9f43',
                         },
                       },
                       '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.5)',
+                        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
                         '&.Mui-focused': {
                           color: '#ff9f43',
                         },
                       },
                       '& .MuiFormHelperText-root': {
-                        color: 'rgba(255, 255, 255, 0.5)',
+                        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
                         fontSize: '0.75rem',
                         marginLeft: 0,
                         marginTop: '4px',
@@ -1223,7 +1265,7 @@ export default function BusinessCases() {
               </Grid>
             </Grid>
           </Box>
-        </DialogContent>
+        </StyledDialogContent>
         <DialogActions sx={{ 
           padding: '24px',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
@@ -1231,7 +1273,7 @@ export default function BusinessCases() {
           <Button onClick={() => {
             setOpen(false);
             setEditCase(null);
-          }} sx={{ color: colors.text.secondary }}>
+          }} sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}>
             Zrušiť
           </Button>
           <Button 
@@ -1239,7 +1281,7 @@ export default function BusinessCases() {
             variant="contained"
             sx={{
               backgroundColor: colors.accent.main,
-              color: colors.text.primary,
+              color: isDarkMode ? '#ffffff' : '#000000',
               fontWeight: 600,
               padding: '8px 24px',
               '&:hover': {
@@ -1270,17 +1312,17 @@ export default function BusinessCases() {
         }}
         PaperProps={{
           sx: {
-            background: colors.background.main,
+            background: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
             backdropFilter: 'blur(10px)',
             borderRadius: '20px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
             boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
             minWidth: '400px'
           }
         }}
       >
         <DialogTitle sx={{ 
-          color: colors.text.primary,
+          color: isDarkMode ? '#ffffff' : '#000000',
           fontSize: '1.5rem',
           fontWeight: 600,
           textAlign: 'center',
@@ -1295,7 +1337,7 @@ export default function BusinessCases() {
           justifyContent: 'center'
         }}>
           <Typography sx={{ 
-            color: colors.text.primary,
+            color: isDarkMode ? '#ffffff' : '#000000',
             textAlign: 'center',
             fontSize: '1rem',
             maxWidth: '400px',
@@ -1316,11 +1358,11 @@ export default function BusinessCases() {
               setCaseToDelete(null);
             }} 
             sx={{ 
-              color: colors.text.secondary,
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
               padding: '8px 24px',
               minWidth: '120px',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
               }
             }}
           >
@@ -1331,7 +1373,7 @@ export default function BusinessCases() {
             variant="contained"
             sx={{
               backgroundColor: colors.secondary.main,
-              color: colors.text.primary,
+              color: isDarkMode ? '#ffffff' : '#000000',
               fontWeight: 600,
               padding: '8px 24px',
               minWidth: '120px',
