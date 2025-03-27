@@ -1322,7 +1322,16 @@ function Team() {
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenInvite(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            <Button 
+              onClick={() => setOpenInvite(false)} 
+              sx={{ 
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                '&:hover': {
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+                }
+              }}
+            >
               Zrušiť
             </Button>
             <Button 
@@ -1461,7 +1470,16 @@ function Team() {
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenEdit(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            <Button 
+              onClick={() => setOpenEdit(false)} 
+              sx={{ 
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                '&:hover': {
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+                }
+              }}
+            >
               Zrušiť
             </Button>
             <Button 
