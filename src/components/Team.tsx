@@ -31,7 +31,8 @@ import {
   Avatar,
   styled,
   useMediaQuery,
-  useTheme
+  useTheme,
+  Snackbar
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -518,6 +519,52 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   }
 }));
 
+const LoadingDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    background: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: '16px',
+    padding: '24px',
+    minWidth: '300px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+  },
+}));
+
+const LoadingText = styled(Typography)({
+  color: '#000000',
+  textAlign: 'center',
+  marginBottom: '20px',
+  fontSize: '1.1rem',
+});
+
+const LoadingDots = styled(Box)({
+  display: 'flex',
+  justifyContent: 'center',
+  gap: '8px',
+  marginTop: '20px',
+});
+
+const Dot = styled(Box)({
+  width: '8px',
+  height: '8px',
+  borderRadius: '50%',
+  backgroundColor: '#ff9f43',
+  animation: 'bounce 1.4s infinite ease-in-out',
+  '&:nth-of-type(1)': {
+    animationDelay: '-0.32s',
+  },
+  '&:nth-of-type(2)': {
+    animationDelay: '-0.16s',
+  },
+  '@keyframes bounce': {
+    '0%, 80%, 100%': {
+      transform: 'scale(0)',
+    },
+    '40%': {
+      transform: 'scale(1)',
+    },
+  },
+});
+
 function Team() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 600px)');
@@ -544,6 +591,17 @@ function Team() {
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
   const theme = useTheme();
   const { isDarkMode } = useThemeMode();
+  const [isResending, setIsResending] = useState(false);
+  const [resendingInvitationId, setResendingInvitationId] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'info' | 'warning';
+  }>({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -833,36 +891,60 @@ function Team() {
     }
   };
 
-  const handleResendInvitation = async (invite: Invitation) => {
-    try {
-      setLoading(true);
-      setError('');
-      setSuccess('');
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, open: false }));
+  };
 
-      // Volanie Cloud Function na opätovné odoslanie emailu
+  const handleResendInvitation = async (invitationId: string) => {
+    try {
+      setIsResending(true);
+      setResendingInvitationId(invitationId);
+      
+      const invitationDoc = await getDoc(doc(db, 'invitations', invitationId));
+      if (!invitationDoc.exists()) {
+        throw new Error('Pozvánka nebola nájdená');
+      }
+
+      const invitationData = invitationDoc.data();
       const sendInvitationEmail = httpsCallable(functions, 'sendInvitationEmail');
       await sendInvitationEmail({
-        email: invite.email,
-        firstName: invite.firstName,
-        lastName: invite.lastName,
-        phone: invite.phone,
-        role: invite.role,
+        email: invitationData.email,
+        firstName: invitationData.firstName,
+        lastName: invitationData.lastName,
+        phone: invitationData.phone,
+        role: invitationData.role,
         companyId: companyID,
-        invitationId: invite.id
+        invitationId: invitationId
       });
 
-      // Aktualizujeme dátum odoslania v Firestore
-      await updateDoc(doc(db, 'invitations', invite.id), {
-        lastSentAt: new Date(),
-        status: 'pending'
+      // Aktualizácia času posledného odoslania
+      await updateDoc(doc(db, 'invitations', invitationId), {
+        lastSentAt: new Date().toISOString()
       });
 
-      setSuccess('Pozvánka bola úspešne preposlená.');
-    } catch (err: any) {
-      console.error('Chyba pri preposielaní pozvánky:', err);
-      setError(err.message || 'Nastala chyba pri preposielaní pozvánky.');
+      // Aktualizácia lokálneho stavu
+      setInvitations(prev => prev.map(inv => 
+        inv.id === invitationId 
+          ? { ...inv, lastSentAt: new Date().toISOString() }
+          : inv
+      ));
+
+      // Zobrazenie notifikácie
+      setNotification({
+        open: true,
+        message: 'Pozvánka bola úspešne preposlaná',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Chyba pri preposielaní pozvánky:', error);
+      setNotification({
+        open: true,
+        message: 'Nepodarilo sa preposlať pozvánku',
+        severity: 'error'
+      });
     } finally {
-      setLoading(false);
+      setIsResending(false);
+      setResendingInvitationId(null);
     }
   };
 
@@ -902,7 +984,7 @@ function Team() {
       
       <MobileActions>
         {member.status === 'pending' && 'id' in member && (
-          <ActionButton onClick={() => handleResendInvitation(member as Invitation)}>
+          <ActionButton onClick={() => handleResendInvitation(member.id)}>
             <SendIcon />
           </ActionButton>
         )}
@@ -1174,7 +1256,7 @@ function Team() {
                             </IconButton>
                             {invite.status === 'pending' && (
                               <IconButton 
-                                onClick={() => handleResendInvitation(invite)}
+                                onClick={() => handleResendInvitation(invite.id)}
                                 disabled={loading}
                                 sx={{ 
                                   color: colors.accent.main,
@@ -1549,6 +1631,46 @@ function Team() {
           </DialogActions>
         </StyledDialogContent>
       </Dialog>
+
+      <LoadingDialog
+        open={isResending}
+        onClose={() => {}}
+        PaperProps={{
+          sx: {
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '16px',
+            padding: '24px',
+            minWidth: '300px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          }
+        }}
+      >
+        <DialogContent>
+          <LoadingText>
+            Preposielanie pozvánky...
+          </LoadingText>
+          <LoadingDots>
+            <Dot />
+            <Dot />
+            <Dot />
+          </LoadingDots>
+        </DialogContent>
+      </LoadingDialog>
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseNotification} 
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </PageWrapper>
   );
 }
