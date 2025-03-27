@@ -357,8 +357,8 @@ const Overlay = styled('div')({
 });
 
 const StyledAppBar = styled(AppBar)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? colors.background.main : 'rgba(255, 255, 255, 0.95)',
-  backdropFilter: 'blur(10px)',
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.85)' : 'rgba(255, 255, 255, 0.75)',
+  backdropFilter: 'blur(12px)',
   boxShadow: 'none',
   borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   position: 'fixed',
@@ -387,11 +387,11 @@ const MenuButton = styled(IconButton)({
 
 const StyledMenu = styled(Menu)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
   '& .MuiPaper-root': {
-    background: isDarkMode ? 'rgba(35, 35, 66, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(10px)',
+    background: isDarkMode ? 'rgba(28, 28, 45, 0.75)' : 'rgba(255, 255, 255, 0.75)',
+    backdropFilter: 'blur(12px)',
     borderRadius: '20px',
     border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+    boxShadow: isDarkMode ? '0 8px 32px 0 rgba(0, 0, 0, 0.25)' : '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
     marginTop: '8px',
     minWidth: 'auto',
     width: 'auto',
@@ -410,13 +410,15 @@ const StyledMenu = styled(Menu)<{ isDarkMode: boolean }>(({ theme, isDarkMode })
       maxHeight: '90vh',
       overflowY: 'auto',
       zIndex: 1200,
-      marginBottom: '16px'
+      marginBottom: '16px',
+      background: isDarkMode ? 'rgba(28, 28, 45, 0.85)' : 'rgba(255, 255, 255, 0.85)',
     }
   },
   '& .MuiList-root': {
     padding: '8px',
     position: 'relative',
     whiteSpace: 'nowrap',
+    backdropFilter: 'blur(12px)',
     [theme.breakpoints.down('sm')]: {
       padding: '16px',
     }
@@ -426,6 +428,8 @@ const StyledMenu = styled(Menu)<{ isDarkMode: boolean }>(({ theme, isDarkMode })
     padding: '12px 16px',
     margin: '4px 0',
     color: isDarkMode ? '#ffffff' : '#000000',
+    backdropFilter: 'blur(12px)',
+    background: isDarkMode ? 'rgba(28, 28, 45, 0.5)' : 'rgba(255, 255, 255, 0.5)',
     '&:hover': {
       backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
     },
@@ -433,50 +437,7 @@ const StyledMenu = styled(Menu)<{ isDarkMode: boolean }>(({ theme, isDarkMode })
       padding: '16px',
       margin: '8px 0',
     }
-  },
-  '& .MuiListItemIcon-root': {
-    minWidth: '40px',
-    color: isDarkMode ? '#ffffff' : '#000000',
-  },
-  '& .MuiListItemText-root': {
-    margin: 0,
-  },
-  '& .MuiListItemText-primary': {
-    fontSize: '1rem',
-    fontWeight: 500,
-    color: isDarkMode ? '#ffffff' : '#000000',
-  },
-  '& .MuiListItemText-secondary': {
-    fontSize: '0.875rem',
-    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-  },
-  '& .MuiDivider-root': {
-    margin: '8px 0',
-    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-  },
-  '& .MuiButton-root': {
-    width: '100%',
-    marginTop: '8px',
-    padding: '12px',
-    borderRadius: '12px',
-    textTransform: 'none',
-    fontSize: '1rem',
-    fontWeight: 600,
-    '&.MuiButton-contained': {
-      background: colors.primary.main,
-      color: '#ffffff',
-      '&:hover': {
-        background: colors.primary.light,
-      },
-    },
-    '&.MuiButton-outlined': {
-      borderColor: 'rgba(255, 255, 255, 0.2)',
-      color: '#ffffff',
-      '&:hover': {
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-      },
-    },
-  },
+  }
 }));
 
 const PageWrapper = styled('div')({
