@@ -442,6 +442,14 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   backdropFilter: 'blur(20px)',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  maxHeight: '90vh',
+  overflowY: 'auto',
+  margin: '16px',
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    margin: '8px',
+    maxHeight: '95vh',
+  },
   '& .MuiDialog-paper': {
     backgroundColor: 'transparent',
     boxShadow: 'none',
@@ -450,13 +458,24 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   '& .MuiDialogTitle-root': {
     color: isDarkMode ? '#ffffff' : '#000000',
     padding: '24px 24px 16px 24px',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
     '& .MuiTypography-root': {
       fontSize: '1.5rem',
       fontWeight: 600,
+      '@media (max-width: 600px)': {
+        fontSize: '1.25rem',
+      }
     }
   },
   '& .MuiDialogContent-root': {
     padding: '16px 24px',
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
     '& .MuiFormLabel-root': {
       color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     },
@@ -481,11 +500,20 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   },
   '& .MuiDialogActions-root': {
     padding: '16px 24px 24px 24px',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+    borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
     '& .MuiButton-root': {
       borderRadius: '12px',
       padding: '8px 24px',
       textTransform: 'none',
       fontSize: '1rem',
+      '@media (max-width: 600px)': {
+        padding: '8px 16px',
+        fontSize: '0.9rem',
+      }
     }
   }
 }));
@@ -1189,30 +1217,24 @@ function Team() {
         fullWidth
         PaperProps={{
           sx: {
-            background: 'rgba(35, 35, 66, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-            zIndex: 999999,
+            background: 'none',
+            boxShadow: 'none',
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
           }
         }}
-        sx={{ zIndex: 999999 }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
+        }}
       >
-        <DialogTitle sx={{ 
-          color: '#ffffff',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '24px',
-          fontSize: '1.5rem',
-          fontWeight: 600,
-        }}>
-          Pridať nového člena tímu
-        </DialogTitle>
         <StyledDialogContent isDarkMode={isDarkMode}>
-          <Box sx={{ 
-            padding: '24px',
-            color: '#ffffff',
-          }}>
+          <DialogTitle>Pridať nového člena tímu</DialogTitle>
+          <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -1298,35 +1320,32 @@ function Team() {
                 </FormControl>
               </Grid>
             </Grid>
-          </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenInvite(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleInvite}
+              variant="contained"
+              sx={{
+                backgroundColor: colors.accent.main,
+                color: '#ffffff',
+                fontWeight: 600,
+                padding: '8px 24px',
+                '&:hover': {
+                  backgroundColor: colors.accent.light,
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                  color: 'rgba(255, 255, 255, 0.3)',
+                }
+              }}
+            >
+              {loading ? <CircularProgress size={24} /> : 'Pridať člena'}
+            </Button>
+          </DialogActions>
         </StyledDialogContent>
-        <DialogActions sx={{ 
-          padding: '24px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        }}>
-          <Button onClick={() => setOpenInvite(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleInvite}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.accent.main,
-              color: '#ffffff',
-              fontWeight: 600,
-              padding: '8px 24px',
-              '&:hover': {
-                backgroundColor: colors.accent.light,
-              },
-              '&.Mui-disabled': {
-                backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                color: 'rgba(255, 255, 255, 0.3)',
-              }
-            }}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Pridať člena'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Dialóg pre úpravu */}
@@ -1337,30 +1356,24 @@ function Team() {
         fullWidth
         PaperProps={{
           sx: {
-            background: 'rgba(35, 35, 66, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-            zIndex: 999999,
+            background: 'none',
+            boxShadow: 'none',
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
           }
         }}
-        sx={{ zIndex: 999999 }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
+        }}
       >
-        <DialogTitle sx={{ 
-          color: '#ffffff',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '24px',
-          fontSize: '1.5rem',
-          fontWeight: 600,
-        }}>
-          Upraviť údaje člena tímu
-        </DialogTitle>
         <StyledDialogContent isDarkMode={isDarkMode}>
-          <Box sx={{ 
-            padding: '24px',
-            color: '#ffffff',
-          }}>
+          <DialogTitle>Upraviť údaje člena tímu</DialogTitle>
+          <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -1446,62 +1459,77 @@ function Team() {
                 </FormControl>
               </Grid>
             </Grid>
-          </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenEdit(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleUpdate}
+              variant="contained"
+              sx={{
+                backgroundColor: colors.accent.main,
+                color: '#ffffff',
+                fontWeight: 600,
+                padding: '8px 24px',
+                '&:hover': {
+                  backgroundColor: colors.accent.light,
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                  color: 'rgba(255, 255, 255, 0.3)',
+                }
+              }}
+            >
+              Uložiť zmeny
+            </Button>
+          </DialogActions>
         </StyledDialogContent>
-        <DialogActions sx={{ 
-          padding: '24px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        }}>
-          <Button onClick={() => setOpenEdit(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleUpdate}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.accent.main,
-              color: '#ffffff',
-              fontWeight: 600,
-              padding: '8px 24px',
-              '&:hover': {
-                backgroundColor: colors.accent.light,
-              },
-              '&.Mui-disabled': {
-                backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                color: 'rgba(255, 255, 255, 0.3)',
-              }
-            }}
-          >
-            Uložiť zmeny
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Dialóg pre potvrdenie vymazania */}
       <Dialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
+        PaperProps={{
+          sx: {
+            background: 'none',
+            boxShadow: 'none',
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
+        }}
       >
-        <DialogTitle>Potvrdiť vymazanie</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Ste si istý, že chcete {inviteToDelete && 'userId' in inviteToDelete ? 'vymazať člena z tímu' : 'zrušiť pozvánku pre'} {inviteToDelete?.firstName} {inviteToDelete?.lastName}? Táto akcia je nezvratná.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)} aria-label="Zrušiť akciu">
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
-            variant="contained" 
-            disabled={loading}
-            aria-label={inviteToDelete && 'userId' in inviteToDelete ? 'Vymazať člena z tímu' : 'Zrušiť pozvánku'}
-          >
-            {loading ? <CircularProgress size={24} /> : `${inviteToDelete && 'userId' in inviteToDelete ? 'Vymazať člena z tímu' : 'Zrušiť pozvánku'}`}
-          </Button>
-        </DialogActions>
+        <StyledDialogContent isDarkMode={isDarkMode}>
+          <DialogTitle>Potvrdiť vymazanie</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Ste si istý, že chcete {inviteToDelete && 'userId' in inviteToDelete ? 'vymazať člena z tímu' : 'zrušiť pozvánku pre'} {inviteToDelete?.firstName} {inviteToDelete?.lastName}? Táto akcia je nezvratná.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteConfirmOpen(false)} aria-label="Zrušiť akciu">
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleDeleteConfirm} 
+              color="error" 
+              variant="contained" 
+              disabled={loading}
+              aria-label={inviteToDelete && 'userId' in inviteToDelete ? 'Vymazať člena z tímu' : 'Zrušiť pozvánku'}
+            >
+              {loading ? <CircularProgress size={24} /> : `${inviteToDelete && 'userId' in inviteToDelete ? 'Vymazať člena z tímu' : 'Zrušiť pozvánku'}`}
+            </Button>
+          </DialogActions>
+        </StyledDialogContent>
       </Dialog>
     </PageWrapper>
   );

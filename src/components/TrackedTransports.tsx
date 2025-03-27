@@ -438,6 +438,14 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   backdropFilter: 'blur(20px)',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  maxHeight: '90vh',
+  overflowY: 'auto',
+  margin: '16px',
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    margin: '8px',
+    maxHeight: '95vh',
+  },
   '& .MuiDialog-paper': {
     backgroundColor: 'transparent',
     boxShadow: 'none',
@@ -446,13 +454,24 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   '& .MuiDialogTitle-root': {
     color: isDarkMode ? '#ffffff' : '#000000',
     padding: '24px 24px 16px 24px',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
     '& .MuiTypography-root': {
       fontSize: '1.5rem',
       fontWeight: 600,
+      '@media (max-width: 600px)': {
+        fontSize: '1.25rem',
+      }
     }
   },
   '& .MuiDialogContent-root': {
     padding: '16px 24px',
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
     '& .MuiFormLabel-root': {
       color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     },
@@ -477,12 +496,20 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   },
   '& .MuiDialogActions-root': {
     padding: '16px 24px 24px 24px',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
     borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
     '& .MuiButton-root': {
       borderRadius: '12px',
       padding: '8px 24px',
       textTransform: 'none',
       fontSize: '1rem',
+      '@media (max-width: 600px)': {
+        padding: '8px 16px',
+        fontSize: '0.9rem',
+      }
     }
   }
 }));
@@ -1168,11 +1195,20 @@ function TrackedTransports() {
         maxWidth="md"
         fullWidth
         PaperProps={{
-          style: {
-            backgroundColor: 'transparent',
+          sx: {
+            background: 'none',
             boxShadow: 'none',
-            overflow: 'visible',
-          },
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
         }}
       >
         <StyledDialogContent isDarkMode={isDarkMode}>
@@ -1385,11 +1421,20 @@ function TrackedTransports() {
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         PaperProps={{
-          style: {
-            backgroundColor: 'transparent',
+          sx: {
+            background: 'none',
             boxShadow: 'none',
-            overflow: 'visible',
-          },
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
         }}
       >
         <StyledDialogContent isDarkMode={isDarkMode}>

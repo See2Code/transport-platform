@@ -24,6 +24,8 @@ import {
   FormControl,
   InputLabel,
   Grid,
+  DialogContentText,
+  CircularProgress,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, onSnapshot, getDocs, Timestamp } from 'firebase/firestore';
@@ -362,12 +364,13 @@ const Contacts = () => {
   const { userData } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
+  const [open, setOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [contactToDelete, setContactToDelete] = useState<string | null>(null);
+  const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Omit<Contact, 'id'>>({
     firstName: '',
     lastName: '',
@@ -520,8 +523,8 @@ const Contacts = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setContactToDelete(id);
+  const handleDelete = async (contact: Contact) => {
+    setContactToDelete(contact);
     setDeleteConfirmOpen(true);
   };
 
@@ -529,7 +532,8 @@ const Contacts = () => {
     if (!contactToDelete) return;
     
     try {
-      await deleteDoc(doc(db, 'contacts', contactToDelete));
+      setLoading(true);
+      await deleteDoc(doc(db, 'contacts', contactToDelete.id));
       setSnackbar({
         open: true,
         message: 'Kontakt bol úspešne odstránený',
@@ -543,6 +547,7 @@ const Contacts = () => {
         severity: 'error'
       });
     } finally {
+      setLoading(false);
       setDeleteConfirmOpen(false);
       setContactToDelete(null);
     }
@@ -565,11 +570,11 @@ const Contacts = () => {
         lastName: contact.createdBy?.lastName || userData?.lastName || ''
       }
     });
-    setOpenDialog(true);
+    setOpen(true);
   };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false);
+    setOpen(false);
     setEditingContact(null);
     setFormData({
       firstName: '',
@@ -670,12 +675,11 @@ const Contacts = () => {
           <EditIcon />
         </IconButton>
         <IconButton 
-          onClick={() => handleDelete(contact.id)}
+          onClick={() => contact.id && handleDelete(contact)} 
           sx={{ 
             color: colors.secondary.main,
-            backgroundColor: 'rgba(255, 107, 107, 0.1)',
             '&:hover': {
-              backgroundColor: 'rgba(255, 107, 107, 0.2)'
+              backgroundColor: 'rgba(255, 107, 107, 0.1)'
             }
           }}
         >
@@ -691,7 +695,7 @@ const Contacts = () => {
         <PageTitle isDarkMode={isDarkMode}>Kontakty</PageTitle>
         <AddButton
           startIcon={<AddIcon />}
-          onClick={() => setOpenDialog(true)}
+          onClick={() => setOpen(true)}
         >
           Pridať kontakt
         </AddButton>
@@ -773,7 +777,7 @@ const Contacts = () => {
                         <EditIcon />
                       </IconButton>
                       <IconButton 
-                        onClick={() => contact.id && handleDelete(contact.id)} 
+                        onClick={() => contact.id && handleDelete(contact)} 
                         sx={{ 
                           color: colors.secondary.main,
                           '&:hover': {
@@ -792,28 +796,36 @@ const Contacts = () => {
         </TableContainer>
       )}
 
-      <Dialog 
-        open={openDialog} 
-        onClose={handleCloseDialog}
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
         maxWidth="md"
         fullWidth
         PaperProps={{
-          style: {
-            backgroundColor: 'transparent',
+          sx: {
+            background: 'none',
             boxShadow: 'none',
-          },
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
         }}
       >
         <StyledDialogContent isDarkMode={isDarkMode}>
-          <Box sx={{ 
-            padding: '24px',
-            color: '#ffffff',
-          }}>
+          <DialogTitle>Pridať nový kontakt</DialogTitle>
+          <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Názov firmy"
+                  label="Spoločnosť"
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   required
@@ -898,35 +910,32 @@ const Contacts = () => {
                 />
               </Grid>
             </Grid>
-          </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpen(false)} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              variant="contained"
+              sx={{
+                backgroundColor: colors.accent.main,
+                color: '#ffffff',
+                fontWeight: 600,
+                padding: '8px 24px',
+                '&:hover': {
+                  backgroundColor: colors.accent.light,
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                  color: 'rgba(255, 255, 255, 0.3)',
+                }
+              }}
+            >
+              Pridať kontakt
+            </Button>
+          </DialogActions>
         </StyledDialogContent>
-        <DialogActions sx={{ 
-          padding: '24px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        }}>
-          <Button onClick={handleCloseDialog} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.accent.main,
-              color: '#ffffff',
-              fontWeight: 600,
-              padding: '8px 24px',
-              '&:hover': {
-                backgroundColor: colors.accent.light,
-              },
-              '&.Mui-disabled': {
-                backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                color: 'rgba(255, 255, 255, 0.3)',
-              }
-            }}
-          >
-            {editingContact ? 'Uložiť zmeny' : 'Pridať kontakt'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <Snackbar
@@ -948,54 +957,43 @@ const Contacts = () => {
         onClose={() => setDeleteConfirmOpen(false)}
         PaperProps={{
           sx: {
-            background: 'rgba(35, 35, 66, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-            zIndex: 999999,
+            background: 'none',
+            boxShadow: 'none',
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
           }
         }}
-        sx={{ zIndex: 999999 }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
+        }}
       >
-        <DialogTitle sx={{ 
-          color: '#ffffff',
-          padding: '24px',
-          fontSize: '1.5rem',
-          fontWeight: 600,
-        }}>
-          Potvrdiť vymazanie
-        </DialogTitle>
-        <DialogContent sx={{ padding: '24px', color: '#ffffff' }}>
-          <Typography>
-            Naozaj chcete vymazať tento kontakt? Táto akcia je nezvratná.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ 
-          padding: '24px',
-        }}>
-          <Button 
-            onClick={() => setDeleteConfirmOpen(false)} 
-            sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
-          >
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleDeleteConfirm}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.secondary.main,
-              color: '#ffffff',
-              fontWeight: 600,
-              padding: '8px 24px',
-              '&:hover': {
-                backgroundColor: colors.secondary.light,
-              },
-            }}
-          >
-            Vymazať
-          </Button>
-        </DialogActions>
+        <StyledDialogContent isDarkMode={isDarkMode}>
+          <DialogTitle>Potvrdiť vymazanie</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Ste si istý, že chcete vymazať kontakt {contactToDelete?.firstName} {contactToDelete?.lastName}? Táto akcia je nezvratná.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteConfirmOpen(false)} aria-label="Zrušiť akciu">
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleDeleteConfirm} 
+              color="error" 
+              variant="contained" 
+              disabled={loading}
+              aria-label="Vymazať kontakt"
+            >
+              Vymazať kontakt
+            </Button>
+          </DialogActions>
+        </StyledDialogContent>
       </Dialog>
     </PageWrapper>
   );
