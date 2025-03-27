@@ -205,11 +205,12 @@ const MinimizedMenuList = styled(MenuList)({
   }
 });
 
-const LogoImage = styled('img')({
+const LogoImage = styled('img')<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   height: '24px',
   width: 'auto',
   marginRight: '16px',
   opacity: 0.9,
+  filter: isDarkMode ? 'none' : 'brightness(0)',
   transition: 'all 0.2s ease',
   '&:hover': {
     opacity: 1,
@@ -219,7 +220,7 @@ const LogoImage = styled('img')({
     height: '20px',
     marginRight: '12px'
   }
-});
+}));
 
 const BrandContainer = styled(Box)({
   display: 'flex',
@@ -355,17 +356,17 @@ const Overlay = styled('div')({
   }
 });
 
-const StyledAppBar = styled(AppBar)({
-  backgroundColor: colors.background.main,
+const StyledAppBar = styled(AppBar)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? colors.background.main : 'rgba(255, 255, 255, 0.95)',
   backdropFilter: 'blur(10px)',
   boxShadow: 'none',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+  borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   position: 'fixed',
   top: 0,
   left: 0,
   right: 0,
   zIndex: 1000,
-});
+}));
 
 const StyledToolbar = styled(Toolbar)({
   minHeight: '64px',
@@ -555,16 +556,18 @@ const Navbar = () => {
 
   return (
     <PageWrapper>
-      <StyledAppBar>
+      <StyledAppBar isDarkMode={isDarkMode}>
         <StyledToolbar>
           {isMobile ? (
             <>
               <BrandContainer>
-                <LogoImage src="/AESA white.svg" alt="AESA Logo" />
+                <LogoImage src={isDarkMode ? "/AESA white.svg" : "/AESA black.svg"} alt="AESA Logo" isDarkMode={isDarkMode} />
               </BrandContainer>
               <MenuButton
                 edge="end"
-                color="inherit"
+                sx={{
+                  color: isDarkMode ? '#ffffff' : '#000000',
+                }}
                 aria-label="menu"
                 onClick={handleMobileMenuClick}
               >
@@ -574,8 +577,15 @@ const Navbar = () => {
           ) : (
             <>
               <BrandContainer>
-                <LogoImage src="/AESA white.svg" alt="AESA Logo" />
-                <Typography variant="h6" noWrap component="div">
+                <LogoImage src={isDarkMode ? "/AESA white.svg" : "/AESA black.svg"} alt="AESA Logo" isDarkMode={isDarkMode} />
+                <Typography 
+                  variant="h6" 
+                  noWrap 
+                  component="div"
+                  sx={{ 
+                    color: isDarkMode ? '#ffffff' : '#000000'
+                  }}
+                >
                   Transport Platform
                 </Typography>
               </BrandContainer>
@@ -597,13 +607,13 @@ const Navbar = () => {
                       display: 'flex',
                       alignItems: 'center',
                       '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
                       },
                     }}
                   >
                     <ListItemIcon sx={{ 
                       minWidth: '32px', 
-                      color: isDarkMode ? colors.text.secondary : 'rgba(0, 0, 0, 0.7)' 
+                      color: isDarkMode ? '#ffffff' : '#000000',
                     }}>
                       {item.icon}
                     </ListItemIcon>
@@ -625,7 +635,7 @@ const Navbar = () => {
                     minWidth: 'auto',
                     padding: '6px',
                     borderRadius: '8px',
-                    color: isDarkMode ? colors.text.secondary : 'rgba(0, 0, 0, 0.7)',
+                    color: isDarkMode ? '#ffffff' : '#000000',
                     '&:hover': {
                       backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
                     },
@@ -644,11 +654,14 @@ const Navbar = () => {
                     alignItems: 'center',
                     marginLeft: 1,
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: '32px', color: colors.text.secondary }}>
+                  <ListItemIcon sx={{ 
+                    minWidth: '32px', 
+                    color: isDarkMode ? '#ffffff' : '#000000',
+                  }}>
                     <LogoutIcon />
                   </ListItemIcon>
                   <ListItemText 
@@ -657,6 +670,7 @@ const Navbar = () => {
                       margin: 0,
                       '& .MuiTypography-root': {
                         fontSize: '0.9rem',
+                        color: isDarkMode ? '#ffffff' : '#000000',
                       },
                     }} 
                   />
