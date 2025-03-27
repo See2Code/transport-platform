@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, DirectionsService, DirectionsRenderer, Libraries } from '@react-google-maps/api';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { useThemeMode } from '../../contexts/ThemeContext';
 
 interface TransportMapProps {
   origin: string;
@@ -22,7 +23,7 @@ const defaultCenter = {
   lng: 17.1077
 };
 
-const mapStyles = [
+const darkMapStyles = [
   {
     featureType: 'all',
     elementType: 'geometry',
@@ -120,10 +121,109 @@ const mapStyles = [
   }
 ];
 
+const lightMapStyles = [
+  {
+    featureType: 'all',
+    elementType: 'geometry',
+    stylers: [{ color: '#ffffff' }]
+  },
+  {
+    featureType: 'all',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#000000' }]
+  },
+  {
+    featureType: 'all',
+    elementType: 'labels.text.stroke',
+    stylers: [{ color: '#ffffff', weight: 2 }]
+  },
+  {
+    featureType: 'administrative.country',
+    elementType: 'geometry.stroke',
+    stylers: [
+      { color: '#000000' },
+      { weight: 0.5 },
+      { opacity: 0.3 }
+    ]
+  },
+  {
+    featureType: 'water',
+    elementType: 'geometry',
+    stylers: [
+      { color: '#f0f0f0' }
+    ]
+  },
+  {
+    featureType: 'landscape',
+    elementType: 'geometry',
+    stylers: [
+      { color: '#ffffff' }
+    ]
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry',
+    stylers: [
+      { color: '#e0e0e0' }
+    ]
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry.stroke',
+    stylers: [
+      { color: '#d0d0d0' }
+    ]
+  },
+  {
+    featureType: 'road',
+    elementType: 'labels.text.fill',
+    stylers: [
+      { color: '#000000' }
+    ]
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry',
+    stylers: [
+      { color: '#cccccc' }
+    ]
+  },
+  {
+    featureType: 'poi',
+    elementType: 'geometry',
+    stylers: [
+      { visibility: 'off' }
+    ]
+  },
+  {
+    featureType: 'transit',
+    elementType: 'geometry',
+    stylers: [
+      { visibility: 'off' }
+    ]
+  },
+  {
+    featureType: 'administrative.locality',
+    elementType: 'labels.text.fill',
+    stylers: [
+      { color: '#000000' }
+    ]
+  },
+  {
+    featureType: 'administrative.locality',
+    elementType: 'labels.text.stroke',
+    stylers: [
+      { color: '#ffffff' },
+      { weight: 2 }
+    ]
+  }
+];
+
 export default function TransportMap({ origin, destination, isThumbnail = false }: TransportMapProps) {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const { isDarkMode } = useThemeMode();
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
@@ -216,7 +316,7 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(35, 35, 66, 0.7)',
+        backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.7)' : '#ffffff',
         borderRadius: '12px'
       }}>
         <CircularProgress sx={{ color: '#ff9f43' }} />
@@ -230,21 +330,24 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
       height: '100%',
       minHeight: '400px',
       position: 'relative',
-      backgroundColor: 'rgba(35, 35, 66, 0.7)',
+      backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.7)' : '#ffffff',
       borderRadius: '12px'
     }}>
       <GoogleMap
-        mapContainerStyle={mapContainerStyle}
+        mapContainerStyle={{
+          ...mapContainerStyle,
+          backgroundColor: isDarkMode ? '#1a1a2e' : '#ffffff'
+        }}
         center={defaultCenter}
         zoom={isThumbnail ? 4 : 6}
         options={{
-          styles: mapStyles,
+          styles: isDarkMode ? darkMapStyles : lightMapStyles,
           disableDefaultUI: isThumbnail,
           draggable: !isThumbnail,
           zoomControl: !isThumbnail,
           scrollwheel: !isThumbnail,
           disableDoubleClickZoom: isThumbnail,
-          backgroundColor: '#1a1a2e'
+          backgroundColor: isDarkMode ? '#1a1a2e' : '#ffffff'
         }}
         onLoad={onLoad}
         onUnmount={onUnmount}
