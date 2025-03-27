@@ -902,16 +902,24 @@ export default function BusinessCases() {
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
           '& .MuiTableCell-root': {
             color: isDarkMode ? '#ffffff' : '#000000',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
             padding: '16px',
-            fontSize: '0.9rem'
+            fontSize: '0.9rem',
+            whiteSpace: 'nowrap'
           },
           '& .MuiTableHead-root .MuiTableCell-root': {
             fontWeight: 600,
             backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+            borderBottom: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
           },
-          '& .MuiTableBody-root .MuiTableRow-root:hover': {
-            backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)'
+          '& .MuiTableBody-root .MuiTableRow-root': {
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+            }
           }
         }}
       >
