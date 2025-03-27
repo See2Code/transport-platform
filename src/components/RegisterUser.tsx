@@ -215,7 +215,7 @@ function RegisterUser() {
               Dokončenie registrácie
             </Typography>
 
-            <Typography variant="body1" gutterBottom sx={{ color: '#ffffff' }}>
+            <Typography variant="body1" gutterBottom sx={{ color: '#000000' }}>
               Vitajte {invitation.firstName} {invitation.lastName}!
             </Typography>
 
@@ -232,34 +232,34 @@ function RegisterUser() {
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
                       Názov spoločnosti
                     </Typography>
-                    <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                    <Typography variant="body1" sx={{ color: '#000000', fontWeight: 500 }}>
                       {company.companyName}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
                       IČO
                     </Typography>
-                    <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                    <Typography variant="body1" sx={{ color: '#000000', fontWeight: 500 }}>
                       {company.ico || 'Neuvedené'}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
                       IČ DPH
                     </Typography>
-                    <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                    <Typography variant="body1" sx={{ color: '#000000', fontWeight: 500 }}>
                       {company.icDph || 'Neuvedené'}
                     </Typography>
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
                       Adresa
                     </Typography>
-                    <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                    <Typography variant="body1" sx={{ color: '#000000', fontWeight: 500 }}>
                       {company.street}, {company.zipCode} {company.city}
                     </Typography>
                   </Grid>
@@ -268,7 +268,7 @@ function RegisterUser() {
             )}
 
             <Divider sx={{ my: 3 }} />
-            <Typography variant="h6" gutterBottom sx={{ color: '#ffffff' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: '#000000' }}>
               Pre dokončenie registrácie prosím nastavte svoje heslo
             </Typography>
             <Grid container spacing={2}>
@@ -284,20 +284,20 @@ function RegisterUser() {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderColor: 'rgba(0, 0, 0, 0.1)',
                       },
                       '&:hover fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderColor: 'rgba(0, 0, 0, 0.2)',
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: '#ff9f43',
                       },
                     },
                     '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.7)',
+                      color: 'rgba(0, 0, 0, 0.7)',
                     },
                     '& .MuiInputBase-input': {
-                      color: '#ffffff',
+                      color: '#000000',
                     },
                   }}
                 />
@@ -314,20 +314,20 @@ function RegisterUser() {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderColor: 'rgba(0, 0, 0, 0.1)',
                       },
                       '&:hover fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderColor: 'rgba(0, 0, 0, 0.2)',
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: '#ff9f43',
                       },
                     },
                     '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.7)',
+                      color: 'rgba(0, 0, 0, 0.7)',
                     },
                     '& .MuiInputBase-input': {
-                      color: '#ffffff',
+                      color: '#000000',
                     },
                   }}
                 />
