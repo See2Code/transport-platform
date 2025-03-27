@@ -203,7 +203,15 @@ function RegisterUser() {
           </Box>
         ) : (
           <>
-            <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ color: '#ffffff' }}>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{
+                mb: 4,
+                color: '#000000',
+                fontWeight: 'bold',
+              }}
+            >
               Dokončenie registrácie
             </Typography>
 
