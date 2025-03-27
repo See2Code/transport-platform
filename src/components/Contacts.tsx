@@ -304,59 +304,34 @@ const StyledTableRow = styled(TableRow)<{ isDarkMode: boolean }>(({ isDarkMode }
   }
 }));
 
-const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
-  color: isDarkMode ? '#ffffff' : '#000000',
+const StyledDialogContent = styled(DialogContent)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   padding: '24px',
-  borderRadius: '20px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-  backdropFilter: 'blur(20px)',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-  '& .MuiDialog-paper': {
-    backgroundColor: 'transparent',
-    boxShadow: 'none',
-    margin: 0,
-  },
-  '& .MuiDialogTitle-root': {
-    color: isDarkMode ? '#ffffff' : '#000000',
-    padding: '24px 24px 16px 24px',
-    '& .MuiTypography-root': {
-      fontSize: '1.5rem',
-      fontWeight: 600,
-    }
+  '&:first-of-type': {
+    paddingTop: '24px',
   },
   '& .MuiDialogContent-root': {
-    padding: '16px 24px',
-    '& .MuiFormLabel-root': {
-      color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    paddingTop: '24px',
+  },
+  '& .MuiFormLabel-root': {
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  },
+  '& .MuiInputBase-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+    '& fieldset': {
+      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
     },
-    '& .MuiInputBase-root': {
-      color: isDarkMode ? '#ffffff' : '#000000',
-      '& fieldset': {
-        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-      },
-      '&:hover fieldset': {
-        borderColor: isDarkMode ? 'rgba(255, 159, 67, 0.5)' : 'rgba(255, 159, 67, 0.5)',
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: colors.accent.main,
-      }
+    '&:hover fieldset': {
+      borderColor: 'rgba(255, 159, 67, 0.5)',
     },
-    '& .MuiInputBase-input': {
-      color: isDarkMode ? '#ffffff' : '#000000',
-    },
-    '& .MuiSelect-select': {
-      color: isDarkMode ? '#ffffff' : '#000000',
+    '&.Mui-focused fieldset': {
+      borderColor: colors.accent.main,
     }
   },
-  '& .MuiDialogActions-root': {
-    padding: '16px 24px 24px 24px',
-    '& .MuiButton-root': {
-      borderRadius: '12px',
-      padding: '8px 24px',
-      textTransform: 'none',
-      fontSize: '1rem',
-    }
+  '& .MuiInputBase-input': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+  },
+  '& .MuiSelect-select': {
+    color: isDarkMode ? '#ffffff' : '#000000',
   }
 }));
 
@@ -798,153 +773,152 @@ const Contacts = () => {
 
       <Dialog
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={handleCloseDialog}
         maxWidth="md"
         fullWidth
         PaperProps={{
           sx: {
-            background: 'none',
-            boxShadow: 'none',
-            margin: {
-              xs: '8px',
-              sm: '16px'
-            }
-          }
-        }}
-        BackdropProps={{
-          sx: {
-            backdropFilter: 'blur(10px)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+            background: isDarkMode ? '#1a1a1a' : '#ffffff',
+            borderRadius: '16px',
+            boxShadow: isDarkMode 
+              ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
+              : '0 8px 32px rgba(0, 0, 0, 0.1)',
           }
         }}
       >
+        <DialogTitle sx={{ 
+          color: isDarkMode ? '#ffffff' : '#000000',
+          fontSize: '1.5rem',
+          fontWeight: 600,
+          padding: '24px 24px 0 24px',
+          marginBottom: '16px'
+        }}>
+          {editingContact ? 'Upraviť kontakt' : 'Pridať nový kontakt'}
+        </DialogTitle>
         <StyledDialogContent isDarkMode={isDarkMode}>
-          <DialogTitle>Pridať nový kontakt</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Spoločnosť"
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Meno"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Priezvisko"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Krajina</InputLabel>
-                  <Select
-                    value={formData.countryCode}
-                    onChange={handleCountryChange}
-                    label="Krajina"
-                  >
-                    {countries.map((country) => (
-                      <MenuItem key={country.code} value={country.code}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <img
-                            loading="lazy"
-                            width="20"
-                            src={`https://flagcdn.com/${country.code}.svg`}
-                            alt={country.name}
-                          />
-                          <span>{country.name}</span>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={8}>
-                <TextField
-                  fullWidth
-                  label="Telefón"
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  required
-                  InputProps={{
-                    startAdornment: (
-                      <Box component="span" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                        {formData.phonePrefix}
-                      </Box>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Poznámka"
-                  multiline
-                  rows={4}
-                  value={formData.notes || ''}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                />
-              </Grid>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Spoločnosť"
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                required
+              />
             </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button 
-              onClick={() => setOpen(false)} 
-              sx={{ 
-                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-                '&:hover': {
-                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                  color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
-                }
-              }}
-            >
-              Zrušiť
-            </Button>
-            <Button 
-              onClick={handleSubmit}
-              variant="contained"
-              sx={{
-                backgroundColor: colors.accent.main,
-                color: '#ffffff',
-                fontWeight: 600,
-                padding: '8px 24px',
-                '&:hover': {
-                  backgroundColor: colors.accent.light,
-                },
-                '&.Mui-disabled': {
-                  backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                  color: 'rgba(255, 255, 255, 0.3)',
-                }
-              }}
-            >
-              Pridať kontakt
-            </Button>
-          </DialogActions>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Meno"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Priezvisko"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel>Krajina</InputLabel>
+                <Select
+                  value={formData.countryCode}
+                  onChange={handleCountryChange}
+                  label="Krajina"
+                >
+                  {countries.map((country) => (
+                    <MenuItem key={country.code} value={country.code}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <img
+                          loading="lazy"
+                          width="20"
+                          src={`https://flagcdn.com/${country.code}.svg`}
+                          alt={country.name}
+                        />
+                        <span>{country.name}</span>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={8}>
+              <TextField
+                fullWidth
+                label="Telefón"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                required
+                InputProps={{
+                  startAdornment: (
+                    <Box component="span" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                      {formData.phonePrefix}
+                    </Box>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Poznámka"
+                multiline
+                rows={4}
+                value={formData.notes || ''}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              />
+            </Grid>
+          </Grid>
         </StyledDialogContent>
+        <DialogActions>
+          <Button 
+            onClick={handleCloseDialog} 
+            sx={{ 
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+              '&:hover': {
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+              }
+            }}
+          >
+            Zrušiť
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.accent.main,
+              color: '#ffffff',
+              fontWeight: 600,
+              padding: '8px 24px',
+              '&:hover': {
+                backgroundColor: colors.accent.light,
+              },
+              '&.Mui-disabled': {
+                backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                color: 'rgba(255, 255, 255, 0.3)',
+              }
+            }}
+          >
+            Pridať kontakt
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <Snackbar

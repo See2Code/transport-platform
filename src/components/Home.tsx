@@ -22,11 +22,11 @@ const LogoContainer = styled(Box)({
   },
 });
 
-const LogoImage = styled('img')({
+const LogoImage = styled('img')<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   width: '100%',
   height: 'auto',
-  filter: 'brightness(0)',
-});
+  filter: isDarkMode ? 'brightness(0) invert(1)' : 'brightness(0)',
+}));
 
 const GradientButton = styled(Button)(({ theme }) => ({
   padding: '15px 40px',
@@ -52,24 +52,26 @@ const OrangeGradientButton = styled(GradientButton)({
   color: 'white',
 });
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
+const StyledBox = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  background: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  color: isDarkMode ? '#ffffff' : '#000000',
   borderRadius: '20px',
-  background: 'rgba(255, 255, 255, 0.9)',
-  backdropFilter: 'blur(10px)',
-  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
-  border: '1px solid rgba(0, 0, 0, 0.1)',
-  animation: 'fadeIn 0.6s ease-out',
-  '@keyframes fadeIn': {
-    from: {
-      opacity: 0,
-      transform: 'translateY(20px)',
-    },
-    to: {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
+  padding: '32px',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  backdropFilter: 'blur(20px)',
+  boxShadow: isDarkMode 
+    ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
+    : '0 8px 32px rgba(0, 0, 0, 0.1)',
+  transition: 'all 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: isDarkMode 
+      ? '0 12px 40px rgba(0, 0, 0, 0.4)' 
+      : '0 12px 40px rgba(0, 0, 0, 0.15)',
   },
+  '@media (max-width: 600px)': {
+    padding: '24px',
+  }
 }));
 
 const AnimatedBox = styled(Box)({
@@ -89,6 +91,7 @@ const AnimatedBox = styled(Box)({
 function Home() {
   const navigate = useNavigate();
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   return (
     <Container maxWidth="lg">
@@ -102,7 +105,7 @@ function Home() {
           py: 4
         }}
       >
-        <StyledPaper elevation={3}>
+        <StyledBox isDarkMode={isDarkMode}>
           <AnimatedBox
             sx={{
               display: 'flex',
@@ -112,18 +115,18 @@ function Home() {
               mb: 6
             }}
           >
-            <LogoContainer>
-              <LogoImage src="/AESA black.svg" alt="AESA Logo" />
-            </LogoContainer>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+              <LogoImage src="/AESA black.svg" alt="AESA Logo" isDarkMode={isDarkMode} />
+            </Box>
             <Typography
-              variant="h2"
+              variant="h4"
               component="h1"
+              gutterBottom
               sx={{
-                mb: 2,
-                fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #ff9f43 0%, #ffbe76 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                textAlign: 'center',
+                color: isDarkMode ? '#ffffff' : '#000000',
+                fontWeight: 600,
+                mb: 4
               }}
             >
               CORE
@@ -132,7 +135,7 @@ function Home() {
               variant="h5"
               sx={{
                 mb: 4,
-                color: 'rgba(0, 0, 0, 0.7)',
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                 maxWidth: '600px'
               }}
             >
@@ -167,7 +170,7 @@ function Home() {
             <Typography
               variant="body1"
               sx={{
-                color: 'rgba(0, 0, 0, 0.7)',
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                 mb: 2
               }}
             >
@@ -195,7 +198,7 @@ function Home() {
                   key={index}
                   variant="body2"
                   sx={{
-                    color: 'rgba(0, 0, 0, 0.7)',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                     display: 'flex',
                     alignItems: 'center',
                     '&:before': {
@@ -214,7 +217,7 @@ function Home() {
               ))}
             </Box>
           </Box>
-        </StyledPaper>
+        </StyledBox>
       </Box>
     </Container>
   );
