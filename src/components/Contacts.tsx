@@ -236,54 +236,72 @@ const SearchLabel = styled(Typography)({
   fontWeight: 500,
 });
 
-const MobileContactCard = styled(Box)({
-  backgroundColor: colors.background.main,
+const MobileContactCard = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.75)' : '#ffffff',
   borderRadius: '16px',
   padding: '16px',
-  color: '#ffffff',
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  boxShadow: isDarkMode ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)'}`,
   marginBottom: '16px',
   width: '100%'
-});
+}));
 
-const MobileCardHeader = styled(Box)({
+const MobileContactHeader = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  marginBottom: '12px'
-});
+  alignItems: 'center',
+  marginBottom: '12px',
+  color: isDarkMode ? '#ffffff' : '#000000'
+}));
 
-const MobileCompanyName = styled(Typography)({
+const MobileContactName = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '1.1rem',
   fontWeight: 600,
-  color: colors.accent.main
-});
+  color: isDarkMode ? colors.accent.main : '#000000'
+}));
 
-const MobileCardContent = styled(Box)({
+const MobileContactInfo = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: '12px'
-});
+  gap: '8px',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  '& > *': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  }
+}));
 
-const MobileInfoRow = styled(Box)({
+const MobileContactDetail = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
   fontSize: '0.9rem',
+  color: isDarkMode ? '#ffffff' : '#000000',
   '& .MuiSvgIcon-root': {
     fontSize: '1.1rem',
     color: colors.accent.main
   }
-});
+}));
 
-const MobileCardActions = styled(Box)({
+const MobileContactRole = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontSize: '0.85rem',
+  color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1rem',
+    color: colors.accent.main
+  }
+}));
+
+const MobileContactActions = styled(Box)({
   display: 'flex',
   justifyContent: 'flex-end',
   gap: '8px',
   marginTop: '12px',
-  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-  paddingTop: '12px'
 });
 
 const StyledTableCell = styled(TableCell)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
@@ -332,6 +350,9 @@ const StyledDialogContent = styled(DialogContent)<{ isDarkMode: boolean }>(({ is
   },
   '& .MuiSelect-select': {
     color: isDarkMode ? '#ffffff' : '#000000',
+  },
+  '& .MuiDialogContentText-root': {
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   }
 }));
 
@@ -576,18 +597,20 @@ const Contacts = () => {
   );
 
   const renderMobileContact = (contact: Contact) => (
-    <MobileContactCard key={contact.id}>
-      <MobileCardHeader>
+    <MobileContactCard key={contact.id} isDarkMode={isDarkMode}>
+      <MobileContactHeader isDarkMode={isDarkMode}>
         <Box>
-          <MobileCompanyName>{contact.company}</MobileCompanyName>
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          <MobileContactName isDarkMode={isDarkMode}>{contact.company}</MobileContactName>
+          <Typography variant="body2" sx={{ 
+            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' 
+          }}>
             {contact.firstName} {contact.lastName}
           </Typography>
         </Box>
-      </MobileCardHeader>
+      </MobileContactHeader>
 
-      <MobileCardContent>
-        <MobileInfoRow>
+      <MobileContactInfo isDarkMode={isDarkMode}>
+        <MobileContactDetail isDarkMode={isDarkMode}>
           <PhoneIcon />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <img
@@ -596,35 +619,44 @@ const Contacts = () => {
               src={`https://flagcdn.com/${contact.countryCode}.svg`}
               alt=""
             />
-            {contact.phonePrefix} {contact.phoneNumber}
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#ffffff' : '#000000' }}>
+              {contact.phonePrefix} {contact.phoneNumber}
+            </Typography>
           </Box>
-        </MobileInfoRow>
+        </MobileContactDetail>
 
-        <MobileInfoRow>
+        <MobileContactDetail isDarkMode={isDarkMode}>
           <EmailIcon />
-          {contact.email}
-        </MobileInfoRow>
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#ffffff' : '#000000' }}>
+            {contact.email}
+          </Typography>
+        </MobileContactDetail>
 
         {contact.notes && (
-          <MobileInfoRow>
-            <Box sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.85rem' }}>
+          <MobileContactDetail isDarkMode={isDarkMode}>
+            <Box sx={{ 
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)', 
+              fontSize: '0.85rem' 
+            }}>
               {contact.notes}
             </Box>
-          </MobileInfoRow>
+          </MobileContactDetail>
         )}
 
         {contact.createdBy && (
-          <MobileInfoRow>
+          <MobileContactDetail isDarkMode={isDarkMode}>
             <PersonIcon />
-            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            <MobileContactRole isDarkMode={isDarkMode}>
               {contact.createdBy.firstName} {contact.createdBy.lastName}
-            </Typography>
-          </MobileInfoRow>
+            </MobileContactRole>
+          </MobileContactDetail>
         )}
 
-        <MobileInfoRow>
+        <MobileContactDetail isDarkMode={isDarkMode}>
           <AccessTimeIcon />
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          <Typography variant="body2" sx={{ 
+            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' 
+          }}>
             {contact.createdAt?.toDate().toLocaleString('sk-SK', {
               day: '2-digit',
               month: '2-digit',
@@ -633,17 +665,17 @@ const Contacts = () => {
               minute: '2-digit'
             })}
           </Typography>
-        </MobileInfoRow>
-      </MobileCardContent>
+        </MobileContactDetail>
+      </MobileContactInfo>
 
-      <MobileCardActions>
+      <MobileContactActions>
         <IconButton 
           onClick={() => handleEdit(contact)}
           sx={{ 
             color: colors.accent.main,
-            backgroundColor: 'rgba(255, 159, 67, 0.1)',
+            backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.1)' : 'rgba(255, 159, 67, 0.05)',
             '&:hover': {
-              backgroundColor: 'rgba(255, 159, 67, 0.2)'
+              backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.2)' : 'rgba(255, 159, 67, 0.1)'
             }
           }}
         >
@@ -654,13 +686,13 @@ const Contacts = () => {
           sx={{ 
             color: colors.secondary.main,
             '&:hover': {
-              backgroundColor: 'rgba(255, 107, 107, 0.1)'
+              backgroundColor: isDarkMode ? 'rgba(255, 107, 107, 0.1)' : 'rgba(255, 107, 107, 0.05)'
             }
           }}
         >
           <DeleteIcon />
         </IconButton>
-      </MobileCardActions>
+      </MobileContactActions>
     </MobileContactCard>
   );
 
@@ -867,7 +899,7 @@ const Contacts = () => {
                 required
                 InputProps={{
                   startAdornment: (
-                    <Box component="span" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                    <Box component="span" sx={{ mr: 1, color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}>
                       {formData.phonePrefix}
                     </Box>
                   ),
@@ -958,7 +990,7 @@ const Contacts = () => {
         <StyledDialogContent isDarkMode={isDarkMode}>
           <DialogTitle>Potvrdiť vymazanie</DialogTitle>
           <DialogContent>
-            <DialogContentText>
+            <DialogContentText sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}>
               Ste si istý, že chcete vymazať kontakt {contactToDelete?.firstName} {contactToDelete?.lastName}? Táto akcia je nezvratná.
             </DialogContentText>
           </DialogContent>
