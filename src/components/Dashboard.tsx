@@ -70,7 +70,7 @@ interface Reminder {
 }
 
 const PageWrapper = styled(Box)(({ theme }) => ({
-  padding: '24px',
+  padding: '16px 24px',
   display: 'flex',
   flexDirection: 'column',
   gap: '24px',
@@ -89,14 +89,26 @@ const PageHeader = styled(Box)(({ theme }) => ({
   padding: '16px 24px',
   paddingLeft: 0,
   background: 'transparent',
-  border: 'none'
+  border: 'none',
+  marginBottom: '24px'
 }));
 
 const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  fontSize: '2rem',
-  fontWeight: 600,
-  marginBottom: '24px',
+  fontSize: '1.75rem',
+  fontWeight: 700,
   color: isDarkMode ? '#ffffff' : '#000000',
+  position: 'relative',
+  marginTop: '8px',
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '-8px',
+    left: 0,
+    width: '60px',
+    height: '4px',
+    backgroundColor: '#ff9f43',
+    borderRadius: '2px',
+  }
 }));
 
 const StatsCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
