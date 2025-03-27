@@ -52,23 +52,47 @@ async function sendEmail(to: string, subject: string, html: string) {
     from: 'AESA Transport Platform <noreply@aesa.sk>',
     to,
     subject,
-    html
+    html,
+    headers: {
+      'Content-Type': 'text/html; charset=UTF-8',
+      'X-Priority': '1',
+      'X-MSMail-Priority': 'High'
+    }
   };
 
   try {
-    console.log('Pokus o odoslanie emailu na:', to);
+    console.log('Konfigurácia SMTP:', {
+      host: (transporter as any).options?.host,
+      port: (transporter as any).options?.port,
+      secure: (transporter as any).options?.secure,
+      auth: {
+        user: (transporter as any).options?.auth?.user
+      }
+    });
+
+    console.log('Pokus o odoslanie emailu:', {
+      to: to,
+      subject: subject,
+      options: mailOptions
+    });
+
     const info = await transporter.sendMail(mailOptions);
     console.log('Email odoslaný úspešne:', {
       messageId: info.messageId,
+      response: info.response,
+      accepted: info.accepted,
+      rejected: info.rejected,
       to: to,
       subject: subject
     });
     return info;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Chyba pri odosielaní emailu:', {
       error: error,
+      stack: error?.stack,
       to: to,
-      subject: subject
+      subject: subject,
+      smtpError: error?.message
     });
     throw error;
   }
@@ -225,7 +249,6 @@ export const checkBusinessCaseReminders = functions
       const remindersSnapshot = await db.collection('reminders')
         .where('reminderDateTime', '<=', now)
         .where('sent', '==', false)
-        .where('type', '==', 'businessCase')
         .get();
 
       console.log('Počet nájdených pripomienok:', remindersSnapshot.size);
@@ -238,20 +261,27 @@ export const checkBusinessCaseReminders = functions
           userEmail: reminder.userEmail,
           companyName: reminder.companyName,
           type: reminder.type,
-          sent: reminder.sent
+          sent: reminder.sent,
+          businessCaseId: reminder.businessCaseId,
+          reminderNote: reminder.reminderNote
         });
-        
-        if (!reminder.userEmail) {
-          console.error('Pripomienka nemá nastavený email:', doc.id);
-          continue;
-        }
-
-        if (!reminder.reminderDateTime) {
-          console.error('Pripomienka nemá nastavený čas:', doc.id);
-          continue;
-        }
 
         try {
+          if (!reminder.businessCaseId) {
+            console.log('Preskakujem pripomienku - nie je pre obchodný prípad:', doc.id);
+            continue;
+          }
+
+          if (!reminder.userEmail) {
+            console.error('Pripomienka nemá nastavený email:', doc.id);
+            continue;
+          }
+
+          if (!reminder.reminderDateTime) {
+            console.error('Pripomienka nemá nastavený čas:', doc.id);
+            continue;
+          }
+
           console.log('Generujem email pre pripomienku:', doc.id);
           const emailTemplate = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -298,14 +328,14 @@ export const checkBusinessCaseReminders = functions
             <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pripomíname Vám naplánovanú aktivitu v obchodnom prípade:</p>
             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p style="margin: 10px 0; color: #34495e;"><strong>Obchodný prípad:</strong> "${reminder.companyName}"</p>
-              <p style="margin: 10px 0; color: #34495e;"><strong>Dátum a čas pripomienky:</strong> ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK')}</p>
+              <p style="margin: 10px 0; color: #34495e;"><strong>Dátum a čas pripomienky:</strong> ${reminder.reminderDateTime.toDate().toLocaleString('sk-SK', { timeZone: 'Europe/Bratislava' })}</p>
               <p style="margin: 10px 0; color: #34495e;"><strong>Text pripomienky:</strong> ${reminder.reminderNote || 'Bez poznámky'}</p>
             </div>
             <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pre zobrazenie detailov kliknite na nasledujúce tlačidlo:</p>
             <table border="0" cellpadding="0" cellspacing="0" width="100%">
               <tr>
                 <td align="center" style="padding: 25px 0;">
-                  <a href="https://core-app-423c7.web.app/business-cases" style="display: inline-block; padding: 14px 32px; background-color: #ff9f43; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Zobraziť obchodný prípad</a>
+                  <a href="https://core-app-423c7.web.app/business-cases/${reminder.businessCaseId}" style="display: inline-block; padding: 14px 32px; background-color: #ff9f43; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Zobraziť obchodný prípad</a>
                 </td>
               </tr>
             </table>
@@ -334,19 +364,21 @@ export const checkBusinessCaseReminders = functions
           }, { merge: true });
           
           console.log('Metriky aktualizované');
-        } catch (error) {
+        } catch (error: any) {
           console.error('Chyba pri spracovaní pripomienky:', {
             error: error,
+            stack: error?.stack,
             reminderID: doc.id,
             userEmail: reminder.userEmail,
-            companyName: reminder.companyName
+            companyName: reminder.companyName,
+            businessCaseId: reminder.businessCaseId
           });
         }
       }
 
       console.log('Kontrola pripomienok dokončená');
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chyba pri kontrole pripomienok:', error);
       return null;
     }
@@ -465,7 +497,7 @@ export const checkTransportNotifications = functions
         await metricsRef.set({
           transportNotifications: admin.firestore.FieldValue.increment(1)
         }, { merge: true });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Chyba pri odosielaní pripomienky:', {
           error: error,
           reminderID: doc.id,
@@ -481,7 +513,7 @@ export const checkTransportNotifications = functions
       });
     }
   }
-} catch (error) {
+} catch (error: any) {
   console.error('Chyba pri kontrole pripomienok:', error);
 }
 });
@@ -502,7 +534,7 @@ export const logFunctionMetrics = functions
         businessCaseReminders: 0,
         transportNotifications: 0
       }, { merge: true });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chyba pri logovaní metrík:', error);
     }
   });
@@ -529,7 +561,7 @@ export const updateExistingRecords = functions
 
       await batch.commit();
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chyba pri aktualizácii záznamov:', error);
       throw new functions.https.HttpsError('internal', 'Chyba pri aktualizácii záznamov');
     }
