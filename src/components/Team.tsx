@@ -41,7 +41,9 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
-  Send as SendIcon
+  Send as SendIcon,
+  Refresh as RefreshIcon,
+  Phone as PhoneIcon
 } from '@mui/icons-material';
 import { collection, query, where, getDocs, addDoc, doc, getDoc, onSnapshot, deleteDoc, updateDoc } from 'firebase/firestore';
 import { auth, db, functions } from '../firebase';
@@ -303,45 +305,72 @@ const fadeOut = {
   }
 };
 
-const MobileTeamCard = styled(Paper)({
-  backgroundColor: colors.background.main,
-  backdropFilter: 'blur(20px)',
+const MobileTeamCard = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.75)' : '#ffffff',
   borderRadius: '16px',
-  padding: '20px',
-  color: '#ffffff',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
+  padding: '16px',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  boxShadow: isDarkMode ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)'}`,
   marginBottom: '16px',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
-  }
-});
+  width: '100%'
+}));
 
-const MobileTeamHeader = styled(Box)({
+const MobileTeamHeader = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  marginBottom: '16px',
-});
+  alignItems: 'center',
+  marginBottom: '12px',
+  color: isDarkMode ? '#ffffff' : '#000000'
+}));
 
-const MobileTeamName = styled(Typography)({
+const MobileTeamName = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '1.1rem',
   fontWeight: 600,
-  color: colors.accent.main,
-  marginBottom: '4px',
-});
+  color: isDarkMode ? colors.accent.main : '#000000'
+}));
 
-const MobileTeamRole = styled(Typography)({
-  fontSize: '0.9rem',
-  color: 'rgba(255, 255, 255, 0.7)',
-});
-
-const MobileTeamInfo = styled(Box)({
+const MobileTeamInfo = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: '12px',
+  gap: '8px',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  '& > *': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  }
+}));
+
+const MobileTeamMember = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontSize: '0.9rem',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.1rem',
+    color: colors.accent.main
+  }
+}));
+
+const MobileTeamRole = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontSize: '0.85rem',
+  color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1rem',
+    color: colors.accent.main
+  }
+}));
+
+const MobileTeamActions = styled(Box)({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: '8px',
+  marginTop: '12px',
 });
 
 const MobileInfoItem = styled(Box)({
@@ -949,52 +978,58 @@ function Team() {
   };
 
   const renderMobileTeamMember = (member: TeamMember | Invitation) => (
-    <MobileTeamCard key={member.id}>
-      <MobileTeamHeader>
+    <MobileTeamCard isDarkMode={isDarkMode} key={member.id}>
+      <MobileTeamHeader isDarkMode={isDarkMode}>
         <Box>
-          <MobileTeamName>
+          <MobileTeamName isDarkMode={isDarkMode}>
             {member.firstName} {member.lastName}
           </MobileTeamName>
-          <MobileTeamRole>
+          <MobileTeamRole isDarkMode={isDarkMode}>
             {member.role}
           </MobileTeamRole>
         </Box>
-        <StatusChip 
-          status={member.status} 
-          label={member.status === 'active' ? 'Aktívny' : 
-                member.status === 'pending' ? 'Čaká sa' : 
-                'Zamietnutý'} 
-        />
+        <Box>
+          <Chip
+            label={member.status === 'pending' ? 'Čaká sa na prijatie' : 'Aktívny'}
+            color={member.status === 'pending' ? 'warning' : 'success'}
+            size="small"
+            sx={{ fontSize: '0.75rem' }}
+          />
+        </Box>
       </MobileTeamHeader>
       
-      <MobileTeamInfo>
-        <MobileInfoItem>
-          <MobileInfoLabel>Email</MobileInfoLabel>
-          <MobileInfoValue>
-            <MailIcon sx={{ fontSize: '1rem' }} />
-            {member.email}
-          </MobileInfoValue>
-        </MobileInfoItem>
+      <MobileTeamInfo isDarkMode={isDarkMode}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <MailIcon />
+          <Typography variant="body2">{member.email}</Typography>
+        </Box>
         
-        <MobileInfoItem>
-          <MobileInfoLabel>Telefón</MobileInfoLabel>
-          <MobileInfoValue>{member.phone}</MobileInfoValue>
-        </MobileInfoItem>
+        {member.phone && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PhoneIcon />
+            <Typography variant="body2">{member.phone}</Typography>
+          </Box>
+        )}
       </MobileTeamInfo>
       
-      <MobileActions>
+      <MobileTeamActions>
         {member.status === 'pending' && 'id' in member && (
-          <ActionButton onClick={() => handleResendInvitation(member.id)}>
-            <SendIcon />
-          </ActionButton>
+          <IconButton
+            size="small"
+            onClick={() => handleResendInvitation(member.id)}
+            sx={{ color: colors.accent.main }}
+          >
+            <RefreshIcon fontSize="small" />
+          </IconButton>
         )}
-        <ActionButton onClick={() => handleEdit(member)}>
-          <EditIcon />
-        </ActionButton>
-        <ActionButton onClick={() => handleDeleteClick(member)}>
-          <DeleteIcon />
-        </ActionButton>
-      </MobileActions>
+        <IconButton
+          size="small"
+          onClick={() => handleDeleteClick(member)}
+          sx={{ color: colors.secondary.main }}
+        >
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      </MobileTeamActions>
     </MobileTeamCard>
   );
 
