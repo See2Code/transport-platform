@@ -19,6 +19,11 @@ import {
   useMediaQuery,
   useTheme,
   MenuList,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
@@ -474,8 +479,46 @@ const StyledListItem = styled(ListItem)<{ button?: boolean; isDarkMode?: boolean
   },
 }));
 
+const StyledDialog = styled(Dialog)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  '& .MuiDialog-paper': {
+    backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: '12px',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    boxShadow: isDarkMode 
+      ? '0 8px 32px rgba(0, 0, 0, 0.4)' 
+      : '0 8px 32px rgba(0, 0, 0, 0.1)',
+  },
+  '& .MuiDialogTitle-root': {
+    color: isDarkMode ? '#ffffff' : '#000000',
+  },
+  '& .MuiDialogContent-root': {
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+  },
+}));
+
+const StyledButton = styled(Button)<{ isDarkMode: boolean; variant: 'text' | 'contained' }>(({ isDarkMode, variant }) => ({
+  borderRadius: '8px',
+  textTransform: 'none',
+  padding: '8px 16px',
+  fontWeight: 500,
+  ...(variant === 'contained' ? {
+    backgroundColor: isDarkMode ? '#ff6b6b' : '#d64545',
+    color: '#ffffff',
+    '&:hover': {
+      backgroundColor: isDarkMode ? '#ff8787' : '#e05858',
+    },
+  } : {
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+    '&:hover': {
+      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    },
+  }),
+}));
+
 const Navbar = () => {
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
@@ -495,9 +538,19 @@ const Navbar = () => {
     handleMobileMenuClose();
   };
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setLogoutDialogOpen(true);
+    handleMobileMenuClose();
+  };
+
+  const handleLogoutCancel = () => {
+    setLogoutDialogOpen(false);
+  };
+
+  const handleLogoutConfirm = async () => {
     try {
       await logout();
+      setLogoutDialogOpen(false);
       navigate('/login');
     } catch (error) {
       console.error('Error logging out:', error);
@@ -605,7 +658,7 @@ const Navbar = () => {
                   {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
                 </IconButton>
                 <Box
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
                   sx={{
                     minWidth: 'auto',
                     padding: '6px 12px',
@@ -747,7 +800,7 @@ const Navbar = () => {
           />
         </MenuItem>
         <MenuItem
-          onClick={handleLogout}
+          onClick={handleLogoutClick}
           sx={{
             padding: '12px 24px',
             display: 'flex',
@@ -779,6 +832,40 @@ const Navbar = () => {
           />
         </MenuItem>
       </StyledMenu>
+
+      <StyledDialog
+        open={logoutDialogOpen}
+        onClose={handleLogoutCancel}
+        isDarkMode={isDarkMode}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>
+          Potvrdenie odhlásenia
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Naozaj sa chcete odhlásiť z aplikácie?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ padding: '16px 24px' }}>
+          <StyledButton
+            onClick={handleLogoutCancel}
+            variant="text"
+            isDarkMode={isDarkMode}
+          >
+            Zrušiť
+          </StyledButton>
+          <StyledButton
+            onClick={handleLogoutConfirm}
+            variant="contained"
+            isDarkMode={isDarkMode}
+            autoFocus
+          >
+            Odhlásiť sa
+          </StyledButton>
+        </DialogActions>
+      </StyledDialog>
     </PageWrapper>
   );
 };
