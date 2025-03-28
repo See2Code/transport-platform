@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions/v1';
 import { CallableContext } from 'firebase-functions/v1/https';
 import * as admin from 'firebase-admin';
 import * as nodemailer from 'nodemailer';
+import { updateVehicleLocation } from './updateVehicleLocation';
 
 admin.initializeApp();
 
@@ -233,7 +234,7 @@ export const sendInvitationEmail = functions
     }
   });
 
-// Funkcia na kontrolu pripomienok pre obchodné prípady
+// Funkcia na kontrolu pripomienok obchodných prípadov
 export const checkBusinessCaseReminders = functions
   .region(REGION)
   .pubsub.schedule('every 1 minutes')
@@ -242,13 +243,14 @@ export const checkBusinessCaseReminders = functions
     const now = new Date();
     const db = admin.firestore();
 
-    console.log('Spustená kontrola pripomienok:', now.toISOString());
+    console.log('Spustená kontrola pripomienok obchodných prípadov:', now.toISOString());
 
     try {
       console.log('Hľadám pripomienky na odoslanie...');
       const remindersSnapshot = await db.collection('reminders')
         .where('reminderDateTime', '<=', now)
         .where('sent', '==', false)
+        .where('businessCaseId', '!=', null)
         .get();
 
       console.log('Počet nájdených pripomienok:', remindersSnapshot.size);
@@ -565,4 +567,8 @@ export const updateExistingRecords = functions
       console.error('Chyba pri aktualizácii záznamov:', error);
       throw new functions.https.HttpsError('internal', 'Chyba pri aktualizácii záznamov');
     }
-  }); 
+  });
+
+export {
+    updateVehicleLocation
+}; 

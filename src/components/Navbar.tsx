@@ -210,27 +210,17 @@ const MinimizedMenuList = styled(MenuList)({
   }
 });
 
-const LogoImage = styled('img')<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  height: '24px',
+const LogoImage = styled('img')<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
+  height: '32px',
   width: 'auto',
-  marginRight: '16px',
-  opacity: 0.9,
-  filter: isDarkMode ? 'none' : 'brightness(0)',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    opacity: 1,
-    transform: 'scale(1.02)'
-  },
-  '@media (max-width: 600px)': {
-    height: '20px',
-    marginRight: '12px'
-  }
+  filter: isDarkMode ? 'brightness(1)' : 'brightness(0)',
+  transition: 'filter 0.3s ease',
 }));
 
 const BrandContainer = styled(Box)({
   display: 'flex',
   alignItems: 'center',
-  gap: '8px',
+  gap: '12px',
 });
 
 const MenuContainer = styled(Box)({
@@ -250,37 +240,35 @@ const StyledMenuList = styled(List)({
   margin: 0
 });
 
-const StyledMenuItem = styled(MenuItem)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  color: isDarkMode ? '#ffffff' : '#000000',
-  padding: '12px 16px',
+const StyledMenuItem = styled(MenuItem)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
+  padding: '12px 24px',
+  gap: '12px',
+  color: isDarkMode ? colors.text.primary : '#000000',
   '&:hover': {
     backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
   },
   '& .MuiListItemIcon-root': {
-    color: isDarkMode ? '#ffffff' : '#000000',
-    minWidth: '40px',
-  },
-  '&:hover .MuiListItemIcon-root': {
-    color: colors.primary.main,
+    color: 'inherit',
+    minWidth: '24px',
   },
 }));
 
-const StyledMenuItemIcon = styled(ListItemIcon)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+const StyledMenuItemIcon = styled(ListItemIcon)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
   minWidth: 0,
   marginRight: 1,
-  color: isDarkMode ? '#ffffff' : '#000000'
+  color: isDarkMode ? colors.text.primary : '#000000'
 }));
 
-const StyledMenuItemText = styled(ListItemText)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+const StyledMenuItemText = styled(ListItemText)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
   '& .MuiTypography-root': {
     fontSize: '0.9rem',
     fontWeight: 500,
-    color: isDarkMode ? '#ffffff' : '#000000'
+    color: isDarkMode ? colors.text.primary : '#000000'
   }
 }));
 
-const LogoutButton = styled(IconButton)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  color: isDarkMode ? '#ffffff' : '#000000',
+const LogoutButton = styled(IconButton)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
+  color: isDarkMode ? colors.text.primary : '#000000',
   '&:hover': {
     color: colors.primary.main,
     backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.1)' : 'rgba(0, 0, 0, 0.05)'
@@ -362,89 +350,59 @@ const Overlay = styled('div')({
   }
 });
 
-const StyledAppBar = styled(AppBar)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
-  backdropFilter: 'blur(20px)',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+const StyledAppBar = styled(AppBar)<{ isDarkMode?: boolean }>(({ isDarkMode, theme }) => ({
+  backgroundColor: isDarkMode ? colors.background.main : '#ffffff',
+  boxShadow: 'none',
   borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-  color: isDarkMode ? '#ffffff' : '#000000',
+  backdropFilter: 'blur(10px)',
   position: 'fixed',
   top: 0,
   left: 0,
   right: 0,
-  zIndex: 1000,
+  zIndex: 1100,
 }));
 
 const StyledToolbar = styled(Toolbar)({
-  minHeight: '64px',
-  padding: '0 16px',
+  display: 'flex',
   justifyContent: 'space-between',
-  '@media (max-width: 600px)': {
-    minHeight: '56px',
-  },
+  alignItems: 'center',
+  padding: '0 24px',
+  minHeight: '64px',
+  width: '100%',
+  maxWidth: '1400px',
+  margin: '0 auto',
 });
 
 const MenuButton = styled(IconButton)({
-  color: colors.text.primary,
-  marginRight: '16px',
-  '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
+  marginLeft: 'auto',
 });
 
-const StyledMenu = styled(Menu)<{ isDarkMode: boolean }>(({ theme, isDarkMode }) => ({
+const MobileMenu = styled(Menu)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
   '& .MuiPaper-root': {
-    background: isDarkMode ? 'rgba(28, 28, 45, 0.75)' : 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(12px)',
-    borderRadius: '20px',
-    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-    boxShadow: isDarkMode ? '0 8px 32px 0 rgba(0, 0, 0, 0.25)' : '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
-    marginTop: '8px',
-    minWidth: 'auto',
-    width: 'auto',
-    zIndex: 1200,
-    [theme.breakpoints.down('sm')]: {
-      position: 'fixed',
-      top: 'auto',
-      bottom: 0,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: 'auto',
-      minWidth: 'auto',
-      maxWidth: '90%',
-      margin: 0,
-      borderRadius: '20px',
-      maxHeight: '90vh',
-      overflowY: 'auto',
-      zIndex: 1200,
-      marginBottom: '16px',
-      background: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-    }
-  },
-  '& .MuiList-root': {
-    padding: '8px',
-    position: 'relative',
-    whiteSpace: 'nowrap',
-    backdropFilter: 'blur(12px)',
-    [theme.breakpoints.down('sm')]: {
-      padding: '16px',
-    }
-  },
-  '& .MuiMenuItem-root': {
+    backgroundColor: isDarkMode ? colors.background.light : '#ffffff',
     borderRadius: '12px',
-    padding: '12px 16px',
-    margin: '4px 0',
-    color: isDarkMode ? '#ffffff' : '#000000',
-    backdropFilter: 'blur(12px)',
-    background: 'transparent',
-    '&:hover': {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    boxShadow: isDarkMode 
+      ? '0 4px 20px rgba(0, 0, 0, 0.5)' 
+      : '0 4px 20px rgba(0, 0, 0, 0.1)',
+    marginTop: '8px',
+    minWidth: '200px',
+    overflow: 'visible',
+    '&:before': {
+      content: '""',
+      display: 'block',
+      position: 'absolute',
+      top: 0,
+      right: 14,
+      width: 10,
+      height: 10,
+      backgroundColor: isDarkMode ? colors.background.light : '#ffffff',
+      transform: 'translateY(-50%) rotate(45deg)',
+      borderLeft: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+      borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+      zIndex: 0,
     },
-    [theme.breakpoints.down('sm')]: {
-      padding: '16px',
-      margin: '8px 0',
-    }
-  }
+  },
 }));
 
 const PageWrapper = styled('div')({
@@ -697,7 +655,7 @@ const Navbar = () => {
         </StyledToolbar>
       </StyledAppBar>
 
-      <StyledMenu
+      <MobileMenu
         isDarkMode={isDarkMode}
         anchorEl={mobileMenuAnchor}
         open={Boolean(mobileMenuAnchor)}
@@ -836,7 +794,7 @@ const Navbar = () => {
             }}
           />
         </MenuItem>
-      </StyledMenu>
+      </MobileMenu>
 
       <StyledDialog
         open={logoutDialogOpen}

@@ -210,7 +210,7 @@ exports.sendInvitationEmail = functions
         throw new functions.https.HttpsError('internal', 'Chyba pri odosielaní pozvánky');
     }
 });
-// Funkcia na kontrolu pripomienok pre obchodné prípady
+// Funkcia na kontrolu pripomienok obchodných prípadov
 exports.checkBusinessCaseReminders = functions
     .region(REGION)
     .pubsub.schedule('every 1 minutes')
@@ -219,12 +219,13 @@ exports.checkBusinessCaseReminders = functions
     var _a, _b, _c;
     const now = new Date();
     const db = admin.firestore();
-    console.log('Spustená kontrola pripomienok:', now.toISOString());
+    console.log('Spustená kontrola pripomienok obchodných prípadov:', now.toISOString());
     try {
         console.log('Hľadám pripomienky na odoslanie...');
         const remindersSnapshot = await db.collection('reminders')
             .where('reminderDateTime', '<=', now)
             .where('sent', '==', false)
+            .where('businessCaseId', '!=', null)
             .get();
         console.log('Počet nájdených pripomienok:', remindersSnapshot.size);
         for (const doc of remindersSnapshot.docs) {
