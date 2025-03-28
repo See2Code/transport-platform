@@ -14,11 +14,13 @@ L.Icon.Default.mergeOptions({
 interface Vehicle {
     id: string;
     driverName: string;
-    position: {
-        lat: number;
-        lng: number;
+    location: {
+        latitude: number;
+        longitude: number;
+        accuracy: number;
+        timestamp: number;
     };
-    lastUpdate: Date;
+    lastActive: number;
 }
 
 interface VehicleTrackerProps {
@@ -36,7 +38,7 @@ const VehicleTracker: React.FC<VehicleTrackerProps> = ({
 
     useEffect(() => {
         if (mapRef.current && vehicles.length > 0) {
-            const bounds = L.latLngBounds(vehicles.map(v => [v.position.lat, v.position.lng]));
+            const bounds = L.latLngBounds(vehicles.map(v => [v.location.latitude, v.location.longitude]));
             mapRef.current.fitBounds(bounds);
         }
     }, [vehicles]);
@@ -56,13 +58,15 @@ const VehicleTracker: React.FC<VehicleTrackerProps> = ({
                 {vehicles.map((vehicle) => (
                     <Marker
                         key={vehicle.id}
-                        position={[vehicle.position.lat, vehicle.position.lng]}
+                        position={[vehicle.location.latitude, vehicle.location.longitude]}
                     >
                         <Popup>
                             <div>
                                 <h3 className="font-bold">{vehicle.driverName}</h3>
-                                <p>ID vozidla: {vehicle.id}</p>
-                                <p>Posledná aktualizácia: {vehicle.lastUpdate.toLocaleString()}</p>
+                                <p>ID vodiča: {vehicle.id}</p>
+                                <p>Presnosť: {Math.round(vehicle.location.accuracy)}m</p>
+                                <p>Posledná aktualizácia: {new Date(vehicle.location.timestamp).toLocaleString()}</p>
+                                <p>Posledná aktivita: {new Date(vehicle.lastActive).toLocaleString()}</p>
                             </div>
                         </Popup>
                     </Marker>

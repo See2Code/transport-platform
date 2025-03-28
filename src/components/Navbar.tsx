@@ -36,6 +36,7 @@ import ContactsIcon from '@mui/icons-material/Contacts';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -517,14 +518,14 @@ const Navbar = () => {
     }
   };
 
-  const menuItems = [
-    { text: 'Domov', icon: <HomeIcon />, path: '/', hidden: true },
+  const menuItems: MenuItem[] = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Transporty', icon: <LocalShippingIcon />, path: '/transports', hidden: true },
-    { text: 'Sledované prepravy', icon: <VisibilityIcon />, path: '/tracked-transports' },
-    { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases' },
     { text: 'Tím', icon: <GroupIcon />, path: '/team' },
     { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },
+    { text: 'Prepravy', icon: <LocalShippingIcon />, path: '/transports' },
+    { text: 'Sledované prepravy', icon: <VisibilityIcon />, path: '/tracked-transports' },
+    { text: 'Poloha vozidiel', icon: <LocationOnIcon />, path: '/vehicle-map' },
+    { text: 'Business Cases', icon: <BusinessIcon />, path: '/business-cases' },
     { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings' },
   ];
 

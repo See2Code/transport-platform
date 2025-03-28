@@ -1,0 +1,18 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "drivers": {
+      ".read": "auth != null",  // Každý prihlásený používateľ môže čítať údaje o vodičoch
+      "$driverId": {
+        ".write": "auth != null && auth.uid == $driverId",  // Vodič môže zapisovať len svoje vlastné údaje
+        "location": {
+          ".validate": "newData.hasChildren(['latitude', 'longitude', 'accuracy', 'timestamp', 'driverName'])"
+        },
+        "lastActive": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    }
+  }
+} 

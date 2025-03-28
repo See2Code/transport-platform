@@ -51,10 +51,16 @@ service cloud.firestore {
 
     // Pravidlá pre sledované prepravy
     match /trackedTransports/{transportId} {
-      allow read: if isAuthenticated() && isInSameCompany(resource.data.companyID);
-      allow create: if isAuthenticated() && isInSameCompany(request.resource.data.companyID);
-      allow update: if isAuthenticated() && isInSameCompany(resource.data.companyID);
-      allow delete: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow read: if isAuthenticated();  // Každý prihlásený užívateľ môže vidieť sledované prepravy
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+
+    // Pravidlá pre sledovanie polohy vodičov
+    match /driverLocations/{driverId} {
+      allow read: if isAuthenticated();  // Každý prihlásený užívateľ môže vidieť polohu vodiča
+      allow write: if isAuthenticated() && request.auth.uid == driverId;  // Vodič môže aktualizovať len svoju polohu
     }
 
     // Pomocná funkcia na kontrolu, či je užívateľ v rovnakej firme
@@ -71,8 +77,7 @@ service cloud.firestore {
 
     // Pravidlá pre kolekciu vehicles
     match /vehicles/{vehicleId} {
-      allow read: if request.auth != null && isInSameCompany(resource.data.companyID);
-      allow write: if isAdmin();
+      allow read, write: if request.auth != null;  // Povolíme všetko pre prihlásených používateľov
     }
 
     // Pravidlá pre kolekciu routes

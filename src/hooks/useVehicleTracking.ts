@@ -5,11 +5,13 @@ import { database } from '../firebase';
 export interface Vehicle {
     id: string;
     driverName: string;
-    position: {
-        lat: number;
-        lng: number;
+    location: {
+        latitude: number;
+        longitude: number;
+        accuracy: number;
+        timestamp: number;
     };
-    lastUpdate: Date;
+    lastActive: number;
 }
 
 export const useVehicleTracking = () => {
@@ -18,18 +20,25 @@ export const useVehicleTracking = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const vehiclesRef = ref(database, 'vehicles');
+        const driversRef = ref(database, 'drivers');
         
-        const unsubscribe = onValue(vehiclesRef, 
+        const unsubscribe = onValue(driversRef, 
             (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    const vehiclesList = Object.entries(data).map(([id, vehicle]: [string, any]) => ({
-                        id,
-                        driverName: vehicle.driverName,
-                        position: vehicle.position,
-                        lastUpdate: new Date(vehicle.lastUpdate)
-                    }));
+                    const vehiclesList = Object.entries(data)
+                        .filter(([_, driver]: [string, any]) => driver.location) // Filtrujeme len vodičov s polohou
+                        .map(([id, driver]: [string, any]) => ({
+                            id,
+                            driverName: driver.location.driverName,
+                            location: {
+                                latitude: driver.location.latitude,
+                                longitude: driver.location.longitude,
+                                accuracy: driver.location.accuracy,
+                                timestamp: driver.location.timestamp
+                            },
+                            lastActive: driver.lastActive
+                        }));
                     setVehicles(vehiclesList);
                 } else {
                     setVehicles([]);
@@ -37,13 +46,14 @@ export const useVehicleTracking = () => {
                 setLoading(false);
             },
             (error) => {
+                console.error('Chyba pri načítaní vodičov:', error);
                 setError(error.message);
                 setLoading(false);
             }
         );
 
         return () => {
-            off(vehiclesRef);
+            off(driversRef);
         };
     }, []);
 
