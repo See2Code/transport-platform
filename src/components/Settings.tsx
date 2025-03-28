@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Paper,
@@ -17,26 +17,30 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Snackbar
+  Snackbar,
+  Avatar
 } from '@mui/material';
 import { TypographyProps } from '@mui/material/Typography';
 import { CardProps } from '@mui/material/Card';
 import { TextFieldProps } from '@mui/material/TextField';
 import { SelectProps } from '@mui/material/Select';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
+import { auth, db, storage } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { 
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
   Save as SaveIcon,
-  Cancel as CancelIcon
+  Cancel as CancelIcon,
+  AddAPhoto as AddAPhotoIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import styled from '@emotion/styled';
 import { useThemeMode } from '../contexts/ThemeContext';
 import { SelectChangeEvent } from '@mui/material/Select';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 interface CompanyData {
   id: string;
@@ -315,6 +319,58 @@ const CancelButton = styled(Button)<{ isDarkMode: boolean }>(({ isDarkMode }) =>
   }
 }));
 
+const SettingsContainer = styled(Paper)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  padding: '24px',
+  backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+  borderRadius: '12px',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  backdropFilter: 'blur(10px)',
+}));
+
+const UploadSection = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '16px',
+  padding: '24px',
+  textAlign: 'center',
+}));
+
+const LargeAvatar = styled(Avatar)(({ theme }) => ({
+  width: 120,
+  height: 120,
+  border: '4px solid rgba(255, 159, 67, 0.3)',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'scale(1.05)',
+    borderColor: 'rgba(255, 159, 67, 0.5)',
+  },
+}));
+
+const CompanyLogo = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  width: 200,
+  height: 120,
+  border: `2px dashed ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`,
+  borderRadius: '12px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+  '&:hover': {
+    borderColor: '#ff9f43',
+    backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.1)' : 'rgba(255, 159, 67, 0.1)',
+  },
+}));
+
+const LogoImage = styled('img')({
+  maxWidth: '100%',
+  maxHeight: '100%',
+  objectFit: 'contain',
+});
+
 function Settings() {
   const navigate = useNavigate();
   const { userData } = useAuth();
@@ -330,10 +386,22 @@ function Settings() {
   const [selectedCountry, setSelectedCountry] = useState(euCountries.find(c => c.code === 'SK') || euCountries[0]);
   const { isDarkMode } = useThemeMode();
   const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null);
+  
+  const profileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (userData) {
       setLocalUserData(userData);
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    if (userData) {
+      setIsAdmin(userData.role === 'admin');
+      fetchCompanyData();
     }
   }, [userData]);
 
@@ -360,13 +428,6 @@ function Settings() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (userData) {
-      setIsAdmin(userData.role === 'admin');
-      fetchCompanyData();
-    }
-  }, [userData]);
 
   const handleUserDataChange = (field: keyof UserData, value: string) => {
     setLocalUserData((prev: UserData | null) => prev ? { ...prev, [field]: value } : null);
@@ -502,6 +563,76 @@ function Settings() {
       setIsEditingCompany(false);
     } catch (error) {
       console.error('Error saving company data:', error);
+    }
+  };
+
+  const handleProfileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !userData) return;
+
+    try {
+      setLoading(true);
+      const storageRef = ref(storage, `users/${userData.uid}/profile-photo`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      setProfileImage(url);
+      setSnackbar({ open: true, message: 'Profilová fotka bola úspešne nahraná', severity: 'success' });
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Chyba pri nahrávaní fotky', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !userData?.companyID) return;
+
+    try {
+      setLoading(true);
+      const storageRef = ref(storage, `companies/${userData.companyID}/logo`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      setCompanyLogo(url);
+      setSnackbar({ open: true, message: 'Logo firmy bolo úspešne nahrané', severity: 'success' });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      setSnackbar({ open: true, message: 'Chyba pri nahrávaní loga', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    if (!userData || !profileImage) return;
+
+    try {
+      setLoading(true);
+      const storageRef = ref(storage, `users/${userData.uid}/profile-photo`);
+      await deleteObject(storageRef);
+      setProfileImage(null);
+      setSnackbar({ open: true, message: 'Profilová fotka bola odstránená', severity: 'success' });
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Chyba pri odstraňovaní fotky', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteLogo = async () => {
+    if (!userData?.companyID || !companyLogo) return;
+
+    try {
+      setLoading(true);
+      const storageRef = ref(storage, `companies/${userData.companyID}/logo`);
+      await deleteObject(storageRef);
+      setCompanyLogo(null);
+      setSnackbar({ open: true, message: 'Logo firmy bolo odstránené', severity: 'success' });
+    } catch (error) {
+      console.error('Error deleting logo:', error);
+      setSnackbar({ open: true, message: 'Chyba pri odstraňovaní loga', severity: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -712,23 +843,104 @@ function Settings() {
         </Grid>
       </Grid>
 
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <SettingsContainer isDarkMode={isDarkMode}>
+            <Typography variant="h6" sx={{ mb: 3, color: isDarkMode ? '#ffffff' : '#000000' }}>
+              Profilová fotka
+            </Typography>
+            <UploadSection>
+              <input
+                type="file"
+                ref={profileInputRef}
+                onChange={handleProfileUpload}
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
+              <Box sx={{ position: 'relative' }}>
+                <LargeAvatar
+                  src={profileImage || undefined}
+                  onClick={() => profileInputRef.current?.click()}
+                >
+                  {!profileImage && <AddAPhotoIcon sx={{ width: 40, height: 40 }} />}
+                </LargeAvatar>
+                {profileImage && (
+                  <IconButton
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      backgroundColor: 'error.main',
+                      '&:hover': { backgroundColor: 'error.dark' },
+                    }}
+                    onClick={handleDeleteProfile}
+                  >
+                    <DeleteIcon sx={{ color: '#ffffff' }} />
+                  </IconButton>
+                )}
+              </Box>
+              <Typography variant="body2" sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}>
+                Kliknite pre nahratie profilovej fotky
+              </Typography>
+            </UploadSection>
+          </SettingsContainer>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <SettingsContainer isDarkMode={isDarkMode}>
+            <Typography variant="h6" sx={{ mb: 3, color: isDarkMode ? '#ffffff' : '#000000' }}>
+              Logo firmy
+            </Typography>
+            <UploadSection>
+              <input
+                type="file"
+                ref={logoInputRef}
+                onChange={handleLogoUpload}
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
+              <Box sx={{ position: 'relative' }}>
+                <CompanyLogo
+                  isDarkMode={isDarkMode}
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  {companyLogo ? (
+                    <LogoImage src={companyLogo} alt="Company logo" />
+                  ) : (
+                    <AddAPhotoIcon sx={{ width: 40, height: 40, color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }} />
+                  )}
+                </CompanyLogo>
+                {companyLogo && (
+                  <IconButton
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      backgroundColor: 'error.main',
+                      '&:hover': { backgroundColor: 'error.dark' },
+                    }}
+                    onClick={handleDeleteLogo}
+                  >
+                    <DeleteIcon sx={{ color: '#ffffff' }} />
+                  </IconButton>
+                )}
+              </Box>
+              <Typography variant="body2" sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}>
+                Kliknite pre nahratie loga firmy
+              </Typography>
+            </UploadSection>
+          </SettingsContainer>
+        </Grid>
+      </Grid>
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{
-            backgroundColor: isDarkMode ? colors.background.main : '#ffffff',
-            color: isDarkMode ? '#ffffff' : '#000000',
-            '& .MuiAlert-icon': {
-              color: snackbar.severity === 'success' ? colors.accent.main : colors.secondary.main
-            }
-          }}
-        >
+        <Alert severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

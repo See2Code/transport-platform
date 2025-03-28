@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateExistingRecords = exports.logFunctionMetrics = exports.checkTransportNotifications = exports.checkBusinessCaseReminders = exports.sendInvitationEmail = exports.clearDatabase = void 0;
+exports.updateVehicleLocation = exports.updateExistingRecords = exports.logFunctionMetrics = exports.checkTransportNotifications = exports.checkBusinessCaseReminders = exports.sendInvitationEmail = exports.clearDatabase = void 0;
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
+const updateVehicleLocation_1 = require("./updateVehicleLocation");
+Object.defineProperty(exports, "updateVehicleLocation", { enumerable: true, get: function () { return updateVehicleLocation_1.updateVehicleLocation; } });
 admin.initializeApp();
 const REGION = 'europe-west1';
 // Konfigurácia emailového transportu
