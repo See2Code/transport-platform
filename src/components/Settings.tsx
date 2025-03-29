@@ -299,23 +299,15 @@ const StyledSelect = styled(Select)<{ isDarkMode: boolean }>(({ isDarkMode }) =>
 })) as unknown as React.FC<SelectProps & { isDarkMode: boolean }>;
 
 const ActionButton = styled(Button)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: colors.accent.main,
-  color: isDarkMode ? '#ffffff' : '#000000',
-  fontWeight: 600,
-  padding: '8px 24px',
   '&:hover': {
-    backgroundColor: colors.accent.light,
-  },
-  '&.Mui-disabled': {
-    backgroundColor: 'rgba(255, 159, 67, 0.3)',
-    color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(255, 159, 67, 0.1)'
   }
 }));
 
 const CancelButton = styled(Button)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   '&:hover': {
-    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
   }
 }));
 
@@ -934,6 +926,14 @@ function Settings() {
           </SettingsContainer>
         </Grid>
       </Grid>
+
+      <Button
+        onClick={handleSave}
+        variant="contained"
+        disabled={loading}
+      >
+        {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Uložiť'}
+      </Button>
 
       <Snackbar
         open={snackbar.open}

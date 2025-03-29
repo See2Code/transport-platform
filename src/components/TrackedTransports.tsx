@@ -647,6 +647,12 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   }
 }));
 
+const ActionButton = styled(Button)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: 'rgba(255, 159, 67, 0.1)',
+  },
+}));
+
 function TrackedTransports() {
   const [transports, setTransports] = useState<Transport[]>([]);
   const [filteredTransports, setFilteredTransports] = useState<Transport[]>([]);

@@ -20,6 +20,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  CircularProgress,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useThemeMode } from '../contexts/ThemeContext';
@@ -208,15 +209,31 @@ const OrdersForm: React.FC = () => {
     }
   };
 
+  const [loading, setLoading] = useState(false);
+
+  const handleDownload = async () => {
+    setLoading(true);
+    try {
+      // Implementácia funkcie na stiahnutie objednávky
+      console.log('Stiahnutie objednávky:', formData);
+      alert('Objednávka bola úspešne stiahnutá.');
+    } catch (error) {
+      console.error('Chyba pri stiahovaní objednávky:', error);
+      alert('Nastala chyba pri stiahovaní objednávky. Skúste to prosím znova.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <PageWrapper>
       <PageHeader>
         <PageTitle isDarkMode={isDarkMode}>
-          Nová Objednávka Prepravy
+          Správa objednávok
         </PageTitle>
       </PageHeader>
       <PageDescription>
-        Vytvorte a spravujte objednávky prepravy pre vašich klientov
+        Vytvárajte a spravujte objednávky pre vašich zákazníkov
       </PageDescription>
 
       <StyledPaper>
@@ -521,38 +538,47 @@ const OrdersForm: React.FC = () => {
             </Grid>
           </StyledFieldset>
 
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            sx={{
-              mt: 4,
-              py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              boxShadow: '0 4px 20px rgba(255, 159, 67, 0.3)',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 6px 24px rgba(255, 159, 67, 0.4)',
-              },
-              '&:active': {
-                transform: 'translateY(0)',
-              },
-            }}
-          >
-            Vytvoriť Objednávku
-          </Button>
+          <Grid container justifyContent="flex-end" sx={{ mt: 4 }}>
+            <Grid item>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                sx={{
+                  py: 1.5,
+                  px: 4,
+                  borderRadius: '12px',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  transition: 'all 0.2s ease-in-out',
+                  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
+                  backgroundColor: '#ff9f43',
+                  '&:hover': {
+                    backgroundColor: '#ffbe76',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  },
+                  '@media (max-width: 600px)': {
+                    width: '100%',
+                    justifyContent: 'center'
+                  }
+                }}
+              >
+                Vytvoriť objednávku
+              </Button>
+            </Grid>
+          </Grid>
         </form>
       </StyledPaper>
 
       <Divider sx={{ my: 4 }} />
 
       <Typography variant="h5" gutterBottom>
-        Zoznam Objednávok
+        Zoznam vytvorených objednávok
       </Typography>
       
       {ordersList.length === 0 ? (
@@ -587,6 +613,14 @@ const OrdersForm: React.FC = () => {
           </Table>
         </TableContainer>
       )}
+
+      <Button
+        onClick={handleDownload}
+        variant="contained"
+        disabled={loading}
+      >
+        {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Stiahnuť objednávku'}
+      </Button>
     </PageWrapper>
   );
 };

@@ -6,10 +6,10 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
     palette: {
       mode: isDarkMode ? 'dark' : 'light',
       primary: {
-        main: colors.primary.main,
-        light: colors.primary.light,
-        dark: colors.primary.dark,
-        contrastText: colors.primary.contrastText,
+        main: '#ff9f43',
+        light: '#ffbe76',
+        dark: '#f7b067',
+        contrastText: '#ffffff',
       },
       secondary: {
         main: colors.secondary.main,
@@ -97,11 +97,38 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
         styleOverrides: {
           root: {
             textTransform: 'none',
-            borderRadius: 12,
-            padding: '8px 16px',
-            fontWeight: 600,
+            borderRadius: '8px',
+            fontSize: '14px',
           },
-        },
+          contained: {
+            backgroundColor: '#ff9f43',
+            color: '#ffffff',
+            '&:hover': {
+              backgroundColor: '#ffbe76',
+            },
+            '&:active': {
+              backgroundColor: '#f7b067',
+            },
+            '&.Mui-disabled': {
+              backgroundColor: 'rgba(255, 159, 67, 0.3)',
+              color: 'rgba(255, 255, 255, 0.3)',
+            }
+          },
+          outlined: {
+            borderColor: '#ff9f43',
+            color: '#ff9f43',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 159, 67, 0.1)',
+              borderColor: '#ffbe76',
+            }
+          },
+          text: {
+            color: '#ff9f43',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 159, 67, 0.1)',
+            }
+          }
+        }
       },
       MuiCard: {
         styleOverrides: {
@@ -121,6 +148,22 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
             },
           },
         },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            color: '#ff9f43',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 159, 67, 0.1)'
+            },
+            '&:active': {
+              backgroundColor: 'rgba(255, 159, 67, 0.2)'
+            },
+            '&.Mui-disabled': {
+              color: 'rgba(255, 159, 67, 0.3)'
+            }
+          }
+        }
       },
     },
   });

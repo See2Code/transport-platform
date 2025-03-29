@@ -16,6 +16,7 @@ import {
   useTheme,
   useMediaQuery,
   Divider,
+  CircularProgress,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useThemeMode } from '../contexts/ThemeContext';
@@ -29,6 +30,14 @@ import { db, storage } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+
+const colors = {
+  accent: {
+    main: '#ff9f43',
+    light: '#ffbe76',
+    dark: '#f7b067',
+  }
+};
 
 // Extend jsPDF type
 declare module 'jspdf' {
@@ -140,6 +149,91 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   marginLeft: theme.spacing(2),
 }));
 
+const CreateButton = styled(Button)(({ theme }) => ({
+  backgroundColor: '#ff9f43',
+  color: '#ffffff',
+  padding: '12px 24px',
+  borderRadius: '12px',
+  fontSize: '1rem',
+  fontWeight: 600,
+  width: '100%',
+  '&:hover': {
+    backgroundColor: '#ffbe76',
+  },
+  '&:active': {
+    backgroundColor: '#f7b067',
+  },
+  '&.Mui-disabled': {
+    backgroundColor: 'rgba(255, 159, 67, 0.3)',
+    color: 'rgba(255, 255, 255, 0.3)',
+  }
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  backgroundColor: '#ff9f43',
+  color: '#ffffff',
+  '&:hover': {
+    backgroundColor: '#ffbe76',
+  },
+  '&:active': {
+    backgroundColor: '#f7b067',
+  },
+  '&.Mui-disabled': {
+    backgroundColor: 'rgba(255, 159, 67, 0.3)',
+    color: 'rgba(255, 255, 255, 0.3)',
+  }
+}));
+
+const AddButton = styled(Button)({
+  backgroundColor: '#ff9f43',
+  color: '#ffffff',
+  '&:hover': {
+    backgroundColor: '#ffbe76',
+  },
+  marginTop: '16px',
+});
+
+const OrangeButton = styled(Button)({
+  backgroundColor: '#ff9f43',
+  color: '#ffffff',
+  padding: '12px',
+  width: '100%',
+  marginTop: '24px',
+  '&:hover': {
+    backgroundColor: '#ffbe76',
+  },
+  '&:active': {
+    backgroundColor: '#f7b067',
+  },
+  '&.Mui-disabled': {
+    backgroundColor: 'rgba(255, 159, 67, 0.3)',
+    color: 'rgba(255, 255, 255, 0.3)',
+  }
+});
+
+const DownloadButton = styled(Button)({
+  backgroundColor: '#ff9f43',
+  color: '#ffffff',
+  '&:hover': {
+    backgroundColor: '#ffbe76',
+  },
+});
+
+const StyledButton = styled(Button)({
+  backgroundColor: '#ff9f43',
+  color: '#ffffff',
+  '&:hover': {
+    backgroundColor: '#ffbe76',
+  },
+  '&:active': {
+    backgroundColor: '#f7b067',
+  },
+  '&.Mui-disabled': {
+    backgroundColor: 'rgba(255, 159, 67, 0.3)',
+    color: 'rgba(255, 255, 255, 0.3)',
+  }
+});
+
 const InvoicesPage: React.FC = () => {
   const theme = useTheme();
   const { isDarkMode } = useThemeMode();
@@ -160,6 +254,7 @@ const InvoicesPage: React.FC = () => {
   });
   const [newInvoiceNotes, setNewInvoiceNotes] = useState('');
   const [vatRate, setVatRate] = useState<number>(20);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchInvoices();
@@ -403,7 +498,7 @@ const InvoicesPage: React.FC = () => {
     <PageWrapper>
       <PageHeader>
         <PageTitle isDarkMode={isDarkMode}>
-          Správa Faktúr
+          Správa faktúr
         </PageTitle>
       </PageHeader>
       <PageDescription>
@@ -611,9 +706,15 @@ const InvoicesPage: React.FC = () => {
                 <Grid item xs={12} sm={1}>
                   {newInvoiceItems.length > 1 && (
                     <IconButton
-                      color="error"
+                      sx={{
+                        height: '100%',
+                        width: '100%',
+                        color: '#ff9f43',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 159, 67, 0.1)',
+                        }
+                      }}
                       onClick={() => removeItem(index)}
-                      sx={{ height: '100%', width: '100%' }}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -621,14 +722,14 @@ const InvoicesPage: React.FC = () => {
                 </Grid>
               </Grid>
             ))}
-            <Button
+            <StyledButton
               startIcon={<AddIcon />}
               onClick={addItem}
-              variant="outlined"
+              variant="contained"
               sx={{ mt: 2 }}
             >
               Pridať ďalšiu položku
-            </Button>
+            </StyledButton>
           </StyledFieldset>
 
           <Grid container spacing={2} sx={{ mt: 2 }}>
@@ -658,37 +759,44 @@ const InvoicesPage: React.FC = () => {
             </Grid>
           </Grid>
 
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            sx={{
-              mt: 4,
-              py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              boxShadow: '0 4px 20px rgba(255, 159, 67, 0.3)',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 6px 24px rgba(255, 159, 67, 0.4)',
-              },
-              '&:active': {
-                transform: 'translateY(0)',
-              },
-            }}
-          >
-            Vytvoriť a uložiť faktúru
-          </Button>
+          <Grid container justifyContent="flex-end" sx={{ mt: 3 }}>
+            <Grid item>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+                sx={{
+                  backgroundColor: colors.accent.main,
+                  color: '#ffffff',
+                  padding: '8px 24px',
+                  borderRadius: '12px',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  transition: 'all 0.2s ease-in-out',
+                  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
+                  '&:hover': {
+                    backgroundColor: colors.accent.light,
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
+                  },
+                  '@media (max-width: 600px)': {
+                    width: '100%',
+                    justifyContent: 'center'
+                  }
+                }}
+              >
+                {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Vytvoriť a uložiť faktúru'}
+              </Button>
+            </Grid>
+          </Grid>
         </form>
 
         <Divider sx={{ my: 4 }} />
 
         <Typography variant="h5" gutterBottom>
-          Zoznam Vytvorených Faktúr
+          Zoznam vytvorených faktúr
         </Typography>
         
         {invoicesList.length === 0 ? (
@@ -715,13 +823,14 @@ const InvoicesPage: React.FC = () => {
                     <TableCell>{invoice.customer.name}</TableCell>
                     <TableCell align="right">{invoice.totalAmount.toFixed(2)}</TableCell>
                     <TableCell align="center">
-                      <IconButton
+                      <StyledButton
                         onClick={() => handleDownloadPDF(invoice)}
-                        color="primary"
-                        title="Stiahnuť PDF"
+                        variant="contained"
+                        disabled={loading}
+                        sx={{ width: 'auto' }}
                       >
-                        <DownloadIcon />
-                      </IconButton>
+                        {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Stiahnuť faktúru'}
+                      </StyledButton>
                     </TableCell>
                   </TableRow>
                 ))}

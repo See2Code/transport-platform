@@ -79,13 +79,15 @@ body[data-theme="light"] .MuiPaper-root {
 }
 
 .MuiButton-containedPrimary {
-  background: var(--gradient-green) !important;
+  background: var(--gradient-orange) !important;
   box-shadow: var(--shadow-sm) !important;
+  color: white !important;
 }
 
 .MuiButton-containedSecondary {
   background: var(--gradient-orange) !important;
   box-shadow: var(--shadow-sm) !important;
+  color: white !important;
 }
 
 .MuiButton-root:hover {

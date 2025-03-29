@@ -402,11 +402,9 @@ const MobileActions = styled(Box)({
 });
 
 const ActionButton = styled(IconButton)({
-  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  color: '#ffffff',
   padding: '8px',
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 159, 67, 0.1)'
   }
 });
 
@@ -597,6 +595,11 @@ const Dot = styled(Box)<{ isDarkMode?: boolean }>(({ isDarkMode = true }) => ({
   },
 }));
 
+const validateEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 function Team() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 600px)');
@@ -613,6 +616,7 @@ function Team() {
   const [inviteToDelete, setInviteToDelete] = useState<DeleteableItem | null>(null);
   const [editingInvite, setEditingInvite] = useState<Invitation | null>(null);
   const [email, setEmail] = useState('');
+  const [isEmailValid, setIsEmailValid] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phonePrefix, setPhonePrefix] = useState('+421');
@@ -741,7 +745,14 @@ function Team() {
     return () => unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    setIsEmailValid(validateEmail(email));
+  }, [email]);
+
   const handleInvite = async () => {
+    if (!isEmailValid) {
+      return;
+    }
     if (!email || !role || !companyID || !firstName || !lastName || !phoneNumber) {
       setError('Prosím vyplňte všetky polia');
       return;
@@ -1464,28 +1475,9 @@ function Team() {
             <Button 
               onClick={handleInvite}
               variant="contained"
-              sx={{
-                backgroundColor: colors.accent.main,
-                color: '#ffffff',
-                fontWeight: 600,
-                padding: '8px 24px',
-                minWidth: '150px',
-                '&:hover': {
-                  backgroundColor: colors.accent.light,
-                },
-                '&.Mui-disabled': {
-                  backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                  color: 'rgba(255, 255, 255, 0.3)',
-                }
-              }}
+              disabled={loading || !isEmailValid}
             >
-              {loading ? (
-                <LoadingDots>
-                  <Dot isDarkMode={true} />
-                  <Dot isDarkMode={true} />
-                  <Dot isDarkMode={true} />
-                </LoadingDots>
-              ) : 'Pridať člena'}
+              {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Pozvať'}
             </Button>
           </DialogActions>
         </StyledDialogContent>

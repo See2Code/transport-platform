@@ -162,22 +162,10 @@ function Login() {
             
             <Grid item xs={12}>
               <Button
+                type="submit"
                 fullWidth
                 variant="contained"
-                color="primary"
-                type="submit"
-                size="large"
                 disabled={loading}
-                sx={{
-                  backgroundColor: '#ff9f43',
-                  '&:hover': {
-                    backgroundColor: '#ffbe76',
-                  },
-                  '&.Mui-disabled': {
-                    backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                    color: 'rgba(255, 255, 255, 0.3)',
-                  }
-                }}
               >
                 {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Prihlásiť sa'}
               </Button>

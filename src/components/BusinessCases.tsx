@@ -27,6 +27,7 @@ import {
   Alert,
   Snackbar,
   Card,
+  CircularProgress,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -221,12 +222,9 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
 }));
 
 const AddButton = styled(Button)({
-  color: '#ffffff',
-  textTransform: 'none',
-  padding: '12px',
-  borderRadius: '16px',
+  marginBottom: '24px',
   '&:hover': {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255, 159, 67, 0.1)'
   }
 });
 
@@ -399,6 +397,7 @@ export default function BusinessCases() {
   });
   const [selectedCountry, setSelectedCountry] = useState(euCountries[0]);
   const { isDarkMode } = useThemeMode();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -1353,7 +1352,7 @@ export default function BusinessCases() {
                 },
               }}
             >
-              {editCase ? 'Uložiť zmeny' : 'Pridať prípad'}
+              {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Uložiť'}
             </Button>
           </DialogActions>
         </StyledDialogContent>
