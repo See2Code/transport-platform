@@ -253,7 +253,7 @@ const InvoicesPage: React.FC = () => {
     taxableSupplyDate: new Date().toISOString().split('T')[0],
   });
   const [newInvoiceNotes, setNewInvoiceNotes] = useState('');
-  const [vatRate, setVatRate] = useState<number>(20);
+  const [vatRate, setVatRate] = useState<number>(23);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -472,7 +472,7 @@ const InvoicesPage: React.FC = () => {
         taxableSupplyDate: new Date().toISOString().split('T')[0],
       });
       setNewInvoiceNotes('');
-      setVatRate(20);
+      setVatRate(23);
 
       alert(`Faktúra ${newInvoiceNumber} bola úspešne vytvorená a uložená.`);
     } catch (error) {
