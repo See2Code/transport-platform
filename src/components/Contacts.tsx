@@ -36,6 +36,15 @@ import SearchField from './common/SearchField';
 import { useMediaQuery } from '@mui/material';
 import { Phone as PhoneIcon, Email as EmailIcon, Person as PersonIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
 import { useThemeMode } from '../contexts/ThemeContext';
+import {
+  PageWrapper,
+  PageHeader,
+  PageTitle,
+  AddButton,
+  SearchWrapper,
+  SearchLabel,
+  StyledCard
+} from './styled';
 
 interface Country {
   code: string;
@@ -104,88 +113,16 @@ const colors = {
   }
 };
 
-const PageWrapper = styled('div')({
-  padding: '24px',
-  position: 'relative',
-  maxWidth: '100%',
-  overflowX: 'hidden',
-  '@media (max-width: 600px)': {
-    padding: '8px',
-    paddingBottom: '80px'
-  }
-});
-
-const PageHeader = styled(Box)({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '32px',
-  position: 'relative',
-  zIndex: 1,
-  '@media (max-width: 600px)': {
-    flexDirection: 'column',
-    gap: '16px',
-    alignItems: 'flex-start',
-    padding: '16px 0'
-  }
-});
-
-const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  fontSize: '1.75rem',
-  fontWeight: 700,
-  color: isDarkMode ? '#ffffff' : '#000000',
-  position: 'relative',
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: '-8px',
-    left: 0,
-    width: '60px',
-    height: '4px',
-    backgroundColor: '#ff9f43',
-    borderRadius: '2px',
-  },
-  '@media (max-width: 600px)': {
-    fontSize: '1.5rem'
-  }
-}));
-
-const AddButton = styled(Button)({
-  backgroundColor: colors.accent.main,
-  color: '#ffffff',
-  padding: '8px 24px',
-  borderRadius: '12px',
-  fontSize: '0.95rem',
-  fontWeight: 600,
-  textTransform: 'none',
-  transition: 'all 0.2s ease-in-out',
-  boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
-  '&:hover': {
-    backgroundColor: colors.accent.light,
-    transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
-  },
-  '@media (max-width: 600px)': {
-    width: '100%',
-    justifyContent: 'center'
-  }
-});
-
-const ContactCard = styled(Paper)({
-  backgroundColor: colors.background.main,
-  backdropFilter: 'blur(20px)',
+const ContactCard = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.75)' : '#ffffff',
   borderRadius: '16px',
-  padding: '24px',
-  color: '#ffffff',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
+  padding: '16px',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  boxShadow: isDarkMode ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)'}`,
   marginBottom: '16px',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
-  }
-});
+  width: '100%'
+}));
 
 const ContactInfo = styled(Box)({
   display: 'grid',
@@ -216,24 +153,6 @@ const ContactName = styled(Typography)({
   fontSize: '1.1rem',
   fontWeight: 600,
   color: colors.accent.main,
-});
-
-const SearchWrapper = styled(Box)({
-  marginBottom: '24px',
-  position: 'relative',
-  zIndex: 1,
-  maxWidth: '600px',
-  width: '100%',
-  '@media (max-width: 600px)': {
-    maxWidth: '100%',
-  }
-});
-
-const SearchLabel = styled(Typography)({
-  color: colors.accent.main,
-  fontSize: '1rem',
-  marginBottom: '8px',
-  fontWeight: 500,
 });
 
 const MobileContactCard = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
