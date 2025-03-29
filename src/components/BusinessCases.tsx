@@ -182,12 +182,12 @@ const MobileCardActions = styled(Box)({
 
 const PageWrapper = styled('div')({
   padding: '24px',
-  position: 'relative',
-  maxWidth: '100%',
-  overflowX: 'hidden',
   '@media (max-width: 600px)': {
-    padding: '8px',
-    paddingBottom: '80px'
+    padding: '16px',
+    paddingBottom: '80px',
+    overflowX: 'hidden',
+    width: '100%',
+    maxWidth: '100vw'
   }
 });
 
@@ -195,14 +195,11 @@ const PageHeader = styled(Box)({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: '24px',
-  position: 'relative',
-  zIndex: 1,
+  marginBottom: '32px',
   '@media (max-width: 600px)': {
     flexDirection: 'column',
-    gap: '8px',
     alignItems: 'flex-start',
-    padding: '8px 0'
+    gap: '16px'
   }
 });
 
@@ -211,7 +208,6 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
   fontWeight: 700,
   color: isDarkMode ? '#ffffff' : '#000000',
   position: 'relative',
-  marginBottom: '8px',
   '&::after': {
     content: '""',
     position: 'absolute',
@@ -219,7 +215,7 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
     left: 0,
     width: '60px',
     height: '4px',
-    backgroundColor: colors.accent.main,
+    backgroundColor: '#ff9f43',
     borderRadius: '2px',
   }
 }));

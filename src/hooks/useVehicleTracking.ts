@@ -4,6 +4,7 @@ import { database } from '../firebase';
 
 export interface Vehicle {
     id: string;
+    vehicleId: string;
     driverName: string;
     location: {
         latitude: number;
@@ -73,6 +74,7 @@ export const useVehicleTracking = () => {
                                 console.log('Debug - Processing driver:', id, driver);
                                 return {
                                     id,
+                                    vehicleId: id,
                                     driverName: driver.location.driverName,
                                     location: {
                                         latitude: driver.location.latitude,

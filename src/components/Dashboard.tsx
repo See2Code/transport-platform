@@ -70,15 +70,13 @@ interface Reminder {
 }
 
 const PageWrapper = styled(Box)(({ theme }) => ({
-  padding: '16px 24px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '24px',
-  width: '100%',
-  height: '100%',
+  padding: '24px',
   '@media (max-width: 600px)': {
     padding: '16px',
-    gap: '16px'
+    paddingBottom: '80px',
+    overflowX: 'hidden',
+    width: '100%',
+    maxWidth: '100vw'
   }
 }));
 
@@ -86,11 +84,12 @@ const PageHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '16px 24px',
-  paddingLeft: 0,
-  background: 'transparent',
-  border: 'none',
-  marginBottom: '24px'
+  marginBottom: '32px',
+  '@media (max-width: 600px)': {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '16px'
+  }
 }));
 
 const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
@@ -98,7 +97,6 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
   fontWeight: 700,
   color: isDarkMode ? '#ffffff' : '#000000',
   position: 'relative',
-  marginTop: '8px',
   '&::after': {
     content: '""',
     position: 'absolute',

@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
+import { User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { CircularProgress, Box } from '@mui/material';
 import { doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 
-interface UserData {
+export interface UserData {
   uid: string;
   email: string;
   firstName: string;
@@ -13,6 +13,15 @@ interface UserData {
   phone: string;
   companyID: string;
   role: string;
+}
+
+export interface User {
+  uid: string;
+  email: string | null;
+  companyID: string;
+  role?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface AuthContextType {
@@ -44,9 +53,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('AuthProvider: Inicializácia onAuthStateChanged');
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user: FirebaseUser | null) => {
       console.log('AuthProvider: onAuthStateChanged callback - user:', user?.uid);
-      setCurrentUser(user);
       
       if (user) {
         try {
@@ -62,17 +70,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               role: userData.role
             });
             setUserData(userData);
+            setCurrentUser({
+              uid: user.uid,
+              email: user.email,
+              companyID: userData.companyID,
+              role: userData.role,
+              firstName: userData.firstName,
+              lastName: userData.lastName
+            });
           } else {
             console.error('AuthProvider: Dokument užívateľa neexistuje v Firestore');
             setUserData(null);
+            setCurrentUser(null);
           }
         } catch (error) {
           console.error('AuthProvider: Chyba pri získavaní údajov o užívateľovi:', error);
           setUserData(null);
+          setCurrentUser(null);
         }
       } else {
         console.log('AuthProvider: Užívateľ nie je prihlásený');
         setUserData(null);
+        setCurrentUser(null);
       }
       
       setLoading(false);

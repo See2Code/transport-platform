@@ -481,6 +481,26 @@ const MobileMenu = styled(Menu)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
   },
 }));
 
+const BottomActions = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  marginTop: '4px'
+});
+
+const ActionItem = styled(MenuItem)<{ isDarkMode?: boolean; isLogout?: boolean }>(({ isDarkMode, isLogout }) => ({
+  padding: '12px 16px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  color: isLogout ? '#d64545' : (isDarkMode ? '#ffffff' : '#000000'),
+  '&:hover': {
+    backgroundColor: isLogout 
+      ? 'rgba(214, 69, 69, 0.08)'
+      : (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+  },
+}));
+
 const MenuItemWrapper = styled(ListItemButton)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -698,51 +718,36 @@ const Navbar = () => {
                     </ListItemButton>
                   </NavListItem>
                 ))}
-                <IconButton
-                  onClick={toggleTheme}
-                  sx={{
-                    minWidth: 'auto',
-                    padding: '6px',
-                    borderRadius: '8px',
-                    color: isDarkMode ? '#ffffff' : '#000000',
-                    '&:hover': {
-                      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                    },
-                  }}
-                >
-                  {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-                </IconButton>
-                <Box
-                  onClick={handleLogoutClick}
-                  sx={{
-                    minWidth: 'auto',
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginLeft: 1,
-                    '&:hover': {
-                      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ 
-                    minWidth: '32px', 
-                    color: isDarkMode ? '#ffffff' : '#000000',
-                  }}>
-                    <LogoutIcon />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Odhlásiť sa"
+                <Box sx={{ 
+                  display: 'flex',
+                  gap: 1,
+                  alignItems: 'center',
+                  marginLeft: 'auto'
+                }}>
+                  <IconButton
+                    onClick={handleLogoutClick}
                     sx={{
-                      margin: 0,
-                      '& .MuiTypography-root': {
-                        fontSize: '0.9rem',
-                        color: isDarkMode ? '#ffffff' : '#000000',
+                      padding: '8px',
+                      color: '#d64545',
+                      '&:hover': {
+                        backgroundColor: 'rgba(214, 69, 69, 0.08)',
                       },
-                    }} 
-                  />
+                    }}
+                  >
+                    <LogoutIcon sx={{ fontSize: '20px' }} />
+                  </IconButton>
+                  <IconButton
+                    onClick={toggleTheme}
+                    sx={{
+                      padding: '8px',
+                      color: isDarkMode ? '#ffffff' : '#000000',
+                      '&:hover': {
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                      },
+                    }}
+                  >
+                    {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+                  </IconButton>
                 </Box>
               </Box>
             </>
@@ -827,70 +832,55 @@ const Navbar = () => {
           </MenuItem>
         ))}
         <Divider sx={{ margin: '8px 0', backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }} />
-        <MenuItem
-          onClick={toggleTheme}
-          sx={{
-            padding: '12px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            color: isDarkMode ? '#ffffff' : '#000000',
-            '&:hover': {
-              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-            },
-          }}
-        >
-          <ListItemIcon sx={{ 
-            minWidth: 'auto',
-            color: 'inherit',
-            '& .MuiSvgIcon-root': {
-              fontSize: '1.25rem',
-            },
-          }}>
-            {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-          </ListItemIcon>
-          <ListItemText 
-            primary={isDarkMode ? "Svetlý režim" : "Tmavý režim"}
-            sx={{
-              '& .MuiTypography-root': {
-                fontSize: '0.95rem',
-                fontWeight: 500,
+        <BottomActions>
+          <ActionItem
+            onClick={toggleTheme}
+            isDarkMode={isDarkMode}
+          >
+            <ListItemIcon sx={{ 
+              minWidth: 'auto',
+              color: 'inherit',
+              '& .MuiSvgIcon-root': {
+                fontSize: '20px',
               },
-            }}
-          />
-        </MenuItem>
-        <MenuItem
-          onClick={handleLogoutClick}
-          sx={{
-            padding: '12px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            color: '#d64545',
-            '&:hover': {
-              backgroundColor: 'rgba(214, 69, 69, 0.08)',
-            },
-          }}
-        >
-          <ListItemIcon sx={{ 
-            minWidth: 'auto',
-            color: 'inherit',
-            '& .MuiSvgIcon-root': {
-              fontSize: '1.25rem',
-            },
-          }}>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText 
-            primary="Odhlásiť sa"
-            sx={{
-              '& .MuiTypography-root': {
-                fontSize: '0.95rem',
-                fontWeight: 500,
+            }}>
+              {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+            </ListItemIcon>
+            <ListItemText 
+              primary={isDarkMode ? "Svetlý režim" : "Tmavý režim"}
+              sx={{
+                '& .MuiTypography-root': {
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                },
+              }}
+            />
+          </ActionItem>
+          <ActionItem
+            onClick={handleLogoutClick}
+            isDarkMode={isDarkMode}
+            isLogout
+          >
+            <ListItemIcon sx={{ 
+              minWidth: 'auto',
+              color: 'inherit',
+              '& .MuiSvgIcon-root': {
+                fontSize: '20px',
               },
-            }}
-          />
-        </MenuItem>
+            }}>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary="Odhlásiť sa"
+              sx={{
+                '& .MuiTypography-root': {
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                },
+              }}
+            />
+          </ActionItem>
+        </BottomActions>
       </MobileMenu>
 
       <StyledDialog

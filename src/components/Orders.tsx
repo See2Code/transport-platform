@@ -61,6 +61,69 @@ const StyledLegend = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
+const PageWrapper = styled('div')({
+  padding: '24px',
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    paddingBottom: '80px',
+    overflowX: 'hidden',
+    width: '100%',
+    maxWidth: '100vw'
+  }
+});
+
+const PageHeader = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '32px',
+  '@media (max-width: 600px)': {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '16px'
+  }
+});
+
+const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  fontSize: '1.75rem',
+  fontWeight: 700,
+  color: isDarkMode ? '#ffffff' : '#000000',
+  position: 'relative',
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '-8px',
+    left: 0,
+    width: '60px',
+    height: '4px',
+    backgroundColor: '#ff9f43',
+    borderRadius: '2px',
+  }
+}));
+
+const PageDescription = styled(Typography)(({ theme }) => ({
+  fontSize: '14px',
+  color: theme.palette.text.secondary,
+  marginTop: '24px',
+  marginBottom: '24px',
+}));
+
+const StyledDivider = styled(Divider)(({ theme }) => ({
+  width: '80px',
+  height: '4px',
+  margin: '8px 0 24px',
+  background: theme.palette.warning.main,
+  borderRadius: '2px',
+}));
+
+const HeaderContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  marginBottom: theme.spacing(4),
+  marginLeft: theme.spacing(2),
+}));
+
 const OrdersForm: React.FC = () => {
   const theme = useTheme();
   const { isDarkMode } = useThemeMode();
@@ -146,338 +209,345 @@ const OrdersForm: React.FC = () => {
   };
 
   return (
-    <StyledPaper>
-      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
-        Nová Objednávka Prepravy
-      </Typography>
-      
-      <form onSubmit={handleSubmit}>
-        <StyledFieldset>
-          <StyledLegend>Klient (Objednávateľ)</StyledLegend>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Názov firmy klienta"
-                name="clientCompany"
-                value={formData.clientCompany}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Referencia klienta"
-                name="clientReference"
-                value={formData.clientReference}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-          </Grid>
-        </StyledFieldset>
+    <PageWrapper>
+      <PageHeader>
+        <PageTitle isDarkMode={isDarkMode}>
+          Nová Objednávka Prepravy
+        </PageTitle>
+      </PageHeader>
+      <PageDescription>
+        Vytvorte a spravujte objednávky prepravy pre vašich klientov
+      </PageDescription>
 
-        <StyledFieldset>
-          <StyledLegend>Miesto a Čas Nakládky</StyledLegend>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Ulica a číslo"
-                name="loadingPlace_street"
-                value={formData.loadingPlace_street}
-                onChange={handleChange}
-                variant="outlined"
-              />
+      <StyledPaper>
+        <form onSubmit={handleSubmit}>
+          <StyledFieldset>
+            <StyledLegend>Klient (Objednávateľ)</StyledLegend>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Názov firmy klienta"
+                  name="clientCompany"
+                  value={formData.clientCompany}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Referencia klienta"
+                  name="clientReference"
+                  value={formData.clientReference}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                required
-                label="Mesto"
-                name="loadingPlace_city"
-                value={formData.loadingPlace_city}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                required
-                label="PSČ"
-                name="loadingPlace_zip"
-                value={formData.loadingPlace_zip}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                required
-                label="Krajina"
-                name="loadingPlace_country"
-                value={formData.loadingPlace_country}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                type="datetime-local"
-                label="Dátum a čas nakládky"
-                name="loadingDateTime"
-                value={formData.loadingDateTime}
-                onChange={handleChange}
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Kontaktná osoba (nakládka)"
-                name="loadingContactPerson"
-                value={formData.loadingContactPerson}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-          </Grid>
-        </StyledFieldset>
+          </StyledFieldset>
 
-        <StyledFieldset>
-          <StyledLegend>Miesto a Čas Vykládky</StyledLegend>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Ulica a číslo"
-                name="unloadingPlace_street"
-                value={formData.unloadingPlace_street}
-                onChange={handleChange}
-                variant="outlined"
-              />
+          <StyledFieldset>
+            <StyledLegend>Miesto a Čas Nakládky</StyledLegend>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Ulica a číslo"
+                  name="loadingPlace_street"
+                  value={formData.loadingPlace_street}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Mesto"
+                  name="loadingPlace_city"
+                  value={formData.loadingPlace_city}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="PSČ"
+                  name="loadingPlace_zip"
+                  value={formData.loadingPlace_zip}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Krajina"
+                  name="loadingPlace_country"
+                  value={formData.loadingPlace_country}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  type="datetime-local"
+                  label="Dátum a čas nakládky"
+                  name="loadingDateTime"
+                  value={formData.loadingDateTime}
+                  onChange={handleChange}
+                  variant="outlined"
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Kontaktná osoba (nakládka)"
+                  name="loadingContactPerson"
+                  value={formData.loadingContactPerson}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                required
-                label="Mesto"
-                name="unloadingPlace_city"
-                value={formData.unloadingPlace_city}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                required
-                label="PSČ"
-                name="unloadingPlace_zip"
-                value={formData.unloadingPlace_zip}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                required
-                label="Krajina"
-                name="unloadingPlace_country"
-                value={formData.unloadingPlace_country}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                type="datetime-local"
-                label="Dátum a čas vykládky"
-                name="unloadingDateTime"
-                value={formData.unloadingDateTime}
-                onChange={handleChange}
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Kontaktná osoba (vykládka)"
-                name="unloadingContactPerson"
-                value={formData.unloadingContactPerson}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-          </Grid>
-        </StyledFieldset>
+          </StyledFieldset>
 
-        <StyledFieldset>
-          <StyledLegend>Popis Tovaru</StyledLegend>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                multiline
-                rows={3}
-                label="Popis tovaru"
-                name="goodsDescription"
-                value={formData.goodsDescription}
-                onChange={handleChange}
-                variant="outlined"
-              />
+          <StyledFieldset>
+            <StyledLegend>Miesto a Čas Vykládky</StyledLegend>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Ulica a číslo"
+                  name="unloadingPlace_street"
+                  value={formData.unloadingPlace_street}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Mesto"
+                  name="unloadingPlace_city"
+                  value={formData.unloadingPlace_city}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="PSČ"
+                  name="unloadingPlace_zip"
+                  value={formData.unloadingPlace_zip}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Krajina"
+                  name="unloadingPlace_country"
+                  value={formData.unloadingPlace_country}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  type="datetime-local"
+                  label="Dátum a čas vykládky"
+                  name="unloadingDateTime"
+                  value={formData.unloadingDateTime}
+                  onChange={handleChange}
+                  variant="outlined"
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Kontaktná osoba (vykládka)"
+                  name="unloadingContactPerson"
+                  value={formData.unloadingContactPerson}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Množstvo (napr. počet paliet)"
-                name="quantity"
-                value={formData.quantity}
-                onChange={handleChange}
-                variant="outlined"
-              />
+          </StyledFieldset>
+
+          <StyledFieldset>
+            <StyledLegend>Popis Tovaru</StyledLegend>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  multiline
+                  rows={3}
+                  label="Popis tovaru"
+                  name="goodsDescription"
+                  value={formData.goodsDescription}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Množstvo (napr. počet paliet)"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  required
+                  type="number"
+                  label="Váha (kg)"
+                  name="weightKg"
+                  value={formData.weightKg}
+                  onChange={handleChange}
+                  variant="outlined"
+                  inputProps={{ min: 0, step: "any" }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Dĺžka"
+                    name="dimensionsL"
+                    value={formData.dimensionsL}
+                    onChange={handleChange}
+                    variant="outlined"
+                    inputProps={{ min: 0 }}
+                  />
+                  <Typography sx={{ color: 'text.secondary' }}>x</Typography>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Šírka"
+                    name="dimensionsW"
+                    value={formData.dimensionsW}
+                    onChange={handleChange}
+                    variant="outlined"
+                    inputProps={{ min: 0 }}
+                  />
+                  <Typography sx={{ color: 'text.secondary' }}>x</Typography>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Výška"
+                    name="dimensionsH"
+                    value={formData.dimensionsH}
+                    onChange={handleChange}
+                    variant="outlined"
+                    inputProps={{ min: 0 }}
+                  />
+                </Box>
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required
-                type="number"
-                label="Váha (kg)"
-                name="weightKg"
-                value={formData.weightKg}
-                onChange={handleChange}
-                variant="outlined"
-                inputProps={{ min: 0, step: "any" }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          </StyledFieldset>
+
+          <StyledFieldset>
+            <StyledLegend>Dopravca (Vykonávateľ)</StyledLegend>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Názov firmy dopravcu"
+                  name="carrierCompany"
+                  value={formData.carrierCompany}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Kontakt na dopravcu"
+                  name="carrierContact"
+                  value={formData.carrierContact}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="EČV Vozidla"
+                  name="carrierVehicleReg"
+                  value={formData.carrierVehicleReg}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   type="number"
-                  label="Dĺžka"
-                  name="dimensionsL"
-                  value={formData.dimensionsL}
+                  label="Cena za prepravu (€)"
+                  name="carrierPrice"
+                  value={formData.carrierPrice}
                   onChange={handleChange}
                   variant="outlined"
-                  inputProps={{ min: 0 }}
+                  inputProps={{ min: 0, step: "any" }}
                 />
-                <Typography sx={{ color: 'text.secondary' }}>x</Typography>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Šírka"
-                  name="dimensionsW"
-                  value={formData.dimensionsW}
-                  onChange={handleChange}
-                  variant="outlined"
-                  inputProps={{ min: 0 }}
-                />
-                <Typography sx={{ color: 'text.secondary' }}>x</Typography>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Výška"
-                  name="dimensionsH"
-                  value={formData.dimensionsH}
-                  onChange={handleChange}
-                  variant="outlined"
-                  inputProps={{ min: 0 }}
-                />
-              </Box>
+              </Grid>
             </Grid>
-          </Grid>
-        </StyledFieldset>
+          </StyledFieldset>
 
-        <StyledFieldset>
-          <StyledLegend>Dopravca (Vykonávateľ)</StyledLegend>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Názov firmy dopravcu"
-                name="carrierCompany"
-                value={formData.carrierCompany}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Kontakt na dopravcu"
-                name="carrierContact"
-                value={formData.carrierContact}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="EČV Vozidla"
-                name="carrierVehicleReg"
-                value={formData.carrierVehicleReg}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Cena za prepravu (€)"
-                name="carrierPrice"
-                value={formData.carrierPrice}
-                onChange={handleChange}
-                variant="outlined"
-                inputProps={{ min: 0, step: "any" }}
-              />
-            </Grid>
-          </Grid>
-        </StyledFieldset>
-
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          size="large"
-          fullWidth
-          sx={{
-            mt: 4,
-            py: 1.5,
-            borderRadius: 2,
-            textTransform: 'none',
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            boxShadow: '0 4px 20px rgba(255, 159, 67, 0.3)',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 6px 24px rgba(255, 159, 67, 0.4)',
-            },
-            '&:active': {
-              transform: 'translateY(0)',
-            },
-          }}
-        >
-          Vytvoriť Objednávku
-        </Button>
-      </form>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            size="large"
+            fullWidth
+            sx={{
+              mt: 4,
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              boxShadow: '0 4px 20px rgba(255, 159, 67, 0.3)',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 24px rgba(255, 159, 67, 0.4)',
+              },
+              '&:active': {
+                transform: 'translateY(0)',
+              },
+            }}
+          >
+            Vytvoriť Objednávku
+          </Button>
+        </form>
+      </StyledPaper>
 
       <Divider sx={{ my: 4 }} />
 
@@ -517,7 +587,7 @@ const OrdersForm: React.FC = () => {
           </Table>
         </TableContainer>
       )}
-    </StyledPaper>
+    </PageWrapper>
   );
 };
 

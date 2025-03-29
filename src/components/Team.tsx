@@ -130,6 +130,10 @@ const PageWrapper = styled('div')({
   padding: '24px',
   '@media (max-width: 600px)': {
     padding: '16px',
+    paddingBottom: '80px',
+    overflowX: 'hidden',
+    width: '100%',
+    maxWidth: '100vw'
   }
 });
 
@@ -138,11 +142,10 @@ const PageHeader = styled(Box)({
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: '32px',
-  flexWrap: 'wrap',
-  gap: '16px',
   '@media (max-width: 600px)': {
     flexDirection: 'column',
-    alignItems: 'stretch',
+    alignItems: 'flex-start',
+    gap: '16px'
   }
 });
 
@@ -160,9 +163,6 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
     height: '4px',
     backgroundColor: '#ff9f43',
     borderRadius: '2px',
-  },
-  '@media (max-width: 600px)': {
-    fontSize: '1.5rem',
   }
 }));
 

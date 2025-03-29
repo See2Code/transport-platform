@@ -92,6 +92,14 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Pravidlá pre faktúry
+    match /invoices/{invoiceId} {
+      allow read: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow create: if isAuthenticated() && isInSameCompany(request.resource.data.companyID);
+      allow update: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+      allow delete: if isAuthenticated() && isInSameCompany(resource.data.companyID);
+    }
+
     // Pravidlá pre ostatné kolekcie
     match /{document=**} {
       allow read: if isAuthenticated();

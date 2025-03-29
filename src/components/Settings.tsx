@@ -140,21 +140,24 @@ const PageWrapper = styled('div')({
   padding: '24px',
   '@media (max-width: 600px)': {
     padding: '16px',
+    paddingBottom: '80px',
+    overflowX: 'hidden',
+    width: '100%',
+    maxWidth: '100vw'
   }
-}) as unknown as React.FC<React.HTMLAttributes<HTMLDivElement>>;
+});
 
 const PageHeader = styled(Box)({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: '32px',
-  flexWrap: 'wrap',
-  gap: '16px',
   '@media (max-width: 600px)': {
     flexDirection: 'column',
-    alignItems: 'stretch',
+    alignItems: 'flex-start',
+    gap: '16px'
   }
-}) as unknown as React.FC<React.HTMLAttributes<HTMLDivElement>>;
+});
 
 const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   fontSize: '1.75rem',
@@ -168,13 +171,10 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
     left: 0,
     width: '60px',
     height: '4px',
-    backgroundColor: colors.accent.main,
+    backgroundColor: '#ff9f43',
     borderRadius: '2px',
-  },
-  '@media (max-width: 600px)': {
-    fontSize: '1.5rem',
   }
-})) as unknown as React.FC<TypographyProps & { isDarkMode: boolean }>;
+}));
 
 const SettingsCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   backgroundColor: isDarkMode ? colors.background.main : '#ffffff',

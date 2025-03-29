@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 // Položka na faktúre
 export interface InvoiceItem {
   id: number;
@@ -10,6 +12,7 @@ export interface InvoiceItem {
 // Štruktúra celej faktúry
 export interface Invoice {
   id: string;
+  companyID: string;
   invoiceNumber: string;
   issueDate: string;
   dueDate: string;
@@ -46,6 +49,8 @@ export interface Invoice {
   totalAmount: number;
   variableSymbol: string;
   notes?: string;
+  createdAt: Timestamp;
+  createdBy: string;
 }
 
 // Preddefinované údaje dodávateľa
