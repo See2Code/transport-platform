@@ -45,44 +45,13 @@ import {
   SearchLabel,
   StyledCard
 } from './styled';
+import { Contact, User, ContactFormData, SnackbarState } from '../types/contact';
+import { countries } from '../constants/countries';
 
 interface Country {
   code: string;
   name: string;
   prefix: string;
-}
-
-const countries: Country[] = [
-  { code: 'sk', name: 'Slovensko', prefix: '+421' },
-  { code: 'cz', name: 'Česko', prefix: '+420' },
-  { code: 'hu', name: 'Maďarsko', prefix: '+36' },
-  { code: 'pl', name: 'Poľsko', prefix: '+48' },
-  { code: 'at', name: 'Rakúsko', prefix: '+43' },
-  { code: 'de', name: 'Nemecko', prefix: '+49' },
-];
-
-interface Contact {
-  id: string;
-  firstName: string;
-  lastName: string;
-  company: string;
-  phonePrefix: string;
-  phoneNumber: string;
-  countryCode: string;
-  email: string;
-  notes?: string;
-  createdAt: Timestamp;
-  createdBy?: {
-    firstName: string;
-    lastName: string;
-  };
-}
-
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
 }
 
 const colors = {
@@ -281,12 +250,12 @@ const Contacts = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [open, setOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<Omit<Contact, 'id'>>({
+  const [formData, setFormData] = useState<ContactFormData>({
     firstName: '',
     lastName: '',
     company: '',
