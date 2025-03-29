@@ -371,224 +371,141 @@ export default function Dashboard() {
     setActiveIndex(index);
   };
 
-  // Pridaná funkcia pre aktualizáciu záznamov
-  const updateMissingCompanyIDs = async () => {
-    if (!userData?.companyID) return;
+  const fetchDashboardData = async () => {
+    console.log('Dashboard: Začínam načítavanie dát');
+    console.log('Dashboard: userData:', userData);
+
+    if (!userData) {
+      console.log('Dashboard: userData je null - užívateľ nie je prihlásený alebo údaje neboli načítané');
+      return;
+    }
+
+    if (!userData.companyID) {
+      console.log('Dashboard: companyID nie je nastavené - užívateľ nemá priradenú firmu');
+      return;
+    }
+
+    console.log('Dashboard: Načítavam dáta pre companyID:', userData.companyID);
 
     try {
-      const batch = writeBatch(db);
-      let updatedCount = 0;
-
-      // Update business cases
-      const allBusinessCasesSnapshot = await getDocs(collection(db, 'businessCases'));
-      console.log('Dashboard Debug: Business Cases s nesprávnym companyID:');
-      allBusinessCasesSnapshot.docs.forEach(doc => {
+      // Fetch business cases
+      const businessCasesQuery = query(
+        collection(db, 'businessCases'),
+        where('companyID', '==', userData.companyID),
+        orderBy('createdAt', 'desc')
+      );
+      console.log('Dashboard: Business Cases Query:', businessCasesQuery);
+      const businessCasesSnapshot = await getDocs(businessCasesQuery);
+      console.log('Dashboard: Business Cases Raw Data:', businessCasesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      console.log('Dashboard: Počet nájdených business cases:', businessCasesSnapshot.size);
+      
+      const businessCases = businessCasesSnapshot.docs.map(doc => {
         const data = doc.data();
-        if (data.companyID && data.companyID !== userData.companyID) {
-          console.log('Business Case:', {
-            id: doc.id,
-            companyName: data.companyName,
-            currentCompanyID: data.companyID,
-            expectedCompanyID: userData.companyID
-          });
-        }
-        if (!data.companyID) {
-          batch.update(doc.ref, { companyID: userData.companyID });
-          updatedCount++;
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt : new Timestamp(data.createdAt.seconds, data.createdAt.nanoseconds)
+        };
+      }) as BusinessCase[];
+
+      // Fetch contacts
+      const contactsQuery = query(
+        collection(db, 'contacts'),
+        where('companyID', '==', userData.companyID),
+        orderBy('createdAt', 'desc')
+      );
+      console.log('Dashboard: Contacts Query:', contactsQuery);
+      const contactsSnapshot = await getDocs(contactsQuery);
+      console.log('Dashboard: Contacts Raw Data:', contactsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      console.log('Dashboard: Počet nájdených kontaktov:', contactsSnapshot.size);
+
+      // Fetch reminders
+      const now = Timestamp.now();
+      const remindersQuery = query(
+        collection(db, 'reminders'),
+        where('companyID', '==', userData.companyID),
+        where('reminderDateTime', '>=', now),
+        where('sent', '==', false)
+      );
+      console.log('Dashboard: Reminders Query:', remindersQuery);
+      const remindersSnapshot = await getDocs(remindersQuery);
+      console.log('Dashboard: Reminders Raw Data:', remindersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      console.log('Dashboard: Počet nájdených pripomienok:', remindersSnapshot.size);
+
+      // Fetch team members
+      const usersQuery = query(
+        collection(db, 'users'),
+        where('companyID', '==', userData.companyID)
+      );
+      console.log('Dashboard: Users Query:', usersQuery);
+      const usersSnapshot = await getDocs(usersQuery);
+      console.log('Dashboard: Users Raw Data:', usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      console.log('Dashboard: Počet nájdených členov tímu:', usersSnapshot.size);
+
+      // Calculate status distribution
+      const statusCounts: { [key: string]: number } = {};
+      businessCases.forEach(bc => {
+        if (bc.status) {
+          statusCounts[bc.status] = (statusCounts[bc.status] || 0) + 1;
         }
       });
 
-      // Update contacts
-      const allContactsSnapshot = await getDocs(collection(db, 'contacts'));
-      console.log('Dashboard Debug: Kontakty s nesprávnym companyID:');
-      allContactsSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        if (data.companyID && data.companyID !== userData.companyID) {
-          console.log('Contact:', {
-            id: doc.id,
-            name: `${data.firstName} ${data.lastName}`,
-            currentCompanyID: data.companyID,
-            expectedCompanyID: userData.companyID
-          });
-        }
-        if (!data.companyID) {
-          batch.update(doc.ref, { companyID: userData.companyID });
-          updatedCount++;
-        }
+      const total = businessCases.length;
+      const statusDistribution = Object.entries(statusCounts)
+        .map(([name, value], index) => ({
+          name: name || 'Neznámy',
+          value,
+          fill: COLORS[index % COLORS.length],
+          total
+        }))
+        .sort((a, b) => b.value - a.value);
+
+      // Sort business cases by creation date
+      const sortedBusinessCases = businessCases.sort((a, b) => {
+        const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toDate() : new Date(a.createdAt);
+        const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toDate() : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
       });
 
-      if (updatedCount > 0) {
-        await batch.commit();
-        console.log(`Dashboard: Aktualizovaných ${updatedCount} záznamov s chýbajúcim companyID`);
-      }
+      // Sort reminders by date
+      const reminders = remindersSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          reminderDateTime: data.reminderDateTime instanceof Timestamp ? 
+            data.reminderDateTime : 
+            new Timestamp(data.reminderDateTime.seconds, data.reminderDateTime.nanoseconds)
+        };
+      }) as Reminder[];
+
+      const sortedReminders = reminders.sort((a, b) => {
+        const dateA = a.reminderDateTime instanceof Timestamp ? a.reminderDateTime.toDate() : new Date(a.reminderDateTime);
+        const dateB = b.reminderDateTime instanceof Timestamp ? b.reminderDateTime.toDate() : new Date(b.reminderDateTime);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      console.log('Dashboard: Aktualizujem stav s novými dátami');
+      setStats({
+        totalBusinessCases: businessCasesSnapshot.size,
+        totalContacts: contactsSnapshot.size,
+        totalReminders: remindersSnapshot.size,
+        totalTeamMembers: usersSnapshot.size,
+        statusDistribution,
+        recentBusinessCases: sortedBusinessCases.slice(0, 5),
+        upcomingReminders: sortedReminders.slice(0, 5),
+      });
+
     } catch (error) {
-      console.error('Dashboard: Chyba pri aktualizácii záznamov:', error);
+      console.error('Dashboard: Chyba pri načítaní dát:', error);
+      if (error instanceof Error) {
+        console.error('Dashboard: Detail chyby:', error.message);
+        console.error('Dashboard: Stack trace:', error.stack);
+      }
     }
   };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      console.log('Dashboard: Začínam načítavanie dát');
-      console.log('Dashboard: userData:', userData);
-
-      if (!userData) {
-        console.log('Dashboard: userData je null - užívateľ nie je prihlásený alebo údaje neboli načítané');
-        return;
-      }
-
-      if (!userData.companyID) {
-        console.log('Dashboard: companyID nie je nastavené - užívateľ nemá priradenú firmu');
-        return;
-      }
-
-      // Najprv aktualizujeme záznamy s chýbajúcim companyID
-      await updateMissingCompanyIDs();
-
-      console.log('Dashboard: Načítavam dáta pre companyID:', userData.companyID);
-
-      try {
-        // Fetch business cases
-        const businessCasesQuery = query(
-          collection(db, 'businessCases'),
-          where('companyID', '==', userData.companyID)
-        );
-        console.log('Dashboard: Business Cases Query:', businessCasesQuery);
-        const businessCasesSnapshot = await getDocs(businessCasesQuery);
-        console.log('Dashboard: Business Cases Raw Data:', businessCasesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        console.log('Dashboard: Počet nájdených business cases:', businessCasesSnapshot.size);
-
-        // Debug: Check all business cases
-        const allBusinessCasesQuery = query(collection(db, 'businessCases'));
-        const allBusinessCasesSnapshot = await getDocs(allBusinessCasesQuery);
-        const allBusinessCases = allBusinessCasesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          companyName: doc.data().companyName,
-          companyID: doc.data().companyID,
-          status: doc.data().status,
-          createdAt: doc.data().createdAt
-        }));
-        console.log('Dashboard Debug: Detaily všetkých business cases:', allBusinessCases);
-        console.log('Dashboard Debug: Očakávané companyID:', userData.companyID);
-        console.log('Dashboard Debug: Nájdené companyID hodnoty:', Array.from(new Set(allBusinessCases.map(bc => bc.companyID))));
-        
-        const businessCases = businessCasesSnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt instanceof Timestamp ? data.createdAt : new Timestamp(data.createdAt.seconds, data.createdAt.nanoseconds)
-          };
-        }) as BusinessCase[];
-
-        // Fetch contacts
-        const contactsQuery = query(
-          collection(db, 'contacts'),
-          where('companyID', '==', userData.companyID)
-        );
-        console.log('Dashboard: Contacts Query:', contactsQuery);
-        const contactsSnapshot = await getDocs(contactsQuery);
-        console.log('Dashboard: Contacts Raw Data:', contactsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        console.log('Dashboard: Počet nájdených kontaktov:', contactsSnapshot.size);
-
-        // Debug: Check all contacts
-        const allContactsQuery = query(collection(db, 'contacts'));
-        const allContactsSnapshot = await getDocs(allContactsQuery);
-        const allContacts = allContactsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          name: `${doc.data().firstName} ${doc.data().lastName}`,
-          companyID: doc.data().companyID,
-          email: doc.data().email
-        }));
-        console.log('Dashboard Debug: Detaily všetkých kontaktov:', allContacts);
-        console.log('Dashboard Debug: Očakávané companyID:', userData.companyID);
-        console.log('Dashboard Debug: Nájdené companyID hodnoty v kontaktoch:', Array.from(new Set(allContacts.map(c => c.companyID))));
-
-        // Fetch reminders
-        const now = Timestamp.now();
-        const remindersQuery = query(
-          collection(db, 'reminders'),
-          where('companyID', '==', userData.companyID),
-          where('reminderDateTime', '>=', now),
-          where('sent', '==', false)
-        );
-        console.log('Dashboard: Reminders Query:', remindersQuery);
-        const remindersSnapshot = await getDocs(remindersQuery);
-        console.log('Dashboard: Reminders Raw Data:', remindersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        console.log('Dashboard: Počet nájdených pripomienok:', remindersSnapshot.size);
-
-        // Fetch team members
-        const usersQuery = query(
-          collection(db, 'users'),
-          where('companyID', '==', userData.companyID)
-        );
-        console.log('Dashboard: Users Query:', usersQuery);
-        const usersSnapshot = await getDocs(usersQuery);
-        console.log('Dashboard: Users Raw Data:', usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        console.log('Dashboard: Počet nájdených členov tímu:', usersSnapshot.size);
-
-        // Calculate status distribution
-        const statusCounts: { [key: string]: number } = {};
-        businessCases.forEach(bc => {
-          if (bc.status) {
-            statusCounts[bc.status] = (statusCounts[bc.status] || 0) + 1;
-          }
-        });
-
-        const total = businessCases.length;
-        const statusDistribution = Object.entries(statusCounts)
-          .map(([name, value], index) => ({
-            name: name || 'Neznámy',
-            value,
-            fill: COLORS[index % COLORS.length],
-            total
-          }))
-          .sort((a, b) => b.value - a.value);
-
-        // Sort business cases by creation date
-        const sortedBusinessCases = businessCases.sort((a, b) => {
-          const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toDate() : new Date(a.createdAt);
-          const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toDate() : new Date(b.createdAt);
-          return dateB.getTime() - dateA.getTime();
-        });
-
-        // Sort reminders by date
-        const reminders = remindersSnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            reminderDateTime: data.reminderDateTime instanceof Timestamp ? 
-              data.reminderDateTime : 
-              new Timestamp(data.reminderDateTime.seconds, data.reminderDateTime.nanoseconds)
-          };
-        }) as Reminder[];
-
-        const sortedReminders = reminders.sort((a, b) => {
-          const dateA = a.reminderDateTime instanceof Timestamp ? a.reminderDateTime.toDate() : new Date(a.reminderDateTime);
-          const dateB = b.reminderDateTime instanceof Timestamp ? b.reminderDateTime.toDate() : new Date(b.reminderDateTime);
-          return dateA.getTime() - dateB.getTime();
-        });
-
-        console.log('Dashboard: Aktualizujem stav s novými dátami');
-        setStats({
-          totalBusinessCases: businessCasesSnapshot.size,
-          totalContacts: contactsSnapshot.size,
-          totalReminders: remindersSnapshot.size,
-          totalTeamMembers: usersSnapshot.size,
-          statusDistribution,
-          recentBusinessCases: sortedBusinessCases.slice(0, 5),
-          upcomingReminders: sortedReminders.slice(0, 5),
-        });
-
-      } catch (error) {
-        console.error('Dashboard: Chyba pri načítaní dát:', error);
-        if (error instanceof Error) {
-          console.error('Dashboard: Detail chyby:', error.message);
-          console.error('Dashboard: Stack trace:', error.stack);
-        }
-      }
-    };
-
     fetchDashboardData();
   }, [userData]);
 

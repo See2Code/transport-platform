@@ -181,6 +181,10 @@ const NavListItem = styled(ListItem)<{ isDarkMode?: boolean }>(({ isDarkMode = t
     transition: 'all 0.3s ease',
     color: isDarkMode ? colors.text.primary : '#000000',
   },
+  '& .MuiListItemIcon-root': {
+    minWidth: 48,
+    color: 'inherit',
+  },
   '& .MuiListItemText-root': {
     opacity: 0,
     position: 'absolute',
@@ -244,6 +248,7 @@ interface MenuItem {
   path?: string;
   onClick?: () => void;
   hidden?: boolean;
+  description?: string;
 }
 
 const MinimizedMenuItem = styled(MenuItem)(({ theme }) => ({
@@ -308,15 +313,30 @@ const StyledMenuList = styled(List)({
 });
 
 const StyledMenuItem = styled(MenuItem)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
-  padding: '12px 24px',
-  gap: '12px',
-  color: isDarkMode ? colors.text.primary : '#000000',
+  padding: '12px 16px',
+  margin: '4px 8px',
+  borderRadius: '12px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '16px',
+  color: isDarkMode ? '#ffffff' : '#000000',
+  transition: 'all 0.2s ease-in-out',
   '&:hover': {
-    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+    transform: 'translateX(4px)',
   },
   '& .MuiListItemIcon-root': {
+    minWidth: '40px',
     color: 'inherit',
-    minWidth: '24px',
+    '& .MuiSvgIcon-root': {
+      fontSize: '1.25rem',
+    },
+  },
+  '& .MuiListItemText-root': {
+    '& .MuiTypography-root': {
+      fontSize: '1rem',
+      fontWeight: 500,
+    },
   },
 }));
 
@@ -446,31 +466,50 @@ const MenuButton = styled(IconButton)({
 
 const MobileMenu = styled(Menu)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
   '& .MuiPaper-root': {
-    backgroundColor: isDarkMode ? colors.background.light : '#ffffff',
-    borderRadius: '12px',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+    borderRadius: '16px',
     border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
     boxShadow: isDarkMode 
-      ? '0 4px 20px rgba(0, 0, 0, 0.5)' 
-      : '0 4px 20px rgba(0, 0, 0, 0.1)',
+      ? '0 8px 32px rgba(0, 0, 0, 0.5)' 
+      : '0 8px 32px rgba(0, 0, 0, 0.2)',
     marginTop: '8px',
-    minWidth: '200px',
-    overflow: 'visible',
-    '&:before': {
-      content: '""',
-      display: 'block',
-      position: 'absolute',
-      top: 0,
-      right: 14,
-      width: 10,
-      height: 10,
-      backgroundColor: isDarkMode ? colors.background.light : '#ffffff',
-      transform: 'translateY(-50%) rotate(45deg)',
-      borderLeft: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-      borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-      zIndex: 0,
-    },
+    width: '280px',
+    maxHeight: '80vh',
+    overflow: 'auto',
+    backdropFilter: 'blur(20px)',
+    padding: '4px'
   },
 }));
+
+const MenuItemWrapper = styled(ListItemButton)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: '8px',
+  gap: '8px',
+  borderRadius: '8px',
+  width: '100%',
+  '&:hover': {
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+  },
+}));
+
+const MenuItemIcon = styled(ListItemIconStyled)({
+  minWidth: '24px',
+  width: '24px',
+  margin: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  '& .MuiSvgIcon-root': {
+    fontSize: '20px'
+  }
+});
+
+const MenuItemContent = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px'
+});
 
 const PageWrapper = styled('div')({
   display: 'flex',
@@ -487,23 +526,33 @@ const MainContent = styled('main')({
 
 const StyledListItem = styled(ListItem)<{ button?: boolean; isDarkMode?: boolean }>(({ isDarkMode = true }) => ({
   minWidth: 'auto',
-  padding: '6px 12px',
-  borderRadius: '8px',
+  padding: '12px 16px',
+  borderRadius: '12px',
+  margin: '4px 8px',
   cursor: 'pointer',
+  transition: 'all 0.2s ease-in-out',
   '&:hover': {
-    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+    transform: 'translateX(4px)',
   },
   '& .MuiListItemIcon-root': {
-    minWidth: '32px',
+    minWidth: '40px',
     color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   },
   '& .MuiListItemText-root': {
     margin: 0,
     '& .MuiTypography-root': {
-      fontSize: '0.9rem',
+      fontSize: '1rem',
+      fontWeight: 500,
       color: isDarkMode ? '#ffffff' : '#000000',
     },
   },
+}));
+
+const StyledDivider = styled(Divider)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
+  margin: '8px 16px',
+  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+  height: '1px',
 }));
 
 const StyledDialog = styled(Dialog)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
@@ -585,15 +634,15 @@ const Navbar = () => {
   };
 
   const menuItems: MenuItem[] = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Tím', icon: <GroupIcon />, path: '/team' },
-    { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },
-    { text: 'Sledovanie preprav', icon: <VisibilityIcon />, path: '/tracked-transports' },
-    { text: 'Mapa vozidiel', icon: <LocationOnIcon />, path: '/vehicle-map' },
-    { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases' },
-    { text: 'Objednávky na prepravu', icon: <LocalShippingIcon />, path: '/orders' },
-    { text: 'Faktúry', icon: <ReceiptIcon />, path: '/invoices' },
-    { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', description: 'Prehľad aktivít' },
+    { text: 'Tím', icon: <GroupIcon />, path: '/team', description: 'Správa tímu' },
+    { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts', description: 'Správa kontaktov' },
+    { text: 'Sledovanie prepráv', icon: <VisibilityIcon />, path: '/tracked-transports', description: 'Sledovanie prepráv' },
+    { text: 'Mapa vozidiel', icon: <LocationOnIcon />, path: '/vehicle-map', description: 'Poloha vozidiel' },
+    { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases', description: 'Správa obchodných prípadov' },
+    { text: 'Objednávky', icon: <LocalShippingIcon />, path: '/orders', description: 'Správa objednávok' },
+    { text: 'Faktúry', icon: <ReceiptIcon />, path: '/invoices', description: 'Správa faktúr' },
+    { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings', description: 'Nastavenia systému' },
   ];
 
   return (
@@ -645,10 +694,7 @@ const Navbar = () => {
                       <ListItemIconStyled>
                         {item.icon}
                       </ListItemIconStyled>
-                      <ListItemText 
-                        primary={item.text}
-                        sx={{ margin: 0 }}
-                      />
+                      <ListItemText primary={item.text} />
                     </ListItemButton>
                   </NavListItem>
                 ))}
@@ -741,19 +787,44 @@ const Navbar = () => {
           </IconButton>
         </Box>
         {menuItems.map((item) => (
-          <NavListItem key={item.text} disablePadding isDarkMode={isDarkMode}>
-            <ListItemButton
-              onClick={() => item.path && handleNavigation(item.path)}
-            >
-              <ListItemIconStyled>
+          <MenuItem
+            key={item.text}
+            onClick={() => item.path && handleNavigation(item.path)}
+            sx={{
+              padding: 0,
+              margin: '1px 0',
+              width: '100%'
+            }}
+          >
+            <MenuItemWrapper isDarkMode={isDarkMode}>
+              <MenuItemIcon>
                 {item.icon}
-              </ListItemIconStyled>
-              <ListItemText 
-                primary={item.text}
-                sx={{ margin: 0 }}
-              />
-            </ListItemButton>
-          </NavListItem>
+              </MenuItemIcon>
+              <MenuItemContent>
+                <Typography 
+                  component="div"
+                  sx={{ 
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    color: isDarkMode ? colors.text.primary : '#000000',
+                    lineHeight: 1.2
+                  }}
+                >
+                  {item.text}
+                </Typography>
+                <Typography 
+                  component="div"
+                  sx={{ 
+                    fontSize: '0.75rem',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+                    lineHeight: 1.2
+                  }}
+                >
+                  {item.description}
+                </Typography>
+              </MenuItemContent>
+            </MenuItemWrapper>
+          </MenuItem>
         ))}
         <Divider sx={{ margin: '8px 0', backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }} />
         <MenuItem
