@@ -50,21 +50,19 @@ import { useThemeMode } from '../contexts/ThemeContext';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
-  borderRadius: '20px',
-  background: 'rgba(35, 35, 66, 0.7)',
+  margin: theme.spacing(2, 0),
+  width: '100%',
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(28, 28, 45, 0.35)' 
+    : 'rgba(255, 255, 255, 0.95)',
   backdropFilter: 'blur(10px)',
-  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-  animation: 'fadeIn 0.6s ease-out',
-  '@keyframes fadeIn': {
-    from: {
-      opacity: 0,
-      transform: 'translateY(20px)',
-    },
-    to: {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
-  },
+  border: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)' 
+    : 'rgba(0, 0, 0, 0.1)'}`,
+  borderRadius: 12,
+  boxShadow: theme.palette.mode === 'dark'
+    ? '0 4px 20px rgba(0, 0, 0, 0.2)'
+    : '0 4px 20px rgba(0, 0, 0, 0.1)',
 }));
 
 interface Transport {
@@ -238,7 +236,7 @@ const TransportCard = styled(Box)<{ isDarkMode: boolean }>(({ theme, isDarkMode 
 
 const TransportInfo = styled(Box)({
   display: 'grid',
-  gridTemplateColumns: '1fr 500px',
+  gridTemplateColumns: '1fr 1fr',
   gap: '32px',
   '@media (max-width: 1200px)': {
     gridTemplateColumns: '1fr',
@@ -272,17 +270,13 @@ const CreatorInfo = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
 }));
 
 const MapContainer = styled(Box)({
-  width: '100%',
-  height: '350px',
+  width: '50%',
+  height: '600px',
   borderRadius: '12px',
   overflow: 'hidden',
+  marginTop: '24px',
   border: '1px solid rgba(255, 255, 255, 0.1)',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease-in-out',
-  '&:hover': {
-    transform: 'scale(1.02)',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-  }
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
 });
 
 const MapThumbnail = styled(Box)({
@@ -1240,7 +1234,7 @@ function TrackedTransports() {
             </Box>
 
             <Box sx={{ 
-              width: '400px',
+              width: '50%',
               height: '100%',
               borderRadius: '12px',
               overflow: 'hidden',

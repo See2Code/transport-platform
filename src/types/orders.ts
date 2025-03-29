@@ -36,4 +36,7 @@ export interface Order extends OrderFormData {
   status: 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
   userId: string;
   companyId: string;
-} 
+}
+
+// Prázdny export aby TypeScript rozpoznal tento súbor ako modul
+export {} 

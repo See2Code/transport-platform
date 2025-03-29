@@ -96,7 +96,7 @@ const OrdersForm: React.FC = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
+    setFormData((prevState: OrderFormData) => ({
       ...prevState,
       [name]: value,
     }));
