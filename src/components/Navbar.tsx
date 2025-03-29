@@ -37,12 +37,13 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import { MenuProps } from '@mui/material/Menu';
 import BusinessIcon from '@mui/icons-material/Business';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -584,13 +585,14 @@ const Navbar = () => {
   };
 
   const menuItems: MenuItem[] = [
-    { text: 'Domov', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Prepravy', icon: <LocalShippingIcon />, path: '/transports' },
-    { text: 'Sledované prepravy', icon: <VisibilityIcon />, path: '/tracked-transports' },
-    { text: 'Mapa vozidiel', icon: <LocationOnIcon />, path: '/vehicle-map' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Tím', icon: <GroupIcon />, path: '/team' },
     { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },
-    { text: 'Business Cases', icon: <BusinessIcon />, path: '/business-cases' },
+    { text: 'Sledovanie preprav', icon: <VisibilityIcon />, path: '/tracked-transports' },
+    { text: 'Mapa vozidiel', icon: <LocationOnIcon />, path: '/vehicle-map' },
+    { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases' },
+    { text: 'Objednávky na prepravu', icon: <LocalShippingIcon />, path: '/orders' },
+    { text: 'Faktúry', icon: <ReceiptIcon />, path: '/invoices' },
     { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings' },
   ];
 

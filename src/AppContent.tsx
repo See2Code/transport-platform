@@ -8,7 +8,6 @@ import Dashboard from './components/Dashboard';
 import Team from './components/Team';
 import Contacts from './components/Contacts';
 import Settings from './components/Settings';
-import Transport from './components/Transport';
 import TrackedTransports from './components/TrackedTransports';
 import VehicleMap from './components/VehicleMap';
 import BusinessCases from './components/BusinessCases';
@@ -17,6 +16,8 @@ import Register from './components/Register';
 import Home from './components/Home';
 import PrivateRoute from './components/PrivateRoute';
 import RegisterUser from './components/RegisterUser';
+import OrdersForm from './components/Orders';
+import InvoicesPage from './components/Invoices';
 import { useThemeMode } from './contexts/ThemeContext';
 
 type AppContainerProps = {
@@ -155,14 +156,6 @@ const AppContent: React.FC = () => {
               </PageContent>
             </PrivateRoute>
           } />
-          <Route path="/transports" element={
-            <PrivateRoute>
-              <PageContent isDarkMode={isDarkMode}>
-                <Navbar />
-                <Transport />
-              </PageContent>
-            </PrivateRoute>
-          } />
           <Route path="/tracked-transports" element={
             <PrivateRoute>
               <PageContent isDarkMode={isDarkMode}>
@@ -184,6 +177,22 @@ const AppContent: React.FC = () => {
               <PageContent isDarkMode={isDarkMode}>
                 <Navbar />
                 <BusinessCases />
+              </PageContent>
+            </PrivateRoute>
+          } />
+          <Route path="/orders" element={
+            <PrivateRoute>
+              <PageContent isDarkMode={isDarkMode}>
+                <Navbar />
+                <OrdersForm />
+              </PageContent>
+            </PrivateRoute>
+          } />
+          <Route path="/invoices" element={
+            <PrivateRoute>
+              <PageContent isDarkMode={isDarkMode}>
+                <Navbar />
+                <InvoicesPage />
               </PageContent>
             </PrivateRoute>
           } />
