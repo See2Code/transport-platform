@@ -51,6 +51,7 @@ export interface Invoice {
   notes?: string;
   createdAt: Timestamp;
   createdBy: string;
+  createdByName?: string;
 }
 
 // Preddefinované údaje dodávateľa

@@ -27,6 +27,8 @@ import {
   CardContent,
   CardHeader,
   Avatar,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useThemeMode } from '../contexts/ThemeContext';
@@ -35,13 +37,15 @@ import AddIcon from '@mui/icons-material/Add';
 import DownloadIcon from '@mui/icons-material/Download';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
 import { Invoice, InvoiceItem, YOUR_COMPANY_DETAILS } from '../types/invoices';
-import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage, downloadFile } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { format } from 'date-fns';
 
 const colors = {
   accent: {
@@ -305,6 +309,14 @@ const InvoicesPage: FC = () => {
     logoName: '',
     signatureAndStampName: '',
   });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error'
+  });
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
 
   useEffect(() => {
     fetchInvoices();
@@ -312,24 +324,30 @@ const InvoicesPage: FC = () => {
   }, [currentUser]);
 
   const fetchInvoices = async () => {
-    if (!currentUser?.companyID) return;
-
+    setLoading(true);
     try {
-      const q = query(
-        collection(db, 'invoices'),
-        where('companyID', '==', currentUser.companyID),
-        orderBy('issueDate', 'desc')
-      );
-
+      const q = query(collection(db, 'invoices'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
-      const invoices = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      })) as Invoice[];
+      
+      const invoicesPromises = querySnapshot.docs.map(async (docSnapshot) => {
+        const invoiceData = docSnapshot.data() as Invoice;
+        const userDocRef = doc(db, 'users', invoiceData.createdBy);
+        const userDoc = await getDoc(userDocRef);
+        const userData = userDoc.data();
+        
+        return {
+          ...invoiceData,
+          id: docSnapshot.id,
+          createdByName: userData?.displayName || 'Neznámy používateľ'
+        };
+      });
 
+      const invoices = await Promise.all(invoicesPromises);
       setInvoicesList(invoices);
     } catch (error) {
-      console.error('Chyba pri načítaní faktúr:', error);
+      console.error('Error fetching invoices:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -546,8 +564,8 @@ const InvoicesPage: FC = () => {
       return;
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
       const newInvoiceNumber = generateInvoiceNumber();
 
       const finalInvoice: Invoice = {
@@ -570,21 +588,21 @@ const InvoicesPage: FC = () => {
         createdBy: currentUser.uid
       };
 
-      // Najprv uložíme faktúru do Firestore
+      // Uloženie faktúry do Firestore
       const docRef = await addDoc(collection(db, 'invoices'), finalInvoice);
       
-      // Pokúsime sa vygenerovať a nahrať PDF
+      // Generovanie a nahratie PDF
       try {
         const pdfBlob = await generatePDF(finalInvoice);
         const storageRef = ref(storage, `invoices/${docRef.id}/${finalInvoice.invoiceNumber}.pdf`);
         await uploadBytes(storageRef, pdfBlob);
       } catch (pdfError) {
-        console.error('Chyba pri nahrávaní PDF:', pdfError);
+        console.error('Chyba pri generovaní alebo nahrávaní PDF:', pdfError);
         // Pokračujeme aj keď sa PDF nepodarilo nahrať
       }
 
       // Aktualizácia zoznamu faktúr
-      setInvoicesList(prevList => [...prevList, { ...finalInvoice, id: docRef.id }]);
+      await fetchInvoices();
 
       // Reset formulára
       setNewInvoiceCustomer({ name: '', address: '', city: '', zip: '', country: 'Slovensko', ico: '', dic: '', ic_dph: '' });
@@ -818,6 +836,66 @@ const InvoicesPage: FC = () => {
   };
 
   const statistics = calculateStatistics();
+
+  const handleDeleteInvoice = async (invoice: Invoice) => {
+    try {
+      // Najprv vymažeme faktúru z Firestore
+      const invoiceRef = doc(db, 'invoices', invoice.id);
+      await deleteDoc(invoiceRef);
+      
+      // Pokúsime sa vymazať PDF súbor zo Storage, ale pokračujeme aj ak sa to nepodarí
+      try {
+        const pdfRef = ref(storage, `invoices/${invoice.id}/${invoice.invoiceNumber}.pdf`);
+        await deleteObject(pdfRef);
+      } catch (error) {
+        console.error('Chyba pri mazaní PDF (ignorované):', error);
+        // Ignorujeme chybu pri mazaní PDF - faktúra sa vymaže aj tak
+      }
+
+      // Aktualizácia lokálneho zoznamu faktúr
+      const updatedInvoices = invoicesList.filter(inv => inv.id !== invoice.id);
+      setInvoicesList(updatedInvoices);
+
+      setSnackbar({
+        open: true,
+        message: `Faktúra ${invoice.invoiceNumber} bola úspešne vymazaná.`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Chyba pri mazaní faktúry:', error);
+      setSnackbar({
+        open: true,
+        message: 'Nastala chyba pri mazaní faktúry.',
+        severity: 'error'
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
+    }
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setEditingInvoice(invoice);
+    setNewInvoiceCustomer({
+      name: invoice.customer.name,
+      address: invoice.customer.address,
+      city: invoice.customer.city,
+      zip: invoice.customer.zip,
+      country: invoice.customer.country,
+      ico: invoice.customer.ico,
+      dic: invoice.customer.dic,
+      ic_dph: invoice.customer.ic_dph || '',
+    });
+    setNewInvoiceItems(invoice.items);
+    setNewInvoiceDates({
+      issueDate: invoice.issueDate,
+      dueDate: invoice.dueDate,
+      taxableSupplyDate: invoice.taxableSupplyDate,
+    });
+    setNewInvoiceNotes(invoice.notes || '');
+    setVatRate(invoice.vatRate);
+    setTabValue(0);
+  };
 
   return (
     <PageWrapper>
@@ -1421,6 +1499,8 @@ const InvoicesPage: FC = () => {
                 <TableCell>Číslo faktúry</TableCell>
                 <TableCell>Dátum vystavenia</TableCell>
                 <TableCell>Odberateľ</TableCell>
+                <TableCell>Vytvoril</TableCell>
+                <TableCell>Dátum vytvorenia</TableCell>
                 <TableCell align="right">Suma (€)</TableCell>
                 <TableCell align="center">Akcie</TableCell>
               </TableRow>
@@ -1431,12 +1511,15 @@ const InvoicesPage: FC = () => {
                   <TableCell>{invoice.invoiceNumber}</TableCell>
                   <TableCell>{invoice.issueDate}</TableCell>
                   <TableCell>{invoice.customer.name}</TableCell>
+                  <TableCell>{invoice.createdByName}</TableCell>
+                  <TableCell>
+                    {format(invoice.createdAt.toDate(), 'dd.MM.yyyy')}
+                  </TableCell>
                   <TableCell align="right">{invoice.totalAmount.toFixed(2)}</TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                       <IconButton
                         onClick={() => handlePreviewPDF(invoice)}
-                        color="primary"
                         sx={{
                           color: colors.accent.main,
                           '&:hover': {
@@ -1449,7 +1532,6 @@ const InvoicesPage: FC = () => {
                       </IconButton>
                       <IconButton
                         onClick={() => handleDownloadPDF(invoice)}
-                        color="primary"
                         disabled={downloadingInvoices[invoice.id]}
                         sx={{
                           color: colors.accent.main,
@@ -1464,6 +1546,33 @@ const InvoicesPage: FC = () => {
                         ) : (
                           <DownloadIcon />
                         )}
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleEditInvoice(invoice)}
+                        sx={{
+                          color: colors.accent.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 159, 67, 0.1)',
+                          }
+                        }}
+                        title="Upraviť faktúru"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => {
+                          setInvoiceToDelete(invoice);
+                          setDeleteDialogOpen(true);
+                        }}
+                        sx={{
+                          color: theme.palette.error.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                          }
+                        }}
+                        title="Vymazať faktúru"
+                      >
+                        <DeleteIcon />
                       </IconButton>
                     </Box>
                   </TableCell>
@@ -1551,6 +1660,34 @@ const InvoicesPage: FC = () => {
               Stiahnuť faktúru
             </Button>
           )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog pre potvrdenie vymazania */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Vymazať faktúru?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Naozaj chcete vymazať faktúru {invoiceToDelete?.invoiceNumber}? Táto akcia sa nedá vrátiť späť.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setDeleteDialogOpen(false)}
+            sx={{ color: theme.palette.text.secondary }}
+          >
+            Zrušiť
+          </Button>
+          <Button
+            onClick={() => invoiceToDelete && handleDeleteInvoice(invoiceToDelete)}
+            color="error"
+            variant="contained"
+          >
+            Vymazať
+          </Button>
         </DialogActions>
       </Dialog>
     </PageWrapper>
