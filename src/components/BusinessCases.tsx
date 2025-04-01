@@ -59,6 +59,33 @@ const euCountries = [
   { code: 'PL', name: 'Poľsko', flag: '🇵🇱', prefix: '+48' },
   { code: 'AT', name: 'Rakúsko', flag: '🇦🇹', prefix: '+43' },
   { code: 'DE', name: 'Nemecko', flag: '🇩🇪', prefix: '+49' },
+  { code: 'FR', name: 'Francúzsko', flag: '🇫🇷', prefix: '+33' },
+  { code: 'IT', name: 'Taliansko', flag: '🇮🇹', prefix: '+39' },
+  { code: 'ES', name: 'Španielsko', flag: '🇪🇸', prefix: '+34' },
+  { code: 'PT', name: 'Portugalsko', flag: '🇵🇹', prefix: '+351' },
+  { code: 'NL', name: 'Holandsko', flag: '🇳🇱', prefix: '+31' },
+  { code: 'BE', name: 'Belgicko', flag: '🇧🇪', prefix: '+32' },
+  { code: 'DK', name: 'Dánsko', flag: '🇩🇰', prefix: '+45' },
+  { code: 'SE', name: 'Švédsko', flag: '🇸🇪', prefix: '+46' },
+  { code: 'FI', name: 'Fínsko', flag: '🇫🇮', prefix: '+358' },
+  { code: 'IE', name: 'Írsko', flag: '🇮🇪', prefix: '+353' },
+  { code: 'GR', name: 'Grécko', flag: '🇬🇷', prefix: '+30' },
+  { code: 'RO', name: 'Rumunsko', flag: '🇷🇴', prefix: '+40' },
+  { code: 'BG', name: 'Bulharsko', flag: '🇧🇬', prefix: '+359' },
+  { code: 'HR', name: 'Chorvátsko', flag: '🇭🇷', prefix: '+385' },
+  { code: 'SI', name: 'Slovinsko', flag: '🇸🇮', prefix: '+386' },
+  { code: 'EE', name: 'Estónsko', flag: '🇪🇪', prefix: '+372' },
+  { code: 'LV', name: 'Lotyšsko', flag: '🇱🇻', prefix: '+371' },
+  { code: 'LT', name: 'Litva', flag: '🇱🇹', prefix: '+370' },
+  { code: 'CY', name: 'Cyprus', flag: '🇨🇾', prefix: '+357' },
+  { code: 'MT', name: 'Malta', flag: '🇲🇹', prefix: '+356' },
+  { code: 'LU', name: 'Luxembursko', flag: '🇱🇺', prefix: '+352' },
+  { code: 'GB', name: 'Veľká Británia', flag: '🇬🇧', prefix: '+44' },
+  { code: 'CH', name: 'Švajčiarsko', flag: '🇨🇭', prefix: '+41' },
+  { code: 'NO', name: 'Nórsko', flag: '🇳🇴', prefix: '+47' },
+  { code: 'UA', name: 'Ukrajina', flag: '🇺🇦', prefix: '+380' },
+  { code: 'RS', name: 'Srbsko', flag: '🇷🇸', prefix: '+381' },
+  { code: 'TR', name: 'Turecko', flag: '🇹🇷', prefix: '+90' }
 ];
 
 const colors = {
@@ -489,6 +516,10 @@ export default function BusinessCases() {
             reminderNote: formData.reminderNote || '',
             contactPerson: formData.contactPerson,
             createdAt: Timestamp.now(),
+            createdBy: {
+              firstName: userData.firstName || '',
+              lastName: userData.lastName || ''
+            },
             sent: false
           };
 
@@ -528,6 +559,10 @@ export default function BusinessCases() {
             reminderNote: formData.reminderNote || '',
             contactPerson: formData.contactPerson,
             createdAt: Timestamp.now(),
+            createdBy: {
+              firstName: userData.firstName || '',
+              lastName: userData.lastName || ''
+            },
             sent: false
           };
 

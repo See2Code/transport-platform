@@ -318,7 +318,7 @@ export const checkBusinessCaseReminders = functions
 </html>`;
 
           const businessCaseReminderContent = `
-            <h2 style="color: #2c3e50; margin-top: 0; font-size: 24px; font-weight: 600;">Dobrý deň${reminder.contactPerson?.firstName ? ` ${reminder.contactPerson.firstName}` : ''},</h2>
+            <h2 style="color: #2c3e50; margin-top: 0; font-size: 24px; font-weight: 600;">Dobrý deň${reminder.createdBy?.firstName ? ` ${reminder.createdBy.firstName}` : ''},</h2>
             <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pripomíname Vám naplánovanú aktivitu v obchodnom prípade:</p>
             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p style="margin: 10px 0; color: #34495e;"><strong>Obchodný prípad:</strong> "${reminder.companyName}"</p>
