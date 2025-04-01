@@ -250,7 +250,7 @@ export const checkBusinessCaseReminders = functions
       const remindersSnapshot = await db.collection('reminders')
         .where('reminderDateTime', '<=', now)
         .where('sent', '==', false)
-        .where('businessCaseId', '!=', null)
+        .where('businessCaseId', '!=', '')
         .get();
 
       console.log('Počet nájdených pripomienok:', remindersSnapshot.size);
@@ -262,18 +262,11 @@ export const checkBusinessCaseReminders = functions
           reminderDateTime: reminder.reminderDateTime?.toDate?.(),
           userEmail: reminder.userEmail,
           companyName: reminder.companyName,
-          type: reminder.type,
-          sent: reminder.sent,
           businessCaseId: reminder.businessCaseId,
           reminderNote: reminder.reminderNote
         });
 
         try {
-          if (!reminder.businessCaseId) {
-            console.log('Preskakujem pripomienku - nie je pre obchodný prípad:', doc.id);
-            continue;
-          }
-
           if (!reminder.userEmail) {
             console.error('Pripomienka nemá nastavený email:', doc.id);
             continue;
@@ -322,8 +315,7 @@ export const checkBusinessCaseReminders = functions
     </tr>
   </table>
 </body>
-</html>
-`;
+</html>`;
 
           const businessCaseReminderContent = `
             <h2 style="color: #2c3e50; margin-top: 0; font-size: 24px; font-weight: 600;">Dobrý deň${reminder.contactPerson?.firstName ? ` ${reminder.contactPerson.firstName}` : ''},</h2>
@@ -340,12 +332,11 @@ export const checkBusinessCaseReminders = functions
                   <a href="https://core-app-423c7.web.app/business-cases/${reminder.businessCaseId}" style="display: inline-block; padding: 14px 32px; background-color: #ff9f43; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Zobraziť obchodný prípad</a>
                 </td>
               </tr>
-            </table>
-          `;
+            </table>`;
 
           const businessCaseEmailHtml = emailTemplate.replace('{{content}}', businessCaseReminderContent);
 
-          console.log('Odosielam email na:', reminder.userEmail);
+          console.log('Pokus o odoslanie emailu na:', reminder.userEmail);
           await sendEmail(
             reminder.userEmail,
             'Pripomienka pre obchodný prípad',

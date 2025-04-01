@@ -227,7 +227,7 @@ exports.checkBusinessCaseReminders = functions
         const remindersSnapshot = await db.collection('reminders')
             .where('reminderDateTime', '<=', now)
             .where('sent', '==', false)
-            .where('businessCaseId', '!=', null)
+            .where('businessCaseId', '!=', '')
             .get();
         console.log('Počet nájdených pripomienok:', remindersSnapshot.size);
         for (const doc of remindersSnapshot.docs) {
@@ -237,16 +237,10 @@ exports.checkBusinessCaseReminders = functions
                 reminderDateTime: (_b = (_a = reminder.reminderDateTime) === null || _a === void 0 ? void 0 : _a.toDate) === null || _b === void 0 ? void 0 : _b.call(_a),
                 userEmail: reminder.userEmail,
                 companyName: reminder.companyName,
-                type: reminder.type,
-                sent: reminder.sent,
                 businessCaseId: reminder.businessCaseId,
                 reminderNote: reminder.reminderNote
             });
             try {
-                if (!reminder.businessCaseId) {
-                    console.log('Preskakujem pripomienku - nie je pre obchodný prípad:', doc.id);
-                    continue;
-                }
                 if (!reminder.userEmail) {
                     console.error('Pripomienka nemá nastavený email:', doc.id);
                     continue;
@@ -293,8 +287,7 @@ exports.checkBusinessCaseReminders = functions
     </tr>
   </table>
 </body>
-</html>
-`;
+</html>`;
                 const businessCaseReminderContent = `
             <h2 style="color: #2c3e50; margin-top: 0; font-size: 24px; font-weight: 600;">Dobrý deň${((_c = reminder.contactPerson) === null || _c === void 0 ? void 0 : _c.firstName) ? ` ${reminder.contactPerson.firstName}` : ''},</h2>
             <p style="color: #34495e; margin-bottom: 20px; font-size: 16px;">Pripomíname Vám naplánovanú aktivitu v obchodnom prípade:</p>
@@ -310,10 +303,9 @@ exports.checkBusinessCaseReminders = functions
                   <a href="https://core-app-423c7.web.app/business-cases/${reminder.businessCaseId}" style="display: inline-block; padding: 14px 32px; background-color: #ff9f43; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Zobraziť obchodný prípad</a>
                 </td>
               </tr>
-            </table>
-          `;
+            </table>`;
                 const businessCaseEmailHtml = emailTemplate.replace('{{content}}', businessCaseReminderContent);
-                console.log('Odosielam email na:', reminder.userEmail);
+                console.log('Pokus o odoslanie emailu na:', reminder.userEmail);
                 await sendEmail(reminder.userEmail, 'Pripomienka pre obchodný prípad', businessCaseEmailHtml);
                 console.log('Email úspešne odoslaný, označujem pripomienku ako odoslanú');
                 await doc.ref.update({

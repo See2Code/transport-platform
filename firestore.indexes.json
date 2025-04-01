@@ -4,6 +4,16 @@
       "collectionGroup": "reminders",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "sent", "order": "ASCENDING" },
+        { "fieldPath": "businessCaseId", "order": "ASCENDING" },
+        { "fieldPath": "reminderDateTime", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reminders",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "companyID", "order": "ASCENDING" },
         { "fieldPath": "sent", "order": "ASCENDING" },
         { "fieldPath": "reminderDateTime", "order": "ASCENDING" }

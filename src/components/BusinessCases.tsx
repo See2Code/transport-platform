@@ -42,7 +42,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import PersonIcon from '@mui/icons-material/Person';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import InfoIcon from '@mui/icons-material/Info';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp, query, orderBy, DocumentReference, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import PhoneInput from 'react-phone-input-2';
@@ -447,29 +447,100 @@ export default function BusinessCases() {
       }
 
       const businessCaseData = {
-        ...formData,
-        countryCode: selectedCountry.code,
-        createdAt: editCase ? editCase.createdAt : Timestamp.now(),
-        createdBy: editCase ? editCase.createdBy : {
-          firstName: userData.firstName,
-          lastName: userData.lastName
-        }
+        companyName: formData.companyName,
+        vatNumber: formData.vatNumber,
+        companyAddress: formData.companyAddress,
+        contactPerson: formData.contactPerson,
+        internalNote: formData.internalNote,
+        status: formData.status,
+        reminderDateTime: formData.reminderDateTime ? Timestamp.fromDate(new Date(formData.reminderDateTime)) : null,
+        reminderNote: formData.reminderNote,
+        createdAt: Timestamp.now(),
+        createdBy: {
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || ''
+        },
+        countryCode: selectedCountry.code
       };
 
       if (editCase?.id) {
         await updateDoc(doc(db, 'businessCases', editCase.id), businessCaseData);
         setSnackbar({
           open: true,
-          message: 'Obchodný prípad bol úspešne upravený',
+          message: 'Prípad bol úspešne upravený',
           severity: 'success'
         });
+
+        // Ak je nastavený reminder pri editácii, vytvoríme email notifikáciu
+        if (formData.reminderDateTime) {
+          console.log('Vytváram pripomienku:', {
+            dateTime: formData.reminderDateTime,
+            email: currentUser.email,
+            companyName: formData.companyName,
+            businessCaseId: editCase.id
+          });
+
+          const reminderData = {
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            businessCaseId: editCase.id,
+            reminderDateTime: Timestamp.fromDate(new Date(formData.reminderDateTime)),
+            companyName: formData.companyName,
+            reminderNote: formData.reminderNote || '',
+            contactPerson: formData.contactPerson,
+            createdAt: Timestamp.now(),
+            sent: false
+          };
+
+          console.log('Dáta pripomienky:', reminderData);
+          
+          try {
+            const reminderRef = await addDoc(collection(db, 'reminders'), reminderData);
+            console.log('Pripomienka vytvorená s ID:', reminderRef.id);
+          } catch (error) {
+            console.error('Chyba pri vytváraní pripomienky:', error);
+            throw error;
+          }
+        }
       } else {
-        await addDoc(collection(db, 'businessCases'), businessCaseData);
+        const docRef: DocumentReference<DocumentData> = await addDoc(collection(db, 'businessCases'), businessCaseData);
         setSnackbar({
           open: true,
-          message: 'Nový obchodný prípad bol úspešne pridaný',
+          message: 'Prípad bol úspešne vytvorený',
           severity: 'success'
         });
+
+        // Ak je nastavený reminder pri vytvorení, vytvoríme email notifikáciu
+        if (formData.reminderDateTime) {
+          console.log('Vytváram pripomienku:', {
+            dateTime: formData.reminderDateTime,
+            email: currentUser.email,
+            companyName: formData.companyName,
+            businessCaseId: docRef.id
+          });
+
+          const reminderData = {
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            businessCaseId: docRef.id,
+            reminderDateTime: Timestamp.fromDate(new Date(formData.reminderDateTime)),
+            companyName: formData.companyName,
+            reminderNote: formData.reminderNote || '',
+            contactPerson: formData.contactPerson,
+            createdAt: Timestamp.now(),
+            sent: false
+          };
+
+          console.log('Dáta pripomienky:', reminderData);
+          
+          try {
+            const reminderRef = await addDoc(collection(db, 'reminders'), reminderData);
+            console.log('Pripomienka vytvorená s ID:', reminderRef.id);
+          } catch (error) {
+            console.error('Chyba pri vytváraní pripomienky:', error);
+            throw error;
+          }
+        }
       }
 
       // Vytvorenie alebo aktualizácia kontaktu
@@ -490,37 +561,6 @@ export default function BusinessCases() {
       };
 
       await addDoc(contactsCollection, contactData);
-
-      // Ak je nastavený reminder, vytvoríme email notifikáciu
-      if (formData.reminderDateTime) {
-        console.log('Vytváram pripomienku:', {
-          dateTime: formData.reminderDateTime,
-          email: currentUser.email,
-          companyName: formData.companyName
-        });
-
-        const reminderData = {
-          userId: currentUser.uid,
-          userEmail: currentUser.email,
-          businessCaseId: editCase?.id || '',
-          reminderDateTime: Timestamp.fromDate(new Date(formData.reminderDateTime)),
-          companyName: formData.companyName,
-          reminderNote: formData.reminderNote || '',
-          contactPerson: formData.contactPerson,
-          createdAt: Timestamp.now(),
-          sent: false
-        };
-
-        console.log('Dáta pripomienky:', reminderData);
-        
-        try {
-          const docRef = await addDoc(collection(db, 'reminders'), reminderData);
-          console.log('Pripomienka vytvorená s ID:', docRef.id);
-        } catch (error) {
-          console.error('Chyba pri vytváraní pripomienky:', error);
-          throw error;
-        }
-      }
 
       setOpen(false);
       setEditCase(null);
