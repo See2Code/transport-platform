@@ -43,7 +43,8 @@ import {
   CheckCircle as CheckCircleIcon,
   Send as SendIcon,
   Refresh as RefreshIcon,
-  Phone as PhoneIcon
+  Phone as PhoneIcon,
+  AccessTime as AccessTimeIcon
 } from '@mui/icons-material';
 import { collection, query, where, getDocs, addDoc, doc, getDoc, onSnapshot, deleteDoc, updateDoc } from 'firebase/firestore';
 import { auth, db, functions } from '../firebase';
@@ -57,6 +58,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeMode } from '../contexts/ThemeContext';
 import { format } from 'date-fns';
+import { Timestamp } from 'firebase/firestore';
 
 interface Country {
   code: string;
@@ -107,10 +109,10 @@ interface TeamMember {
   email: string;
   phone: string;
   role: string;
-  status: 'active' | 'pending';
-  createdAt?: Date;
-  userId?: string;
-  lastLogin?: Date;
+  status: string;
+  createdAt: Date;
+  userId: string;
+  lastLogin: Timestamp | null;
 }
 
 interface Invitation {
@@ -731,7 +733,7 @@ function Team() {
                   status: data.role === 'admin' ? 'active' : (data.status || 'pending'),
                   createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
                   userId: doc.id,  // Používame doc.id ako userId
-                  lastLogin: data.lastLogin?.toDate() || null
+                  lastLogin: data.lastLogin || null
                 });
                 console.log('Po konverzii lastLogin:', membersMap.get(data.email)?.lastLogin);
               });
@@ -1092,22 +1094,55 @@ function Team() {
             <Typography variant="body2">{member.phone}</Typography>
           </Box>
         )}
+
+        {'lastLogin' in member && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AccessTimeIcon />
+            <Typography variant="body2">
+              {member.lastLogin ? format(member.lastLogin.toDate(), 'dd.MM.yyyy HH:mm') : 'Nikdy'}
+            </Typography>
+          </Box>
+        )}
       </MobileTeamInfo>
       
       <MobileTeamActions>
         {member.status === 'pending' && 'id' in member && (
-          <IconButton
-            size="small"
-            onClick={() => handleResendInvitation(member.id)}
-            sx={{ color: colors.accent.main }}
-          >
-            <RefreshIcon fontSize="small" />
-          </IconButton>
+          <>
+            <IconButton
+              size="small"
+              onClick={() => handleResendInvitation(member.id)}
+              sx={{ 
+                color: colors.accent.main,
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                }
+              }}
+            >
+              <RefreshIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => handleEdit(member)}
+              sx={{ 
+                color: colors.accent.main,
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                }
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </>
         )}
         <IconButton
           size="small"
           onClick={() => handleDeleteClick(member)}
-          sx={{ color: colors.secondary.main }}
+          sx={{ 
+            color: colors.secondary.main,
+            '&:hover': {
+              backgroundColor: 'rgba(255, 107, 107, 0.1)'
+            }
+          }}
         >
           <DeleteIcon fontSize="small" />
         </IconButton>
@@ -1220,8 +1255,8 @@ function Team() {
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.phone}</TableCell>
                       <TableCell>
-                        <Chip 
-                          label={member.role} 
+                        <Chip
+                          label={member.role}
                           color={member.role === 'admin' ? 'primary' : 'default'} 
                           size="small"
                           sx={{
@@ -1237,13 +1272,13 @@ function Team() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Chip 
-                          label={member.status} 
-                          color={member.status === 'active' ? 'success' : 'warning'} 
+                        <Chip
+                          label={member.status}
+                          color={member.status === 'active' ? 'success' : 'warning'}
                           size="small"
                           sx={{
                             backgroundColor: member.status === 'active' ? 'rgba(46, 213, 115, 0.15)' : 'rgba(255, 159, 67, 0.15)',
-                            color: member.status === 'active' ? '#ff9f43' : colors.accent.main,
+                            color: member.status === 'active' ? '#2ed573' : colors.accent.main,
                             '& .MuiChip-label': {
                               fontSize: {
                                 xs: '0.7rem',
@@ -1259,7 +1294,7 @@ function Team() {
                             color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                             fontSize: '0.9rem'
                           }}>
-                            {format(member.lastLogin instanceof Date ? member.lastLogin : new Date(member.lastLogin), 'dd.MM.yyyy HH:mm')}
+                            {format(member.lastLogin.toDate(), 'dd.MM.yyyy HH:mm')}
                           </Typography>
                         ) : (
                           <Typography sx={{ 
@@ -1347,82 +1382,64 @@ function Team() {
                   <TableCell>Rola</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Posledné prihlásenie</TableCell>
-                  {isAdmin && <TableCell>Akcie</TableCell>}
+                  <TableCell>Akcie</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                <AnimatePresence mode="sync">
-                  {invitations.map((invite) => (
-                    <StyledTableRow isDarkMode={isDarkMode} key={invite.id}>
-                      <TableCell>{invite.firstName} {invite.lastName}</TableCell>
-                      <TableCell>{invite.email}</TableCell>
-                      <TableCell>{invite.phone}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={invite.role} 
-                          color={invite.role === 'admin' ? 'primary' : 'default'} 
-                          size="small"
-                          sx={{
-                            backgroundColor: invite.role === 'admin' ? colors.accent.main : 'rgba(255, 255, 255, 0.1)',
-                            color: '#ffffff',
-                            '& .MuiChip-label': {
-                              fontSize: {
-                                xs: '0.7rem',
-                                sm: '0.8rem'
-                              }
-                            }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label="Čaká sa na prijatie" 
-                          color="warning" 
-                          size="small"
-                          sx={{
-                            backgroundColor: 'rgba(255, 159, 67, 0.15)',
-                            color: colors.accent.main,
-                            '& .MuiChip-label': {
-                              fontSize: {
-                                xs: '0.7rem',
-                                sm: '0.8rem'
-                              }
-                            }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>-</TableCell>
-                      {isAdmin && (
-                        <TableCell>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <IconButton 
-                              onClick={() => handleResendInvitation(invite.id)}
-                              sx={{ 
-                                color: colors.accent.main,
-                                '&:hover': {
-                                  backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                                }
-                              }}
-                            >
-                              <RefreshIcon />
-                            </IconButton>
-                            <IconButton 
-                              onClick={() => handleDeleteClick(invite)}
-                              sx={{ 
-                                color: colors.secondary.main,
-                                '&:hover': {
-                                  backgroundColor: 'rgba(255, 107, 107, 0.1)'
-                                }
-                              }}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        </TableCell>
-                      )}
-                    </StyledTableRow>
-                  ))}
-                </AnimatePresence>
+                {invitations.map((invite) => (
+                  <TableRow key={invite.id}>
+                    <TableCell>{invite.firstName} {invite.lastName}</TableCell>
+                    <TableCell>{invite.email}</TableCell>
+                    <TableCell>{invite.phone}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={invite.role}
+                        color={invite.role === 'admin' ? 'warning' : 'default'}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label="Čaká sa na prijatie"
+                        color="warning"
+                      />
+                    </TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell>
+                      <IconButton onClick={() => handleResendInvitation(invite.id)}
+                        sx={{ 
+                          color: colors.accent.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                          }
+                        }}
+                      >
+                        <RefreshIcon />
+                      </IconButton>
+                      <IconButton 
+                        onClick={() => handleEdit(invite)}
+                        sx={{ 
+                          color: colors.accent.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                          }
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton 
+                        onClick={() => handleDeleteClick(invite)}
+                        sx={{ 
+                          color: colors.secondary.main,
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                          }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
