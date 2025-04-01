@@ -435,26 +435,36 @@ const SearchWrapper = styled(Box)({
 const MapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     backgroundColor: theme.palette.mode === 'dark' ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
-    borderRadius: '12px',
-    padding: '24px',
-    maxWidth: '90vw',
-    width: '1200px',
-    height: '90vh',
+    margin: 0,
+    maxWidth: '100%',
+    width: '100%',
+    height: '100%',
+    borderRadius: 0,
     display: 'flex',
     flexDirection: 'column',
     position: 'relative',
     overflow: 'hidden',
-    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-    boxShadow: theme.palette.mode === 'dark' 
-      ? '0 8px 32px rgba(0, 0, 0, 0.4)' 
-      : '0 8px 32px rgba(0, 0, 0, 0.1)',
-    backdropFilter: 'blur(10px)',
-  },
-  '& .MuiDialogTitle-root': {
-    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
-  },
-  '& .MuiDialogContent-root': {
-    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+    '& .MuiDialogTitle-root': {
+      color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+      padding: '24px',
+      fontSize: '1.5rem',
+      fontWeight: 600,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderBottom: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    },
+    '& .MuiDialogContent-root': {
+      padding: '24px',
+      minHeight: '600px',
+      color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+    },
+    '& .MuiDialogActions-root': {
+      padding: '24px',
+      borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+    }
   },
   '& .MuiBackdrop-root': {
     backgroundColor: theme.palette.mode === 'dark' 
@@ -677,6 +687,8 @@ function TrackedTransports() {
   const [selectedTransport, setSelectedTransport] = useState<{
     loading: string;
     unloading: string;
+    loadingDateTime: Date | Timestamp;
+    unloadingDateTime: Date | Timestamp;
   } | null>(null);
   const { isDarkMode } = useThemeMode();
 
@@ -1000,8 +1012,13 @@ function TrackedTransports() {
     console.log('More options for transport:', id);
   };
 
-  const handleShowMap = (loading: string, unloading: string) => {
-    setSelectedTransport({ loading, unloading });
+  const handleShowMap = (transport: Transport) => {
+    setSelectedTransport({
+      loading: transport.loadingAddress,
+      unloading: transport.unloadingAddress,
+      loadingDateTime: transport.loadingDateTime,
+      unloadingDateTime: transport.unloadingDateTime
+    });
     setMapDialogOpen(true);
   };
 
@@ -1251,7 +1268,7 @@ function TrackedTransports() {
                 transform: 'scale(1.02)',
                 transition: 'all 0.2s ease-in-out'
               }
-            }} onClick={() => handleShowMap(transport.loadingAddress, transport.unloadingAddress)}>
+            }} onClick={() => handleShowMap(transport)}>
               <TransportMap
                 origin={transport.loadingAddress}
                 destination={transport.unloadingAddress}
@@ -1303,7 +1320,7 @@ function TrackedTransports() {
               </IconButton>
               <IconButton 
                 size="small"
-                onClick={() => handleShowMap(transport.loadingAddress, transport.unloadingAddress)}
+                onClick={() => handleShowMap(transport)}
                 sx={{ color: colors.accent.main }}
               >
                 <LocationOnIcon fontSize="small" />
@@ -1549,16 +1566,6 @@ function TrackedTransports() {
           setSelectedTransport(null);
         }}
         maxWidth={false}
-        PaperProps={{
-          sx: {
-            background: 'none',
-            boxShadow: 'none',
-            margin: {
-              xs: '8px',
-              sm: '16px'
-            }
-          }
-        }}
         BackdropProps={{
           sx: {
             backdropFilter: 'blur(10px)',
@@ -1566,76 +1573,131 @@ function TrackedTransports() {
           }
         }}
       >
-        <StyledDialogContent isDarkMode={isDarkMode}>
-          <DialogTitle sx={{ 
-            color: isDarkMode ? '#ffffff' : '#000000',
-            padding: '24px',
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            Trasa prepravy
-            <IconButton
-              onClick={() => {
-                setMapDialogOpen(false);
-                setSelectedTransport(null);
-              }}
-              sx={{
-                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-                '&:hover': {
-                  color: isDarkMode ? '#ffffff' : '#000000',
-                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                }
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent sx={{ padding: '24px', minHeight: '600px' }}>
-            {selectedTransport && (
-              <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ mb: 2 }}>
-                  <Typography sx={{ color: isDarkMode ? '#ffffff' : '#000000', mb: 1 }}>
-                    <strong>Nakládka:</strong> {selectedTransport.loading}
+        <DialogTitle>
+          Trasa prepravy
+          <IconButton
+            onClick={() => {
+              setMapDialogOpen(false);
+              setSelectedTransport(null);
+            }}
+            sx={{
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+              '&:hover': {
+                color: isDarkMode ? '#ffffff' : '#000000',
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {selectedTransport && (
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: 1,
+                  p: 2,
+                  backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
+                  borderRadius: '12px',
+                  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`
+                }}>
+                  <Typography sx={{ 
+                    color: isDarkMode ? '#ffffff' : '#000000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: 600
+                  }}>
+                    <LocationOnIcon sx={{ color: colors.accent.main }} />
+                    Nakládka
                   </Typography>
-                  <Typography sx={{ color: isDarkMode ? '#ffffff' : '#000000' }}>
-                    <strong>Vykládka:</strong> {selectedTransport.unloading}
+                  <Typography sx={{ color: isDarkMode ? '#ffffff' : '#000000', ml: 4 }}>
+                    {selectedTransport.loading}
+                  </Typography>
+                  <Typography sx={{ 
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                    ml: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontSize: '0.9rem'
+                  }}>
+                    <AccessTimeIcon sx={{ fontSize: '1rem', color: colors.accent.main }} />
+                    {format(selectedTransport.loadingDateTime instanceof Timestamp ? 
+                      selectedTransport.loadingDateTime.toDate() : 
+                      selectedTransport.loadingDateTime, 
+                      'dd.MM.yyyy HH:mm'
+                    )}
                   </Typography>
                 </Box>
+
                 <Box sx={{ 
-                  flex: 1, 
-                  minHeight: '500px', 
-                  padding: '20px',
-                  border: 'none',
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: 1,
+                  p: 2,
+                  backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
                   borderRadius: '12px',
-                  backgroundColor: 'transparent',
-                  marginBottom: '20px'
+                  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`
                 }}>
-                  <TransportMap
-                    origin={selectedTransport.loading}
-                    destination={selectedTransport.unloading}
-                  />
+                  <Typography sx={{ 
+                    color: isDarkMode ? '#ffffff' : '#000000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: 600
+                  }}>
+                    <LocationOnIcon sx={{ color: colors.accent.main }} />
+                    Vykládka
+                  </Typography>
+                  <Typography sx={{ color: isDarkMode ? '#ffffff' : '#000000', ml: 4 }}>
+                    {selectedTransport.unloading}
+                  </Typography>
+                  <Typography sx={{ 
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                    ml: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontSize: '0.9rem'
+                  }}>
+                    <AccessTimeIcon sx={{ fontSize: '1rem', color: colors.accent.main }} />
+                    {format(selectedTransport.unloadingDateTime instanceof Timestamp ? 
+                      selectedTransport.unloadingDateTime.toDate() : 
+                      selectedTransport.unloadingDateTime, 
+                      'dd.MM.yyyy HH:mm'
+                    )}
+                  </Typography>
                 </Box>
               </Box>
-            )}
-          </DialogContent>
-          <DialogActions sx={{ 
-            padding: '24px',
-            borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-          }}>
-            <Button 
-              onClick={() => {
-                setMapDialogOpen(false);
-                setSelectedTransport(null);
-              }}
-              sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}
-            >
-              Zavrieť
-            </Button>
-          </DialogActions>
-        </StyledDialogContent>
+              <Box sx={{ 
+                flex: 1, 
+                minHeight: '500px',
+                borderRadius: '12px',
+                overflow: 'hidden'
+              }}>
+                <TransportMap
+                  origin={selectedTransport.loading}
+                  destination={selectedTransport.unloading}
+                />
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => {
+              setMapDialogOpen(false);
+              setSelectedTransport(null);
+            }}
+            sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}
+          >
+            Zavrieť
+          </Button>
+        </DialogActions>
       </MapDialog>
 
       <Dialog

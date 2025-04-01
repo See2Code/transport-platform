@@ -16,7 +16,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -63,8 +63,9 @@ function Login() {
             phone: invitationData.phone || '',
             companyID: invitationData.companyID,
             role: invitationData.role || 'user',
-            createdAt: new Date().toISOString(),
-            status: 'active'
+            createdAt: Timestamp.now(),
+            status: 'active',
+            lastLogin: Timestamp.now()
           };
           console.log('Vytváram používateľa s údajmi:', userData);
           await setDoc(doc(db, 'users', userCredential.user.uid), userData);
@@ -73,7 +74,7 @@ function Login() {
           await updateDoc(doc(db, 'invitations', invitationsSnapshot.docs[0].id), {
             status: 'accepted',
             userId: userCredential.user.uid,
-            acceptedAt: new Date().toISOString()
+            acceptedAt: Timestamp.now()
           });
           console.log('Pozvánka aktualizovaná na accepted');
         } else {
@@ -87,14 +88,25 @@ function Login() {
             phone: '',
             role: 'user',
             companyID: '', // Prázdne companyID pre používateľa bez pozvánky
-            createdAt: new Date().toISOString(),
-            status: 'pending'
+            createdAt: Timestamp.now(),
+            status: 'pending',
+            lastLogin: Timestamp.now()
           };
           console.log('Vytváram používateľa s údajmi:', userData);
           await setDoc(doc(db, 'users', userCredential.user.uid), userData);
         }
       } else {
         console.log('Používateľ už existuje v Firestore');
+        // Aktualizujeme čas posledného prihlásenia
+        const userData = userDoc.data();
+        console.log('Aktuálne údaje používateľa:', userData);
+        const updateData = {
+          lastLogin: Timestamp.now(),
+          status: userData.status || 'active'
+        };
+        console.log('Údaje na aktualizáciu:', updateData);
+        await updateDoc(doc(db, 'users', userCredential.user.uid), updateData);
+        console.log('Údaje úspešne aktualizované');
       }
 
       navigate('/dashboard');

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateVehicleLocation = exports.updateExistingRecords = exports.logFunctionMetrics = exports.checkTransportNotifications = exports.checkBusinessCaseReminders = exports.sendInvitationEmail = exports.clearDatabase = void 0;
+exports.updateVehicleLocation = exports.initializeLastLogin = exports.updateExistingRecords = exports.logFunctionMetrics = exports.checkTransportNotifications = exports.checkBusinessCaseReminders = exports.sendInvitationEmail = exports.clearDatabase = void 0;
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
@@ -508,6 +508,53 @@ exports.updateExistingRecords = functions
     catch (error) {
         console.error('Chyba pri aktualizácii záznamov:', error);
         throw new functions.https.HttpsError('internal', 'Chyba pri aktualizácii záznamov');
+    }
+});
+// Funkcia na inicializáciu lastLogin pre existujúcich používateľov
+exports.initializeLastLogin = functions
+    .region(REGION)
+    .https.onCall(async (data, context) => {
+    var _a, _b;
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Užívateľ nie je prihlásený');
+    }
+    const db = admin.firestore();
+    const batch = db.batch();
+    try {
+        // Najprv overíme, či je používateľ admin
+        const userDoc = await db.collection('users').doc(context.auth.uid).get();
+        if (!userDoc.exists || ((_a = userDoc.data()) === null || _a === void 0 ? void 0 : _a.role) !== 'admin') {
+            throw new functions.https.HttpsError('permission-denied', 'Len admin môže inicializovať lastLogin');
+        }
+        const companyID = (_b = userDoc.data()) === null || _b === void 0 ? void 0 : _b.companyID;
+        if (!companyID) {
+            throw new functions.https.HttpsError('failed-precondition', 'Admin nemá nastavené companyID');
+        }
+        // Získame všetkých používateľov v danej firme
+        const usersSnapshot = await db.collection('users')
+            .where('companyID', '==', companyID)
+            .get();
+        let updatedCount = 0;
+        for (const doc of usersSnapshot.docs) {
+            const userData = doc.data();
+            if (!userData.lastLogin) {
+                batch.update(doc.ref, {
+                    lastLogin: admin.firestore.Timestamp.now()
+                });
+                updatedCount++;
+            }
+        }
+        if (updatedCount > 0) {
+            await batch.commit();
+        }
+        return {
+            success: true,
+            message: `Aktualizovaných ${updatedCount} používateľov`
+        };
+    }
+    catch (error) {
+        console.error('Chyba pri inicializácii lastLogin:', error);
+        throw new functions.https.HttpsError('internal', 'Chyba pri inicializácii lastLogin');
     }
 });
 //# sourceMappingURL=index.js.map

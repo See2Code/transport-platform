@@ -56,6 +56,7 @@ import { SelectChangeEvent } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeMode } from '../contexts/ThemeContext';
+import { format } from 'date-fns';
 
 interface Country {
   code: string;
@@ -109,6 +110,7 @@ interface TeamMember {
   status: 'active' | 'pending';
   createdAt?: Date;
   userId?: string;
+  lastLogin?: Date;
 }
 
 interface Invitation {
@@ -666,6 +668,7 @@ function Team() {
     severity: 'info'
   });
   const [isCreating, setIsCreating] = useState(false);
+  const [isInitializingLastLogin, setIsInitializingLastLogin] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -709,11 +712,14 @@ function Team() {
 
             // Real-time sledovanie členov tímu
             const unsubscribeMembers = onSnapshot(membersQuery, (snapshot) => {
-              console.log('Načítané členy tímu:', snapshot.docs.map(doc => doc.data()));
+              console.log('Načítané členy tímu:', snapshot.docs.map(doc => ({
+                ...doc.data(),
+                id: doc.id
+              })));
               const membersMap = new Map<string, TeamMember>();
               snapshot.forEach((doc) => {
                 const data = doc.data();
-                console.log('Spracovávam člena:', data.email);
+                console.log('Spracovávam člena:', data.email, 'lastLogin:', data.lastLogin);
                 // Použijeme email ako kľúč pre odstránenie duplicít
                 membersMap.set(data.email, {
                   id: doc.id,
@@ -724,8 +730,10 @@ function Team() {
                   role: data.role,
                   status: data.role === 'admin' ? 'active' : (data.status || 'pending'),
                   createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
-                  userId: doc.id  // Používame doc.id ako userId
+                  userId: doc.id,  // Používame doc.id ako userId
+                  lastLogin: data.lastLogin?.toDate() || null
                 });
+                console.log('Po konverzii lastLogin:', membersMap.get(data.email)?.lastLogin);
               });
               console.log('Finálny zoznam členov po odstránení duplicít:', Array.from(membersMap.values()));
               setTeamMembers(Array.from(membersMap.values()));
@@ -1025,6 +1033,32 @@ function Team() {
     }
   };
 
+  const handleInitializeLastLogin = async () => {
+    try {
+      setIsInitializingLastLogin(true);
+      const initializeLastLoginFn = httpsCallable(functions, 'initializeLastLogin');
+      const result = await initializeLastLoginFn();
+      const data = result.data as { success: boolean, message: string };
+      
+      if (data.success) {
+        setNotification({
+          open: true,
+          message: data.message,
+          severity: 'success'
+        });
+      }
+    } catch (error: any) {
+      console.error('Chyba pri inicializácii lastLogin:', error);
+      setNotification({
+        open: true,
+        message: 'Nastala chyba pri inicializácii posledného prihlásenia',
+        severity: 'error'
+      });
+    } finally {
+      setIsInitializingLastLogin(false);
+    }
+  };
+
   const renderMobileTeamMember = (member: TeamMember | Invitation) => (
     <MobileTeamCard isDarkMode={isDarkMode} key={member.id}>
       <MobileTeamHeader isDarkMode={isDarkMode}>
@@ -1095,9 +1129,23 @@ function Team() {
     <PageWrapper>
       <PageHeader>
         <PageTitle isDarkMode={isDarkMode}>Tím</PageTitle>
-        <AddButton onClick={() => setOpenInvite(true)}>
-          <AddIcon /> Pridať člena
-        </AddButton>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {isAdmin && (
+            <Button
+              variant="contained"
+              onClick={() => setOpenInvite(true)}
+              startIcon={<AddIcon />}
+              sx={{
+                backgroundColor: colors.accent.main,
+                '&:hover': {
+                  backgroundColor: colors.accent.dark,
+                },
+              }}
+            >
+              Pozvať člena
+            </Button>
+          )}
+        </Box>
       </PageHeader>
 
       {error && (
@@ -1150,6 +1198,7 @@ function Team() {
             borderRadius: '20px',
             border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
             boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+            marginBottom: '24px'
           }}>
             <Table>
               <TableHead>
@@ -1159,6 +1208,7 @@ function Team() {
                   <TableCell>Telefón</TableCell>
                   <TableCell>Rola</TableCell>
                   <TableCell>Status</TableCell>
+                  <TableCell>Posledné prihlásenie</TableCell>
                   {isAdmin && <TableCell>Akcie</TableCell>}
                 </TableRow>
               </TableHead>
@@ -1203,6 +1253,24 @@ function Team() {
                           }}
                         />
                       </TableCell>
+                      <TableCell>
+                        {member.lastLogin ? (
+                          <Typography sx={{ 
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                            fontSize: '0.9rem'
+                          }}>
+                            {format(member.lastLogin instanceof Date ? member.lastLogin : new Date(member.lastLogin), 'dd.MM.yyyy HH:mm')}
+                          </Typography>
+                        ) : (
+                          <Typography sx={{ 
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                            fontSize: '0.9rem',
+                            fontStyle: 'italic'
+                          }}>
+                            Nikdy
+                          </Typography>
+                        )}
+                      </TableCell>
                       {isAdmin && (
                         <TableCell>
                           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -1241,6 +1309,7 @@ function Team() {
           <Typography 
             variant="h6" 
             sx={{ 
+              mt: 4,
               mb: 2,
               fontSize: '1.75rem',
               fontWeight: 700,
@@ -1263,7 +1332,6 @@ function Team() {
           >
             Čakajúce pozvánky
           </Typography>
-
           <TableContainer component={Paper} sx={{
             backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
             borderRadius: '20px',
@@ -1278,6 +1346,7 @@ function Team() {
                   <TableCell>Telefón</TableCell>
                   <TableCell>Rola</TableCell>
                   <TableCell>Status</TableCell>
+                  <TableCell>Posledné prihlásenie</TableCell>
                   {isAdmin && <TableCell>Akcie</TableCell>}
                 </TableRow>
               </TableHead>
@@ -1307,27 +1376,27 @@ function Team() {
                       </TableCell>
                       <TableCell>
                         <Chip 
-                          label={invite.status} 
-                          color={invite.status === 'pending' ? 'warning' : invite.status === 'accepted' ? 'success' : 'error'} 
+                          label="Čaká sa na prijatie" 
+                          color="warning" 
                           size="small"
                           sx={{
-                            backgroundColor: invite.status === 'pending' ? 'rgba(255, 159, 67, 0.15)' : 
-                                             invite.status === 'accepted' ? 'rgba(255, 159, 67, 0.15)' : 
-                                             'rgba(255, 107, 107, 0.15)',
-                            color: invite.status === 'pending' ? '#ff9f43' : 
-                                  invite.status === 'accepted' ? '#ff9f43' : 
-                                  '#ff6b6b',
+                            backgroundColor: 'rgba(255, 159, 67, 0.15)',
+                            color: colors.accent.main,
                             '& .MuiChip-label': {
-                              fontSize: '0.8rem'
+                              fontSize: {
+                                xs: '0.7rem',
+                                sm: '0.8rem'
+                              }
                             }
                           }}
                         />
                       </TableCell>
+                      <TableCell>-</TableCell>
                       {isAdmin && (
                         <TableCell>
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             <IconButton 
-                              onClick={() => handleEdit(invite)}
+                              onClick={() => handleResendInvitation(invite.id)}
                               sx={{ 
                                 color: colors.accent.main,
                                 '&:hover': {
@@ -1335,22 +1404,8 @@ function Team() {
                                 }
                               }}
                             >
-                              <EditIcon />
+                              <RefreshIcon />
                             </IconButton>
-                            {invite.status === 'pending' && (
-                              <IconButton 
-                                onClick={() => handleResendInvitation(invite.id)}
-                                disabled={loading}
-                                sx={{ 
-                                  color: colors.accent.main,
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                                  }
-                                }}
-                              >
-                                <SendIcon />
-                              </IconButton>
-                            )}
                             <IconButton 
                               onClick={() => handleDeleteClick(invite)}
                               sx={{ 

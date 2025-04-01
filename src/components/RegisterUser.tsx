@@ -15,7 +15,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, updateDoc, setDoc, collection } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 function RegisterUser() {
@@ -116,8 +116,9 @@ function RegisterUser() {
         phone: invitation.phone,
         companyID: invitation.companyID,
         role: invitation.role,
-        createdAt: new Date().toISOString(),
-        status: 'active'
+        createdAt: Timestamp.now(),
+        status: 'active',
+        lastLogin: Timestamp.now()
       };
 
       // Uloženie užívateľa do Firestore s rovnakým ID ako v Auth
@@ -127,7 +128,7 @@ function RegisterUser() {
       await updateDoc(doc(db, 'invitations', invitationId), {
         status: 'accepted',
         userId: userCredential.user.uid,
-        acceptedAt: new Date().toISOString()
+        acceptedAt: Timestamp.now()
       });
 
       setRegistrationSuccess(true);
