@@ -110,40 +110,20 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
 }));
 
 const StatsCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
-  backdropFilter: 'blur(10px)',
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#e8e9eb',
   borderRadius: '12px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)'}`,
   boxShadow: isDarkMode 
     ? '0 8px 32px 0 rgba(0, 0, 0, 0.25)'
-    : '0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0, 0, 0, 0.1), 0 16px 40px rgba(0, 0, 0, 0.15)',
+    : '0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.15)',
   transition: 'all 0.3s ease',
   overflow: 'hidden',
-  position: 'relative',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: isDarkMode 
-      ? 'linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%)'
-      : 'linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(240, 240, 240, 0.5) 100%)',
-    borderRadius: '12px',
-    zIndex: 0
-  },
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: isDarkMode 
       ? '0 12px 32px rgba(255, 159, 67, 0.3)'
-      : '0 6px 12px rgba(255, 159, 67, 0.1), 0 12px 24px rgba(255, 159, 67, 0.15), 0 24px 48px rgba(0, 0, 0, 0.15)',
-    border: `1px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(255, 159, 67, 0.3)'}`,
-    '&::before': {
-      background: isDarkMode 
-        ? 'linear-gradient(145deg, rgba(255, 159, 67, 0.15) 0%, rgba(255, 159, 67, 0) 100%)'
-        : 'linear-gradient(145deg, rgba(255, 159, 67, 0.1) 0%, rgba(255, 159, 67, 0.05) 100%)',
-    }
+      : '0 6px 12px rgba(255, 159, 67, 0.15), 0 12px 24px rgba(0, 0, 0, 0.2)',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(255, 159, 67, 0.5)'}`,
   },
   '& .MuiTypography-h4': {
     color: isDarkMode ? '#ffffff' : '#000000',
@@ -170,21 +150,21 @@ const StatsCardContent = styled(CardContent)({
 });
 
 const ChartContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#e8e9eb',
   borderRadius: '12px',
   padding: '24px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)'}`,
   boxShadow: isDarkMode 
     ? '0 8px 32px rgba(0, 0, 0, 0.25)'
-    : '0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0, 0, 0, 0.1), 0 16px 40px rgba(0, 0, 0, 0.15)',
+    : '0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.15)',
   overflow: 'hidden',
   transition: 'all 0.3s ease',
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: isDarkMode 
       ? '0 12px 32px rgba(255, 159, 67, 0.3)'
-      : '0 6px 12px rgba(255, 159, 67, 0.1), 0 12px 24px rgba(255, 159, 67, 0.15), 0 24px 48px rgba(0, 0, 0, 0.15)',
-    border: `1px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(255, 159, 67, 0.3)'}`,
+      : '0 6px 12px rgba(255, 159, 67, 0.15), 0 12px 24px rgba(0, 0, 0, 0.2)',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(255, 159, 67, 0.5)'}`,
   },
   '& .recharts-text': {
     fill: isDarkMode ? '#ffffff' : '#000000',
@@ -195,28 +175,31 @@ const ChartContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => 
 }));
 
 const DataTableContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#e8e9eb',
   borderRadius: '12px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.35)'}`,
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)'}`,
   boxShadow: isDarkMode 
     ? '0 8px 32px rgba(0, 0, 0, 0.25)'
-    : '0 4px 12px rgba(0, 0, 0, 0.15)',
+    : '0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.15)',
   overflow: 'hidden',
   '& .MuiTableCell-root': {
     color: isDarkMode ? '#ffffff' : '#000000',
-    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.2)',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)',
   },
   '& .MuiTableCell-head': {
     color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#d8d9db',
     fontWeight: 600,
     borderBottom: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.35)'}`,
   },
   '& .MuiTableRow-root': {
-    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)'}`,
+    '&:nth-of-type(odd)': {
+      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#f0f1f2',
+    }
   },
   '& .MuiTableRow-root:hover': {
-    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#d8d9db',
   },
   '& .MuiTableContainer-root': {
     borderRadius: '12px',
