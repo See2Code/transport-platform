@@ -497,28 +497,41 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
   color: isDarkMode ? '#ffffff' : '#000000',
   padding: '24px',
-  borderRadius: '20px',
-  border: 'none',
+  borderRadius: '24px',
   backdropFilter: 'blur(20px)',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+  boxShadow: 'none',
   maxHeight: '90vh',
   overflowY: 'auto',
-  margin: '16px',
+  margin: 0,
   '@media (max-width: 600px)': {
     padding: '16px',
-    margin: '8px',
+    margin: 0,
     maxHeight: '95vh',
   },
   '& .MuiDialog-paper': {
     backgroundColor: 'transparent',
     boxShadow: 'none',
     margin: 0,
+    borderRadius: '24px',
+    border: 'none',
+    outline: 'none'
+  },
+  '& .MuiBox-root': {
+    borderRadius: '24px',
+  },
+  '& .MuiPaper-root': {
+    borderRadius: '24px',
+    border: 'none',
+    outline: 'none',
+    boxShadow: 'none',
+    backgroundColor: 'transparent'
   },
   '& .MuiDialogTitle-root': {
     color: isDarkMode ? '#ffffff' : '#000000',
     padding: '24px 24px 16px 24px',
-    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
-    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    backgroundColor: 'transparent',
+    borderRadius: '24px 24px 0 0',
+    border: 'none',
     '@media (max-width: 600px)': {
       padding: '16px',
     },

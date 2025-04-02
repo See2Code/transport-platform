@@ -51,15 +51,19 @@ body[data-theme="light"] {
 /* Základné komponenty */
 .MuiPaper-root {
   transition: transform var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal) !important;
+  border-radius: 24px !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 body[data-theme="dark"] .MuiPaper-root {
-  background-color: var(--dark-purple-light) !important;
+  background-color: transparent !important;
   color: var(--text-primary-dark) !important;
 }
 
 body[data-theme="light"] .MuiPaper-root {
-  background-color: var(--light-bg-paper) !important;
+  background-color: transparent !important;
   color: var(--text-primary-light) !important;
 }
 
@@ -158,15 +162,19 @@ body[data-theme="light"] .MuiTableHead-root .MuiTableCell-root {
 /* Dialógy */
 .MuiDialog-paper {
   transition: background-color var(--transition-normal), color var(--transition-normal) !important;
+  border-radius: 24px !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 body[data-theme="dark"] .MuiDialog-paper {
-  background-color: var(--dark-purple-light) !important;
+  background-color: transparent !important;
   color: var(--text-primary-dark) !important;
 }
 
 body[data-theme="light"] .MuiDialog-paper {
-  background-color: var(--light-bg-paper) !important;
+  background-color: transparent !important;
   color: var(--text-primary-light) !important;
 }
 
