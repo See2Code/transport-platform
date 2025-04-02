@@ -672,39 +672,68 @@ const Navbar = () => {
           {isMobile ? (
             <>
               <BrandContainer>
-                <LogoImage src={isDarkMode ? "/AESA white.svg" : "/AESA black.svg"} alt="AESA Logo" isDarkMode={isDarkMode} />
+                <Box 
+                  onClick={() => navigate('/dashboard')} 
+                  sx={{ 
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    transition: 'opacity 0.2s ease-in-out',
+                    '&:hover': {
+                      opacity: 0.8
+                    }
+                  }}
+                >
+                  <LogoImage src={isDarkMode ? "/AESA white.svg" : "/AESA black.svg"} alt="AESA Logo" isDarkMode={isDarkMode} />
+                </Box>
+                <MenuButton
+                  edge="end"
+                  sx={{
+                    color: isDarkMode ? '#ffffff' : '#000000',
+                  }}
+                  aria-label="menu"
+                  onClick={handleMobileMenuClick}
+                >
+                  <MenuIcon />
+                </MenuButton>
               </BrandContainer>
-              <MenuButton
-                edge="end"
-                sx={{
-                  color: isDarkMode ? '#ffffff' : '#000000',
-                }}
-                aria-label="menu"
-                onClick={handleMobileMenuClick}
-              >
-                <MenuIcon />
-              </MenuButton>
             </>
           ) : (
             <>
               <BrandContainer>
-                <LogoImage src={isDarkMode ? "/AESA white.svg" : "/AESA black.svg"} alt="AESA Logo" isDarkMode={isDarkMode} />
-                <Typography 
-                  variant="h6" 
-                  noWrap 
-                  component="div"
+                <Box 
+                  onClick={() => navigate('/dashboard')} 
                   sx={{ 
-                    color: isDarkMode ? '#ffffff' : '#000000'
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    transition: 'opacity 0.2s ease-in-out',
+                    '&:hover': {
+                      opacity: 0.8
+                    }
                   }}
                 >
-                  Transport Platform
-                </Typography>
+                  <LogoImage src={isDarkMode ? "/AESA white.svg" : "/AESA black.svg"} alt="AESA Logo" isDarkMode={isDarkMode} />
+                  <Typography 
+                    variant="h6" 
+                    noWrap 
+                    component="div"
+                    sx={{ 
+                      color: isDarkMode ? '#ffffff' : '#000000'
+                    }}
+                  >
+                    Transport Platform
+                  </Typography>
+                </Box>
               </BrandContainer>
               <Box sx={{ 
                 display: 'flex', 
                 gap: 0.5,
                 alignItems: 'center',
-                height: '40px'
+                height: '40px',
+                marginLeft: 'auto'
               }}>
                 {menuItems.map((item) => (
                   <NavListItem key={item.text} disablePadding isDarkMode={isDarkMode}>

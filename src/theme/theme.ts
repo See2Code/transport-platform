@@ -38,15 +38,15 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
         dark: colors.success.dark,
       },
       background: {
-        default: isDarkMode ? colors.background.dark : colors.background.default,
-        paper: isDarkMode ? colors.primary.main : colors.background.paper,
+        default: isDarkMode ? colors.background.dark : '#ffffff',
+        paper: isDarkMode ? colors.primary.main : '#ffffff',
       },
       text: {
         primary: isDarkMode ? colors.text.primaryDark : colors.text.primary,
         secondary: isDarkMode ? colors.text.secondaryDark : colors.text.secondary,
         disabled: isDarkMode ? colors.text.disabledDark : colors.text.disabled,
       },
-      divider: isDarkMode ? colors.dividerDark : colors.divider,
+      divider: isDarkMode ? colors.dividerDark : 'rgba(0, 0, 0, 0.15)',
     },
     typography: {
       fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -99,6 +99,7 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
             textTransform: 'none',
             borderRadius: '8px',
             fontSize: '14px',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
           },
           contained: {
             backgroundColor: '#ff9f43',
@@ -115,19 +116,13 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
             }
           },
           outlined: {
-            borderColor: '#ff9f43',
+            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.23)',
             color: '#ff9f43',
             '&:hover': {
               backgroundColor: 'rgba(255, 159, 67, 0.1)',
               borderColor: '#ffbe76',
             }
           },
-          text: {
-            color: '#ff9f43',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 159, 67, 0.1)',
-            }
-          }
         }
       },
       MuiCard: {
@@ -136,7 +131,36 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
             borderRadius: 16,
             boxShadow: isDarkMode 
               ? '0 4px 20px rgba(0, 0, 0, 0.25)'
-              : '0 4px 20px rgba(0, 0, 0, 0.1)',
+              : '0 4px 20px rgba(0, 0, 0, 0.15)',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            boxShadow: isDarkMode 
+              ? '0 4px 20px rgba(0, 0, 0, 0.25)'
+              : '0 4px 20px rgba(0, 0, 0, 0.15)',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+          },
+        },
+      },
+      MuiTableHead: {
+        styleOverrides: {
+          root: {
+            '& .MuiTableCell-root': {
+              borderBottom: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+              fontWeight: 600,
+            },
           },
         },
       },
@@ -145,6 +169,17 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
           root: {
             '& .MuiOutlinedInput-root': {
               borderRadius: 12,
+              '& fieldset': {
+                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)',
+                borderWidth: '1px',
+              },
+              '&:hover fieldset': {
+                borderColor: isDarkMode ? 'rgba(255, 159, 67, 0.5)' : 'rgba(255, 159, 67, 0.5)',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#ff9f43',
+                borderWidth: '2px',
+              },
             },
           },
         },

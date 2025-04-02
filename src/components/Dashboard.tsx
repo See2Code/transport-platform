@@ -112,24 +112,47 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
 const StatsCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
   backdropFilter: 'blur(10px)',
-  borderRadius: '20px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+  borderRadius: '12px',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+  boxShadow: isDarkMode 
+    ? '0 8px 32px 0 rgba(0, 0, 0, 0.25)'
+    : '0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0, 0, 0, 0.1), 0 16px 40px rgba(0, 0, 0, 0.15)',
   transition: 'all 0.3s ease',
+  overflow: 'hidden',
+  position: 'relative',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: isDarkMode 
+      ? 'linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%)'
+      : 'linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(240, 240, 240, 0.5) 100%)',
+    borderRadius: '12px',
+    zIndex: 0
+  },
   '&:hover': {
     transform: 'translateY(-5px)',
-    boxShadow: '0 8px 24px rgba(255, 159, 67, 0.2)',
-    border: '1px solid rgba(255, 159, 67, 0.2)',
-    '& .MuiCardContent-root': {
-      background: 'linear-gradient(180deg, rgba(255, 159, 67, 0.1) 0%, rgba(255, 159, 67, 0) 100%)',
+    boxShadow: isDarkMode 
+      ? '0 12px 32px rgba(255, 159, 67, 0.3)'
+      : '0 6px 12px rgba(255, 159, 67, 0.1), 0 12px 24px rgba(255, 159, 67, 0.15), 0 24px 48px rgba(0, 0, 0, 0.15)',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(255, 159, 67, 0.3)'}`,
+    '&::before': {
+      background: isDarkMode 
+        ? 'linear-gradient(145deg, rgba(255, 159, 67, 0.15) 0%, rgba(255, 159, 67, 0) 100%)'
+        : 'linear-gradient(145deg, rgba(255, 159, 67, 0.1) 0%, rgba(255, 159, 67, 0.05) 100%)',
     }
   },
-  '& .MuiTypography-root': {
+  '& .MuiTypography-h4': {
     color: isDarkMode ? '#ffffff' : '#000000',
+    fontWeight: 600
   },
   '& .MuiTypography-body1': {
     color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-  },
+    fontWeight: 500
+  }
 }));
 
 const StatsCardContent = styled(CardContent)({
@@ -139,6 +162,8 @@ const StatsCardContent = styled(CardContent)({
   flexDirection: 'column',
   gap: '12px',
   transition: 'all 0.3s ease',
+  position: 'relative',
+  zIndex: 1,
   '&:last-child': {
     paddingBottom: '24px'
   }
@@ -146,28 +171,57 @@ const StatsCardContent = styled(CardContent)({
 
 const ChartContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
   backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
-  borderRadius: '20px',
+  borderRadius: '12px',
   padding: '24px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
+  boxShadow: isDarkMode 
+    ? '0 8px 32px rgba(0, 0, 0, 0.25)'
+    : '0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0, 0, 0, 0.1), 0 16px 40px rgba(0, 0, 0, 0.15)',
+  overflow: 'hidden',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: isDarkMode 
+      ? '0 12px 32px rgba(255, 159, 67, 0.3)'
+      : '0 6px 12px rgba(255, 159, 67, 0.1), 0 12px 24px rgba(255, 159, 67, 0.15), 0 24px 48px rgba(0, 0, 0, 0.15)',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(255, 159, 67, 0.3)'}`,
+  },
   '& .recharts-text': {
     fill: isDarkMode ? '#ffffff' : '#000000',
   },
   '& .recharts-cartesian-grid-horizontal line, & .recharts-cartesian-grid-vertical line': {
-    stroke: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-  },
+    stroke: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.2)',
+  }
 }));
 
 const DataTableContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  borderRadius: '12px',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.35)'}`,
+  boxShadow: isDarkMode 
+    ? '0 8px 32px rgba(0, 0, 0, 0.25)'
+    : '0 4px 12px rgba(0, 0, 0, 0.15)',
+  overflow: 'hidden',
   '& .MuiTableCell-root': {
     color: isDarkMode ? '#ffffff' : '#000000',
-    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.2)',
   },
   '& .MuiTableCell-head': {
     color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(0, 0, 0, 0.05)',
+    fontWeight: 600,
+    borderBottom: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.35)'}`,
+  },
+  '& .MuiTableRow-root': {
+    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)'}`,
   },
   '& .MuiTableRow-root:hover': {
-    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
   },
+  '& .MuiTableContainer-root': {
+    borderRadius: '12px',
+    overflow: 'hidden',
+  }
 }));
 
 const COLORS = ['#ff9f43', '#ffd43b', '#ff6b6b', '#ff9ff3', '#48dbfb'];
@@ -338,6 +392,14 @@ const progressVariants = {
     transition: { duration: 1, ease: "easeOut" }
   })
 };
+
+const StatsContainer = styled(Box)({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+  gap: '24px',
+  marginBottom: '32px',
+  width: '100%',
+});
 
 export default function Dashboard() {
   const { userData } = useAuth();
@@ -646,7 +708,8 @@ export default function Dashboard() {
               <Typography variant="h6" sx={{ 
                 mb: { xs: 2, sm: 3 }, 
                 color: isDarkMode ? '#ffffff' : '#000000',
-                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                fontWeight: 600
               }}>
                 Rozdelenie podľa statusu
               </Typography>
@@ -771,8 +834,9 @@ export default function Dashboard() {
                           }}
                         />
                         <Typography sx={{ 
-                          color: '#fff',
-                          fontSize: { xs: '0.8rem', sm: '0.9rem' }
+                          color: isDarkMode ? '#ffffff' : '#000000',
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                          fontWeight: 500
                         }}>
                           {item.name}: <CountUp
                             end={item.value}
@@ -787,8 +851,9 @@ export default function Dashboard() {
 
                 {/* Total */}
                 <Typography sx={{ 
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                   fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                  fontWeight: 500,
                   mt: { xs: 0.5, sm: 1 }
                 }}>
                   Celkom: {stats.statusDistribution.reduce((acc, curr) => acc + curr.value, 0)}
