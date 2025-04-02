@@ -494,12 +494,13 @@ const StyledTableRow = styled(TableRow)<{ isDarkMode: boolean }>(({ isDarkMode }
 }));
 
 const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
   color: isDarkMode ? '#ffffff' : '#000000',
   padding: '24px',
   borderRadius: '24px',
   backdropFilter: 'blur(20px)',
-  boxShadow: 'none',
+  boxShadow: isDarkMode ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
   maxHeight: '90vh',
   overflowY: 'auto',
   margin: 0,
@@ -552,6 +553,7 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
       color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     },
     '& .MuiInputBase-root': {
+      backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
       color: isDarkMode ? '#ffffff' : '#000000',
       '& fieldset': {
         borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
@@ -572,7 +574,7 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   },
   '& .MuiDialogActions-root': {
     padding: '16px 24px 24px 24px',
-    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+    backgroundColor: 'transparent',
     borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
     '@media (max-width: 600px)': {
       padding: '16px',
@@ -642,6 +644,37 @@ const Dot = styled(Box)<{ isDarkMode?: boolean }>(({ isDarkMode = true }) => ({
 const validateEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
+};
+
+const AnimatedAlert = styled(motion.div)({
+  width: '100%',
+  marginBottom: '24px'
+});
+
+const alertVariants = {
+  initial: { 
+    opacity: 0,
+    y: -20,
+    scale: 0.95
+  },
+  animate: { 
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  },
+  exit: { 
+    opacity: 0,
+    y: -20,
+    scale: 0.95,
+    transition: {
+      duration: 0.2,
+      ease: "easeIn"
+    }
+  }
 };
 
 function Team() {
@@ -844,20 +877,27 @@ function Team() {
       });
 
       setSuccess('Pozvánka bola úspešne odoslaná.');
-      setOpenInvite(false);
-      setEmail('');
-      setFirstName('');
-      setLastName('');
-      setPhoneNumber('');
-      setRole('user');
+      
+      // Zatvorenie dialógu a reset formulára po 1 sekunde
+      setTimeout(() => {
+        setOpenInvite(false);
+        setEmail('');
+        setFirstName('');
+        setLastName('');
+        setPhoneNumber('');
+        setRole('user');
+        setIsCreating(false);
+      }, 1000);
+
+      // Skrytie success správy po 5 sekundách
+      setTimeout(() => {
+        setSuccess('');
+      }, 5000);
+
     } catch (err: any) {
       console.error('Chyba pri odosielaní pozvánky:', err);
       setError(err.message || 'Nastala chyba pri odosielaní pozvánky.');
-    } finally {
-      // Zatiahneme zatvorenie dialogu o 1 sekundu, aby sa užívateľ stihol pozrieť na loading stav
-      setTimeout(() => {
-        setIsCreating(false);
-      }, 1000);
+      setIsCreating(false);
     }
   };
 
@@ -878,6 +918,10 @@ function Team() {
   const handleUpdate = async () => {
     if (!editingInvite || !firstName || !lastName || !email || !phoneNumber || !role) {
       setError('Prosím vyplňte všetky polia');
+      // Skrytie error správy po 5 sekundách
+      setTimeout(() => {
+        setError('');
+      }, 5000);
       return;
     }
 
@@ -918,9 +962,18 @@ function Team() {
       setLastName('');
       setPhoneNumber('');
       setRole('user');
+      
+      // Skrytie success správy po 5 sekundách
+      setTimeout(() => {
+        setSuccess('');
+      }, 5000);
     } catch (err: any) {
       console.error('Chyba pri aktualizácii záznamu:', err);
       setError(err.message || 'Nastala chyba pri aktualizácii záznamu.');
+      // Skrytie error správy po 5 sekundách
+      setTimeout(() => {
+        setError('');
+      }, 5000);
     } finally {
       setLoading(false);
     }
@@ -950,9 +1003,18 @@ function Team() {
       setSuccess('Záznam bol úspešne vymazaný.');
       setDeleteConfirmOpen(false);
       setInviteToDelete(null);
+      
+      // Skrytie success správy po 5 sekundách
+      setTimeout(() => {
+        setSuccess('');
+      }, 5000);
     } catch (err: any) {
       console.error('Chyba pri mazaní záznamu:', err);
       setError(err.message || 'Nastala chyba pri mazaní záznamu.');
+      // Skrytie error správy po 5 sekundách
+      setTimeout(() => {
+        setError('');
+      }, 5000);
     } finally {
       setLoading(false);
       setDeletingMemberId(null);
@@ -971,9 +1033,17 @@ function Team() {
       });
 
       setSuccess('Status člena tímu bol úspešne overený.');
+      // Skrytie success správy po 5 sekundách
+      setTimeout(() => {
+        setSuccess('');
+      }, 5000);
     } catch (err: any) {
       console.error('Chyba pri overovaní statusu:', err);
       setError(err.message || 'Nastala chyba pri overovaní statusu.');
+      // Skrytie error správy po 5 sekundách
+      setTimeout(() => {
+        setError('');
+      }, 5000);
     } finally {
       setLoading(false);
     }
@@ -1196,17 +1266,33 @@ function Team() {
         </Box>
       </PageHeader>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+      <AnimatePresence mode="sync">
+        {error && (
+          <AnimatedAlert
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={alertVariants}
+          >
+            <Alert severity="error" onClose={() => setError('')}>
+              {error}
+            </Alert>
+          </AnimatedAlert>
+        )}
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          {success}
-        </Alert>
-      )}
+        {success && (
+          <AnimatedAlert
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={alertVariants}
+          >
+            <Alert severity="success" onClose={() => setSuccess('')}>
+              {success}
+            </Alert>
+          </AnimatedAlert>
+        )}
+      </AnimatePresence>
 
       {isMobile ? (
         <Box>
@@ -1521,12 +1607,20 @@ function Team() {
                     value={countryCode}
                     onChange={handleCountryChange}
                     label="Krajina"
+                    sx={{
+                      backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                      color: isDarkMode ? '#ffffff' : '#000000',
+                    }}
                     MenuProps={{
                       PaperProps: {
                         sx: {
-                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(8px)',
                           '& .MuiMenuItem-root': {
-                            color: isDarkMode ? '#ffffff' : '#000000'
+                            color: isDarkMode ? '#ffffff' : '#000000',
+                            '&:hover': {
+                              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                            }
                           }
                         }
                       }
@@ -1572,12 +1666,28 @@ function Team() {
                     onChange={(e) => setRole(e.target.value)}
                     label="Rola"
                     required
+                    sx={{
+                      backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                      color: isDarkMode ? '#ffffff' : '#000000',
+                    }}
                     MenuProps={{
                       PaperProps: {
                         sx: {
-                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(8px)',
+                          boxShadow: isDarkMode ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                          border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
                           '& .MuiMenuItem-root': {
-                            color: isDarkMode ? '#ffffff' : '#000000'
+                            color: isDarkMode ? '#ffffff' : '#000000',
+                            '&:hover': {
+                              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 159, 67, 0.1)',
+                              '&:hover': {
+                                backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.25)' : 'rgba(255, 159, 67, 0.2)'
+                              }
+                            }
                           }
                         }
                       }
@@ -1607,9 +1717,28 @@ function Team() {
             <Button 
               onClick={handleInvite}
               variant="contained"
-              disabled={loading || !isEmailValid}
+              disabled={isCreating || !isEmailValid}
+              sx={{
+                backgroundColor: colors.accent.main,
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: colors.accent.light,
+                },
+                '&:disabled': {
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+                }
+              }}
             >
-              {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Pozvať'}
+              {isCreating ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={20} sx={{ 
+                    color: isDarkMode ? '#ffffff' : colors.accent.main,
+                    opacity: 0.7 
+                  }} />
+                  <Typography variant="body2">Pozývam...</Typography>
+                </Box>
+              ) : 'Pozvať'}
             </Button>
           </DialogActions>
         </StyledDialogContent>
@@ -1677,12 +1806,20 @@ function Team() {
                     value={countryCode}
                     onChange={handleCountryChange}
                     label="Krajina"
+                    sx={{
+                      backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                      color: isDarkMode ? '#ffffff' : '#000000',
+                    }}
                     MenuProps={{
                       PaperProps: {
                         sx: {
-                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(8px)',
                           '& .MuiMenuItem-root': {
-                            color: isDarkMode ? '#ffffff' : '#000000'
+                            color: isDarkMode ? '#ffffff' : '#000000',
+                            '&:hover': {
+                              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                            }
                           }
                         }
                       }
@@ -1728,12 +1865,28 @@ function Team() {
                     onChange={(e) => setRole(e.target.value)}
                     label="Rola"
                     required
+                    sx={{
+                      backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                      color: isDarkMode ? '#ffffff' : '#000000',
+                    }}
                     MenuProps={{
                       PaperProps: {
                         sx: {
-                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(8px)',
+                          boxShadow: isDarkMode ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                          border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
                           '& .MuiMenuItem-root': {
-                            color: isDarkMode ? '#ffffff' : '#000000'
+                            color: isDarkMode ? '#ffffff' : '#000000',
+                            '&:hover': {
+                              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 159, 67, 0.1)',
+                              '&:hover': {
+                                backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.25)' : 'rgba(255, 159, 67, 0.2)'
+                              }
+                            }
                           }
                         }
                       }
@@ -1853,24 +2006,28 @@ function Team() {
             minWidth: '300px',
             boxShadow: isDarkMode ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)',
             border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+            backdropFilter: 'blur(10px)',
           }
         }}
       >
         <DialogContent>
-          <LoadingText isDarkMode={isDarkMode}>
-            {isCreating ? 'Vytváranie pozvánky...' : 'Preposielanie pozvánky...'}
-          </LoadingText>
-          <LoadingDots>
-            <Dot isDarkMode={isDarkMode} />
-            <Dot isDarkMode={isDarkMode} />
-            <Dot isDarkMode={isDarkMode} />
-          </LoadingDots>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <CircularProgress size={40} sx={{ 
+              color: colors.accent.main
+            }} />
+            <Typography variant="body1" sx={{ 
+              color: isDarkMode ? '#ffffff' : '#000000',
+              textAlign: 'center'
+            }}>
+              {isCreating ? 'Vytváranie pozvánky...' : 'Preposielanie pozvánky...'}
+            </Typography>
+          </Box>
         </DialogContent>
       </LoadingDialog>
 
       <Snackbar
         open={notification.open}
-        autoHideDuration={6000}
+        autoHideDuration={5000}
         onClose={handleCloseNotification}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >

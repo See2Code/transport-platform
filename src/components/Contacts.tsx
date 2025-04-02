@@ -805,6 +805,24 @@ const Contacts = () => {
                   value={formData.countryCode}
                   onChange={handleCountryChange}
                   label="Krajina"
+                  sx={{
+                    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                    color: isDarkMode ? '#ffffff' : '#000000',
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(8px)',
+                        '& .MuiMenuItem-root': {
+                          color: isDarkMode ? '#ffffff' : '#000000',
+                          '&:hover': {
+                            backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                          }
+                        }
+                      }
+                    }
+                  }}
                 >
                   {countries.map((country) => (
                     <MenuItem key={country.code} value={country.code}>

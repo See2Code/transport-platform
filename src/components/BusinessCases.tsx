@@ -1271,7 +1271,7 @@ export default function BusinessCases() {
                         value={selectedCountry.code}
                         onChange={handleCountryChange}
                         sx={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
                           color: isDarkMode ? '#ffffff' : '#000000',
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
@@ -1284,6 +1284,20 @@ export default function BusinessCases() {
                           },
                           '& .MuiSelect-icon': {
                             color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                          }
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(8px)',
+                              '& .MuiMenuItem-root': {
+                                color: isDarkMode ? '#ffffff' : '#000000',
+                                '&:hover': {
+                                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                                }
+                              }
+                            }
                           }
                         }}
                       >
@@ -1382,7 +1396,67 @@ export default function BusinessCases() {
                       label="Dátum a čas pripomienky"
                       value={formData.reminderDateTime}
                       onChange={(newValue) => setFormData({ ...formData, reminderDateTime: newValue })}
-                      sx={{ width: '100%' }}
+                      sx={{
+                        width: '100%',
+                        '& .MuiInputBase-root': {
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                          color: isDarkMode ? '#ffffff' : '#000000',
+                        }
+                      }}
+                      slotProps={{
+                        popper: {
+                          sx: {
+                            '& .MuiPaper-root': {
+                              backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(8px)',
+                              color: isDarkMode ? '#ffffff' : '#000000',
+                              '& .MuiPickersDay-root': {
+                                color: isDarkMode ? '#ffffff' : '#000000',
+                                '&:hover': {
+                                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                                },
+                                '&.Mui-selected': {
+                                  backgroundColor: colors.accent.main,
+                                  color: '#ffffff',
+                                  '&:hover': {
+                                    backgroundColor: colors.accent.light
+                                  }
+                                }
+                              },
+                              '& .MuiPickersCalendarHeader-root': {
+                                color: isDarkMode ? '#ffffff' : '#000000'
+                              },
+                              '& .MuiPickersYear-yearButton': {
+                                color: isDarkMode ? '#ffffff' : '#000000',
+                                '&:hover': {
+                                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                                },
+                                '&.Mui-selected': {
+                                  backgroundColor: colors.accent.main,
+                                  color: '#ffffff'
+                                }
+                              },
+                              '& .MuiPickersMonth-monthButton': {
+                                color: isDarkMode ? '#ffffff' : '#000000',
+                                '&:hover': {
+                                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                                },
+                                '&.Mui-selected': {
+                                  backgroundColor: colors.accent.main,
+                                  color: '#ffffff'
+                                }
+                              },
+                              '& .MuiClock-pin, & .MuiClockPointer-root': {
+                                backgroundColor: colors.accent.main
+                              },
+                              '& .MuiClockPointer-thumb': {
+                                backgroundColor: colors.accent.main,
+                                border: `16px solid ${colors.accent.main}`
+                              }
+                            }
+                          }
+                        }
+                      }}
                     />
                   </LocalizationProvider>
                 </Grid>
