@@ -664,15 +664,12 @@ const ActionButton = styled(Button)(({ theme }) => ({
 }));
 
 function TrackedTransports() {
+  const { userData } = useAuth();
   const [transports, setTransports] = useState<Transport[]>([]);
-  const [filteredTransports, setFilteredTransports] = useState<Transport[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [editingTransport, setEditingTransport] = useState<Transport | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [transportToDelete, setTransportToDelete] = useState<Transport | null>(null);
   const [formData, setFormData] = useState<TransportFormData>({
     orderNumber: '',
     loadingAddress: '',
@@ -682,14 +679,12 @@ function TrackedTransports() {
     unloadingDateTime: null,
     unloadingReminder: 60,
   });
-  const { userData } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' | 'warning' | 'info' });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [transportToDelete, setTransportToDelete] = useState<Transport | null>(null);
+  const [mapTransport, setMapTransport] = useState<Transport | null>(null);
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
-  const [selectedTransport, setSelectedTransport] = useState<{
-    loading: string;
-    unloading: string;
-    loadingDateTime: Date | Timestamp;
-    unloadingDateTime: Date | Timestamp;
-  } | null>(null);
   const { isDarkMode } = useThemeMode();
 
   const handleOpenDialog = (transport?: Transport) => {
@@ -726,184 +721,221 @@ function TrackedTransports() {
     setEditingTransport(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.orderNumber || !formData.loadingAddress || !formData.loadingDateTime || 
-        !formData.unloadingAddress || !formData.unloadingDateTime) {
-      setError('Prosím vyplňte všetky povinné polia');
+  const handleSaveTransport = async () => {
+    // Pridáme funkciu pre logovanie
+    const logToStorage = (message: string, data?: any) => {
+      const logs = JSON.parse(localStorage.getItem('transportLogs') || '[]');
+      logs.push({
+        timestamp: new Date().toISOString(),
+        message,
+        data
+      });
+      localStorage.setItem('transportLogs', JSON.stringify(logs));
+      console.log(message, data);
+    };
+
+    if (!formData.loadingDateTime || !formData.unloadingDateTime) {
+      logToStorage("Uloženie zrušené: Chýba dátum/čas nakládky alebo vykládky.", formData);
+      setSnackbar({ open: true, message: 'Dátumy a časy nakládky a vykládky sú povinné.', severity: 'error' });
       return;
     }
+    logToStorage("Spúšťam handleSaveTransport...", { editingTransport, formData });
 
     try {
+      setLoading(true);
       if (editingTransport) {
-        // Aktualizácia existujúcej prepravy
+        logToStorage(`Aktualizujem prepravu s ID: ${editingTransport.id}`);
         const transportRef = doc(db, 'transports', editingTransport.id);
         await updateDoc(transportRef, {
-          orderNumber: formData.orderNumber,
-          loadingAddress: formData.loadingAddress,
+          ...formData,
           loadingDateTime: formData.loadingDateTime,
-          loadingReminder: formData.loadingReminder,
-          unloadingAddress: formData.unloadingAddress,
           unloadingDateTime: formData.unloadingDateTime,
+          loadingReminder: formData.loadingReminder,
           unloadingReminder: formData.unloadingReminder,
           updatedAt: new Date(),
         });
+        logToStorage("Dokument prepravy aktualizovaný.");
 
-        // Aktualizácia pripomienok
+        // Odstránenie existujúcich pripomienok
+        logToStorage("Mažem existujúce pripomienky pre prepravu:", editingTransport.id);
         const remindersQuery = query(
           collection(db, 'reminders'),
           where('transportId', '==', editingTransport.id)
         );
         const remindersSnapshot = await getDocs(remindersQuery);
-        
-        // Aktualizácia alebo vytvorenie pripomienok
-        const loadingReminderTime = new Date(formData.loadingDateTime.getTime() - formData.loadingReminder * 60000);
-        const unloadingReminderTime = new Date(formData.unloadingDateTime.getTime() - formData.unloadingReminder * 60000);
-
-        let hasLoadingReminder = false;
-        let hasUnloadingReminder = false;
-
-        // Aktualizácia existujúcich pripomienok
-        remindersSnapshot.docs.forEach(async (reminderDoc) => {
-          const reminderData = reminderDoc.data();
-          if (reminderData.type === 'loading') {
-            hasLoadingReminder = true;
-            await updateDoc(doc(db, 'reminders', reminderDoc.id), {
-              reminderDateTime: loadingReminderTime,
-              sent: false,
-              userEmail: userData?.email || '',
-              orderNumber: formData.orderNumber,
-              address: formData.loadingAddress,
-              reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`
-            });
-          } else if (reminderData.type === 'unloading') {
-            hasUnloadingReminder = true;
-            await updateDoc(doc(db, 'reminders', reminderDoc.id), {
-              reminderDateTime: unloadingReminderTime,
-              sent: false,
-              userEmail: userData?.email || '',
-              orderNumber: formData.orderNumber,
-              address: formData.unloadingAddress,
-              reminderNote: `Vykládka na adrese: ${formData.unloadingAddress}`
-            });
-          }
+        logToStorage(`Nájdených ${remindersSnapshot.docs.length} existujúcich pripomienok na vymazanie.`);
+        const deletePromises = remindersSnapshot.docs.map(async (reminderDoc) => {
+          logToStorage(`Mažem pripomienku s ID: ${reminderDoc.id}`);
+          await deleteDoc(doc(db, 'reminders', reminderDoc.id));
         });
+        await Promise.all(deletePromises);
+        logToStorage("Existujúce pripomienky vymazané.");
 
-        // Vytvorenie chýbajúcich pripomienok
-        if (!hasLoadingReminder) {
-          console.log('Vytváram novú pripomienku pre nakládku:', {
-            email: userData?.email,
-            time: loadingReminderTime,
-            orderNumber: formData.orderNumber
-          });
-          await addDoc(collection(db, 'reminders'), {
-            transportId: editingTransport.id,
-            type: 'loading',
-            reminderDateTime: loadingReminderTime,
-            message: `Pripomienka nakládky pre objednávku ${formData.orderNumber}`,
-            sent: false,
-            createdAt: new Date(),
-            userEmail: userData?.email || '',
-            orderNumber: formData.orderNumber,
-            address: formData.loadingAddress,
-            userId: auth.currentUser?.uid || '',
-            reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`
-          });
-        }
-
-        if (!hasUnloadingReminder) {
-          console.log('Vytváram novú pripomienku pre vykládku:', {
-            email: userData?.email,
-            time: unloadingReminderTime,
-            orderNumber: formData.orderNumber
-          });
-          await addDoc(collection(db, 'reminders'), {
-            transportId: editingTransport.id,
-            type: 'unloading',
-            reminderDateTime: unloadingReminderTime,
-            message: `Pripomienka vykládky pre objednávku ${formData.orderNumber}`,
-            sent: false,
-            createdAt: new Date(),
-            userEmail: userData?.email || '',
-            orderNumber: formData.orderNumber,
-            address: formData.unloadingAddress,
-            userId: auth.currentUser?.uid || '',
-            reminderNote: `Vykládka na adrese: ${formData.unloadingAddress}`
-          });
-        }
-      } else {
-        // Vytvorenie novej prepravy
-        const transportDoc = await addDoc(collection(db, 'transports'), {
-          orderNumber: formData.orderNumber,
-          loadingAddress: formData.loadingAddress,
+        // Vytvorenie nových pripomienok
+        logToStorage("Vytváram nové pripomienky s dátami:", {
           loadingDateTime: formData.loadingDateTime,
-          loadingReminder: formData.loadingReminder,
-          unloadingAddress: formData.unloadingAddress,
           unloadingDateTime: formData.unloadingDateTime,
-          unloadingReminder: formData.unloadingReminder,
-          status: 'Aktívna',
-          createdAt: new Date(),
-          createdBy: {
-            firstName: userData?.firstName || '',
-            lastName: userData?.lastName || '',
-          },
-          isDelayed: false,
+          loadingReminder: formData.loadingReminder,
+          unloadingReminder: formData.unloadingReminder
         });
 
-        // Vytvorenie pripomienok pre nakládku a vykládku
         const loadingReminderTime = new Date(formData.loadingDateTime.getTime() - formData.loadingReminder * 60000);
-        console.log('Vytváram pripomienku pre nakládku:', {
-          email: userData?.email,
-          time: loadingReminderTime,
-          orderNumber: formData.orderNumber
-        });
-        await addDoc(collection(db, 'reminders'), {
-          transportId: transportDoc.id,
-          type: 'loading',
-          reminderDateTime: loadingReminderTime,
-          message: `Pripomienka nakládky pre objednávku ${formData.orderNumber}`,
-          sent: false,
-          createdAt: new Date(),
-          userEmail: userData?.email || '',
-          orderNumber: formData.orderNumber,
-          address: formData.loadingAddress,
-          userId: auth.currentUser?.uid || '',
-          reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`
-        });
-
         const unloadingReminderTime = new Date(formData.unloadingDateTime.getTime() - formData.unloadingReminder * 60000);
-        console.log('Vytváram pripomienku pre vykládku:', {
-          email: userData?.email,
-          time: unloadingReminderTime,
-          orderNumber: formData.orderNumber
+        logToStorage("Vypočítané časy pripomienok:", { 
+          loadingReminderTime: loadingReminderTime.toISOString(), 
+          unloadingReminderTime: unloadingReminderTime.toISOString() 
         });
-        await addDoc(collection(db, 'reminders'), {
-          transportId: transportDoc.id,
-          type: 'unloading',
-          reminderDateTime: unloadingReminderTime,
-          message: `Pripomienka vykládky pre objednávku ${formData.orderNumber}`,
-          sent: false,
-          createdAt: new Date(),
-          userEmail: userData?.email || '',
-          orderNumber: formData.orderNumber,
-          address: formData.unloadingAddress,
-          userId: auth.currentUser?.uid || '',
-          reminderNote: `Vykládka na adrese: ${formData.unloadingAddress}`
-        });
-      }
 
+        const loadingReminderData = {
+          transportId: editingTransport.id,
+          type: 'loading',
+          reminderDateTime: Timestamp.fromDate(loadingReminderTime),
+          status: 'scheduled',
+          createdAt: Timestamp.fromDate(new Date()),
+          userEmail: userData?.email || '',
+          transportDetails: {
+            loadingAddress: formData.loadingAddress,
+            loadingDateTime: Timestamp.fromDate(formData.loadingDateTime),
+            unloadingAddress: formData.unloadingAddress,
+            unloadingDateTime: Timestamp.fromDate(formData.unloadingDateTime),
+            orderNumber: formData.orderNumber
+          },
+          orderNumber: formData.orderNumber,
+          reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`,
+          sent: false
+        };
+        logToStorage("Pokus o pridanie pripomienky nakládky (update):", loadingReminderData);
+        if (!loadingReminderTime || isNaN(loadingReminderTime.getTime())) {
+            logToStorage("Neplatný loadingReminderTime!");
+        } else {
+            const loadingReminderRef = await addDoc(collection(db, 'reminders'), loadingReminderData);
+            logToStorage("Pripomienka nakládky vytvorená s ID:", loadingReminderRef.id);
+        }
+
+        const unloadingReminderData = {
+          transportId: editingTransport.id,
+          type: 'unloading',
+          reminderDateTime: Timestamp.fromDate(unloadingReminderTime),
+          status: 'scheduled',
+          createdAt: Timestamp.fromDate(new Date()),
+          userEmail: userData?.email || '',
+          transportDetails: {
+            loadingAddress: formData.loadingAddress,
+            loadingDateTime: Timestamp.fromDate(formData.loadingDateTime),
+            unloadingAddress: formData.unloadingAddress,
+            unloadingDateTime: Timestamp.fromDate(formData.unloadingDateTime),
+            orderNumber: formData.orderNumber
+          },
+          orderNumber: formData.orderNumber,
+          reminderNote: `Vykládka na adrese: ${formData.unloadingAddress}`,
+          sent: false
+        };
+        logToStorage("Pokus o pridanie pripomienky vykládky (update):", unloadingReminderData);
+        if (!unloadingReminderTime || isNaN(unloadingReminderTime.getTime())) {
+            logToStorage("Neplatný unloadingReminderTime!");
+        } else {
+            const unloadingReminderRef = await addDoc(collection(db, 'reminders'), unloadingReminderData);
+            logToStorage("Pripomienka vykládky vytvorená s ID:", unloadingReminderRef.id);
+        }
+
+        setSnackbar({ open: true, message: 'Preprava úspešne aktualizovaná', severity: 'success' });
+      } else {
+        // Pridanie novej prepravy
+        logToStorage("Pridávam novú prepravu...");
+        const docRef = await addDoc(collection(db, 'transports'), {
+          ...formData,
+          status: 'scheduled',
+          createdAt: new Date(),
+          createdBy: userData?.uid || '',
+          companyID: userData?.companyID || '',
+          loadingReminder: formData.loadingReminder,
+          unloadingReminder: formData.unloadingReminder,
+        });
+        logToStorage(`Nová preprava pridaná s ID: ${docRef.id}`);
+
+        // Vytvorenie pripomienok pre novú prepravu
+        logToStorage("Vytváram pripomienky pre novú prepravu s dátami:", {
+          loadingDateTime: formData.loadingDateTime,
+          unloadingDateTime: formData.unloadingDateTime,
+          loadingReminder: formData.loadingReminder,
+          unloadingReminder: formData.unloadingReminder
+        });
+
+        const loadingReminderTime = new Date(formData.loadingDateTime.getTime() - formData.loadingReminder * 60000);
+        const unloadingReminderTime = new Date(formData.unloadingDateTime.getTime() - formData.unloadingReminder * 60000);
+        logToStorage("Vypočítané časy pripomienok pre novú prepravu:", { 
+          loadingReminderTime: loadingReminderTime.toISOString(), 
+          unloadingReminderTime: unloadingReminderTime.toISOString() 
+        });
+
+        const newLoadingReminderData = {
+          transportId: docRef.id,
+          type: 'loading',
+          reminderDateTime: Timestamp.fromDate(loadingReminderTime),
+          status: 'scheduled',
+          createdAt: Timestamp.fromDate(new Date()),
+          userEmail: userData?.email || '',
+          transportDetails: {
+            loadingAddress: formData.loadingAddress,
+            loadingDateTime: Timestamp.fromDate(formData.loadingDateTime),
+            unloadingAddress: formData.unloadingAddress,
+            unloadingDateTime: Timestamp.fromDate(formData.unloadingDateTime),
+            orderNumber: formData.orderNumber
+          },
+          orderNumber: formData.orderNumber,
+          reminderNote: `Nakládka na adrese: ${formData.loadingAddress}`,
+          sent: false
+        };
+        logToStorage("Pokus o pridanie pripomienky nakládky (nová):", newLoadingReminderData);
+        if (!loadingReminderTime || isNaN(loadingReminderTime.getTime())) {
+            logToStorage("Neplatný loadingReminderTime! (nová)");
+        } else {
+            const loadingReminderRef = await addDoc(collection(db, 'reminders'), newLoadingReminderData);
+            logToStorage("Pripomienka nakládky vytvorená s ID:", loadingReminderRef.id);
+        }
+
+        const newUnloadingReminderData = {
+          transportId: docRef.id,
+          type: 'unloading',
+          reminderDateTime: Timestamp.fromDate(unloadingReminderTime),
+          status: 'scheduled',
+          createdAt: Timestamp.fromDate(new Date()),
+          userEmail: userData?.email || '',
+          transportDetails: {
+            loadingAddress: formData.loadingAddress,
+            loadingDateTime: Timestamp.fromDate(formData.loadingDateTime),
+            unloadingAddress: formData.unloadingAddress,
+            unloadingDateTime: Timestamp.fromDate(formData.unloadingDateTime),
+            orderNumber: formData.orderNumber
+          },
+          orderNumber: formData.orderNumber,
+          reminderNote: `Vykládka na adrese: ${formData.unloadingAddress}`,
+          sent: false
+        };
+        logToStorage("Pokus o pridanie pripomienky vykládky (nová):", newUnloadingReminderData);
+        if (!unloadingReminderTime || isNaN(unloadingReminderTime.getTime())) {
+            logToStorage("Neplatný unloadingReminderTime! (nová)");
+        } else {
+            const unloadingReminderRef = await addDoc(collection(db, 'reminders'), newUnloadingReminderData);
+            logToStorage("Pripomienka vykládky vytvorená s ID:", unloadingReminderRef.id);
+        }
+
+        setSnackbar({ open: true, message: 'Nová preprava pridaná', severity: 'success' });
+      }
       handleCloseDialog();
       fetchTransports();
     } catch (error) {
-      console.error('Error saving transport:', error);
-      setError('Nastala chyba pri ukladaní prepravy');
+      logToStorage('Chyba pri ukladaní prepravy:', error);
+      setSnackbar({ open: true, message: 'Nastala chyba pri ukladaní', severity: 'error' });
+    } finally {
+      setLoading(false);
+      logToStorage("Dokončené handleSaveTransport.");
     }
   };
 
   const filterTransports = (query: string) => {
     if (!query.trim()) {
-      setFilteredTransports(transports);
+      setTransports(transports);
       return;
     }
 
@@ -918,12 +950,12 @@ function TrackedTransports() {
           .includes(lowerQuery)
       );
     });
-    setFilteredTransports(filtered);
+    setTransports(filtered);
   };
 
   useEffect(() => {
-    filterTransports(searchQuery);
-  }, [transports, searchQuery]);
+    filterTransports(searchTerm);
+  }, [transports, searchTerm]);
 
   const fetchTransports = async () => {
     if (!auth.currentUser) {
@@ -959,7 +991,6 @@ function TrackedTransports() {
       }) as Transport[];
 
       setTransports(transportsData);
-      setFilteredTransports(transportsData);
     } catch (err: any) {
       setError(err.message || 'Nastala chyba pri načítaní preprav');
     } finally {
@@ -973,7 +1004,7 @@ function TrackedTransports() {
 
   const handleDelete = async (transport: Transport) => {
     setTransportToDelete(transport);
-    setDeleteDialogOpen(true);
+    setDeleteConfirmOpen(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -997,11 +1028,8 @@ function TrackedTransports() {
       setTransports((prevTransports: Transport[]) => 
         prevTransports.filter((t: Transport) => t.id !== transportToDelete.id)
       );
-      setFilteredTransports((prevTransports: Transport[]) => 
-        prevTransports.filter((t: Transport) => t.id !== transportToDelete.id)
-      );
 
-      setDeleteDialogOpen(false);
+      setDeleteConfirmOpen(false);
       setTransportToDelete(null);
     } catch (err: any) {
       setError('Nastala chyba pri vymazávaní prepravy: ' + err.message);
@@ -1013,12 +1041,7 @@ function TrackedTransports() {
   };
 
   const handleShowMap = (transport: Transport) => {
-    setSelectedTransport({
-      loading: transport.loadingAddress,
-      unloading: transport.unloadingAddress,
-      loadingDateTime: transport.loadingDateTime,
-      unloadingDateTime: transport.unloadingDateTime
-    });
+    setMapTransport(transport);
     setMapDialogOpen(true);
   };
 
@@ -1124,7 +1147,7 @@ function TrackedTransports() {
 
   const renderMobileView = () => (
     <Box>
-      {filteredTransports.map((transport) => (
+      {transports.map((transport) => (
         <TransportCard key={transport.id} isDarkMode={isDarkMode}>
           <CardHeader isDarkMode={isDarkMode}>
             <OrderNumber isDarkMode={isDarkMode}>
@@ -1357,8 +1380,8 @@ function TrackedTransports() {
 
         <SearchWrapper>
           <SearchField
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             label="Vyhľadať prepravu"
             placeholder="Zadajte číslo objednávky, adresu alebo meno"
           />
@@ -1379,7 +1402,7 @@ function TrackedTransports() {
               gap: 1
             }
           }}>
-            {filteredTransports.map((transport) => (
+            {transports.map((transport) => (
               <Box key={transport.id} sx={{ 
                 display: { 
                   xs: 'block', // Mobilné zobrazenie
@@ -1543,7 +1566,7 @@ function TrackedTransports() {
               Zrušiť
             </Button>
             <Button
-              onClick={handleSubmit}
+              onClick={handleSaveTransport}
               variant="contained"
               sx={{
                 backgroundColor: colors.accent.main,
@@ -1563,7 +1586,7 @@ function TrackedTransports() {
         open={mapDialogOpen}
         onClose={() => {
           setMapDialogOpen(false);
-          setSelectedTransport(null);
+          setMapTransport(null);
         }}
         maxWidth={false}
         BackdropProps={{
@@ -1578,7 +1601,7 @@ function TrackedTransports() {
           <IconButton
             onClick={() => {
               setMapDialogOpen(false);
-              setSelectedTransport(null);
+              setMapTransport(null);
             }}
             sx={{
               color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
@@ -1592,7 +1615,7 @@ function TrackedTransports() {
           </IconButton>
         </DialogTitle>
         <DialogContent>
-          {selectedTransport && (
+          {mapTransport && (
             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ 
@@ -1615,7 +1638,7 @@ function TrackedTransports() {
                     Nakládka
                   </Typography>
                   <Typography sx={{ color: isDarkMode ? '#ffffff' : '#000000', ml: 4 }}>
-                    {selectedTransport.loading}
+                    {mapTransport.loadingAddress}
                   </Typography>
                   <Typography sx={{ 
                     color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
@@ -1626,9 +1649,9 @@ function TrackedTransports() {
                     fontSize: '0.9rem'
                   }}>
                     <AccessTimeIcon sx={{ fontSize: '1rem', color: colors.accent.main }} />
-                    {format(selectedTransport.loadingDateTime instanceof Timestamp ? 
-                      selectedTransport.loadingDateTime.toDate() : 
-                      selectedTransport.loadingDateTime, 
+                    {format(mapTransport.loadingDateTime instanceof Timestamp ? 
+                      mapTransport.loadingDateTime.toDate() : 
+                      mapTransport.loadingDateTime, 
                       'dd.MM.yyyy HH:mm'
                     )}
                   </Typography>
@@ -1654,7 +1677,7 @@ function TrackedTransports() {
                     Vykládka
                   </Typography>
                   <Typography sx={{ color: isDarkMode ? '#ffffff' : '#000000', ml: 4 }}>
-                    {selectedTransport.unloading}
+                    {mapTransport.unloadingAddress}
                   </Typography>
                   <Typography sx={{ 
                     color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
@@ -1665,9 +1688,9 @@ function TrackedTransports() {
                     fontSize: '0.9rem'
                   }}>
                     <AccessTimeIcon sx={{ fontSize: '1rem', color: colors.accent.main }} />
-                    {format(selectedTransport.unloadingDateTime instanceof Timestamp ? 
-                      selectedTransport.unloadingDateTime.toDate() : 
-                      selectedTransport.unloadingDateTime, 
+                    {format(mapTransport.unloadingDateTime instanceof Timestamp ? 
+                      mapTransport.unloadingDateTime.toDate() : 
+                      mapTransport.unloadingDateTime, 
                       'dd.MM.yyyy HH:mm'
                     )}
                   </Typography>
@@ -1680,8 +1703,8 @@ function TrackedTransports() {
                 overflow: 'hidden'
               }}>
                 <TransportMap
-                  origin={selectedTransport.loading}
-                  destination={selectedTransport.unloading}
+                  origin={mapTransport.loadingAddress}
+                  destination={mapTransport.unloadingAddress}
                 />
               </Box>
             </Box>
@@ -1691,7 +1714,7 @@ function TrackedTransports() {
           <Button 
             onClick={() => {
               setMapDialogOpen(false);
-              setSelectedTransport(null);
+              setMapTransport(null);
             }}
             sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}
           >
@@ -1701,8 +1724,8 @@ function TrackedTransports() {
       </MapDialog>
 
       <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
         PaperProps={{
           sx: {
             background: 'none',
@@ -1731,7 +1754,7 @@ function TrackedTransports() {
           </DialogContent>
           <DialogActions>
             <Button
-              onClick={() => setDeleteDialogOpen(false)}
+              onClick={() => setDeleteConfirmOpen(false)}
               sx={{
                 color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                 '&:hover': {

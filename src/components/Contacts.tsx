@@ -210,37 +210,75 @@ const StyledTableRow = styled(TableRow)<{ isDarkMode: boolean }>(({ isDarkMode }
   }
 }));
 
-const StyledDialogContent = styled(DialogContent)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  color: isDarkMode ? '#ffffff' : '#000000',
   padding: '24px',
-  '&:first-of-type': {
-    paddingTop: '24px',
+  borderRadius: '24px',
+  backdropFilter: 'blur(20px)',
+  boxShadow: 'none',
+  maxHeight: '90vh',
+  overflowY: 'auto',
+  margin: 0,
+  '@media (max-width: 600px)': {
+    padding: '16px',
+    margin: 0,
+    maxHeight: '95vh',
   },
-  '& .MuiDialogContent-root': {
-    paddingTop: '24px',
+  '& .MuiDialog-paper': {
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    margin: 0,
+    borderRadius: '24px',
+    border: 'none',
+    outline: 'none'
   },
-  '& .MuiFormLabel-root': {
-    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  '& .MuiBox-root': {
+    borderRadius: '24px',
   },
-  '& .MuiInputBase-root': {
+  '& .MuiDialogTitle-root': {
     color: isDarkMode ? '#ffffff' : '#000000',
-    '& fieldset': {
-      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+    padding: '24px 24px 16px 24px',
+    backgroundColor: 'transparent',
+    borderRadius: '24px 24px 0 0',
+    border: 'none',
+    '@media (max-width: 600px)': {
+      padding: '16px',
     },
-    '&:hover fieldset': {
-      borderColor: 'rgba(255, 159, 67, 0.5)',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: colors.accent.main,
+    '& .MuiTypography-root': {
+      fontSize: '1.5rem',
+      fontWeight: 600,
+      '@media (max-width: 600px)': {
+        fontSize: '1.25rem',
+      }
     }
   },
-  '& .MuiInputBase-input': {
-    color: isDarkMode ? '#ffffff' : '#000000',
-  },
-  '& .MuiSelect-select': {
-    color: isDarkMode ? '#ffffff' : '#000000',
-  },
-  '& .MuiDialogContentText-root': {
-    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+  '& .MuiDialogContent-root': {
+    padding: '16px 24px',
+    '@media (max-width: 600px)': {
+      padding: '16px',
+    },
+    '& .MuiFormLabel-root': {
+      color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    },
+    '& .MuiInputBase-root': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+      '& fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      },
+      '&:hover fieldset': {
+        borderColor: isDarkMode ? 'rgba(255, 159, 67, 0.5)' : 'rgba(255, 159, 67, 0.5)',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: colors.accent.main,
+      }
+    },
+    '& .MuiInputBase-input': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+    },
+    '& .MuiSelect-select': {
+      color: isDarkMode ? '#ffffff' : '#000000',
+    }
   }
 }));
 
@@ -698,24 +736,30 @@ const Contacts = () => {
         fullWidth
         PaperProps={{
           sx: {
-            background: isDarkMode ? '#1a1a1a' : '#ffffff',
-            borderRadius: '16px',
-            boxShadow: isDarkMode 
-              ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
-              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+            background: 'none',
+            boxShadow: 'none',
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
           }
         }}
       >
-        <DialogTitle sx={{ 
-          color: isDarkMode ? '#ffffff' : '#000000',
-          fontSize: '1.5rem',
-          fontWeight: 600,
-          padding: '24px 24px 0 24px',
-          marginBottom: '16px'
-        }}>
-          {editingContact ? 'Upraviť kontakt' : 'Pridať nový kontakt'}
-        </DialogTitle>
         <StyledDialogContent isDarkMode={isDarkMode}>
+          <DialogTitle sx={{ 
+            color: isDarkMode ? '#ffffff' : '#000000',
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            padding: '24px 24px 16px 24px'
+          }}>
+            {editingContact ? 'Upraviť kontakt' : 'Pridať nový kontakt'}
+          </DialogTitle>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <TextField
@@ -805,40 +849,40 @@ const Contacts = () => {
               />
             </Grid>
           </Grid>
+          <DialogActions sx={{ padding: '24px 24px 24px 24px', borderTop: 'none' }}>
+            <Button 
+              onClick={handleCloseDialog} 
+              sx={{ 
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                '&:hover': {
+                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+                }
+              }}
+            >
+              Zrušiť
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              variant="contained"
+              sx={{
+                backgroundColor: colors.accent.main,
+                color: '#ffffff',
+                fontWeight: 600,
+                padding: '8px 24px',
+                '&:hover': {
+                  backgroundColor: colors.accent.light,
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: 'rgba(255, 159, 67, 0.3)',
+                  color: 'rgba(255, 255, 255, 0.3)',
+                }
+              }}
+            >
+              {editingContact ? 'Upraviť kontakt' : 'Pridať kontakt'}
+            </Button>
+          </DialogActions>
         </StyledDialogContent>
-        <DialogActions>
-          <Button 
-            onClick={handleCloseDialog} 
-            sx={{ 
-              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-              '&:hover': {
-                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
-              }
-            }}
-          >
-            Zrušiť
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              backgroundColor: colors.accent.main,
-              color: '#ffffff',
-              fontWeight: 600,
-              padding: '8px 24px',
-              '&:hover': {
-                backgroundColor: colors.accent.light,
-              },
-              '&.Mui-disabled': {
-                backgroundColor: 'rgba(255, 159, 67, 0.3)',
-                color: 'rgba(255, 255, 255, 0.3)',
-              }
-            }}
-          >
-            Pridať kontakt
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <Snackbar
