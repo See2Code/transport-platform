@@ -10,12 +10,16 @@ admin.initializeApp();
 const REGION = 'europe-west1';
 // Konfigurácia emailového transportu
 const transporter = nodemailer.createTransport({
-    host: 'smtp.m1.websupport.sk',
-    port: 465,
+    host: functions.config().smtp.host,
+    port: parseInt(functions.config().smtp.port),
     secure: true,
     auth: {
-        user: 'noreply@aesa.sk',
-        pass: 'r.{jo$_;OJX8V>eKbo|!'
+        type: 'login',
+        user: functions.config().smtp.user,
+        pass: functions.config().smtp.pass.replace(/\\/g, '') // Odstránime escapované znaky
+    },
+    tls: {
+        rejectUnauthorized: false // Povoľujeme self-signed certifikáty
     }
 });
 // Funkcia na vyčistenie databázy

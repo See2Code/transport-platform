@@ -2,7 +2,6 @@ import * as functions from 'firebase-functions/v1';
 import { CallableContext } from 'firebase-functions/v1/https';
 import * as admin from 'firebase-admin';
 import * as nodemailer from 'nodemailer';
-import { updateVehicleLocation } from './updateVehicleLocation';
 
 admin.initializeApp();
 
@@ -10,12 +9,16 @@ const REGION = 'europe-west1';
 
 // Konfigurácia emailového transportu
 const transporter = nodemailer.createTransport({
-  host: 'smtp.m1.websupport.sk',
-  port: 465,
+  host: functions.config().smtp.host,
+  port: parseInt(functions.config().smtp.port),
   secure: true,
   auth: {
-    user: 'noreply@aesa.sk',
-    pass: 'r.{jo$_;OJX8V>eKbo|!'
+    type: 'login',
+    user: functions.config().smtp.user,
+    pass: functions.config().smtp.pass.replace(/\\/g, '') // Odstránime escapované znaky
+  },
+  tls: {
+    rejectUnauthorized: false // Povoľujeme self-signed certifikáty
   }
 });
 
@@ -611,8 +614,4 @@ export const initializeLastLogin = functions
       console.error('Chyba pri inicializácii lastLogin:', error);
       throw new functions.https.HttpsError('internal', 'Chyba pri inicializácii lastLogin');
     }
-  });
-
-export {
-    updateVehicleLocation
-}; 
+  }); 

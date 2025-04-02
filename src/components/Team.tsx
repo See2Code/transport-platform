@@ -498,7 +498,7 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   color: isDarkMode ? '#ffffff' : '#000000',
   padding: '24px',
   borderRadius: '20px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+  border: 'none',
   backdropFilter: 'blur(20px)',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
   maxHeight: '90vh',
@@ -1508,6 +1508,16 @@ function Team() {
                     value={countryCode}
                     onChange={handleCountryChange}
                     label="Krajina"
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+                          '& .MuiMenuItem-root': {
+                            color: isDarkMode ? '#ffffff' : '#000000'
+                          }
+                        }
+                      }
+                    }}
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.code} value={country.code}>
@@ -1534,7 +1544,7 @@ function Team() {
                   required
                   InputProps={{
                     startAdornment: (
-                      <Box component="span" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                      <Box component="span" sx={{ mr: 1, color: isDarkMode ? '#ffffff' : '#000000' }}>
                         {phonePrefix}
                       </Box>
                     ),
@@ -1549,6 +1559,16 @@ function Team() {
                     onChange={(e) => setRole(e.target.value)}
                     label="Rola"
                     required
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+                          '& .MuiMenuItem-root': {
+                            color: isDarkMode ? '#ffffff' : '#000000'
+                          }
+                        }
+                      }
+                    }}
                   >
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="manager">Manažér</MenuItem>
@@ -1644,6 +1664,16 @@ function Team() {
                     value={countryCode}
                     onChange={handleCountryChange}
                     label="Krajina"
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+                          '& .MuiMenuItem-root': {
+                            color: isDarkMode ? '#ffffff' : '#000000'
+                          }
+                        }
+                      }
+                    }}
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.code} value={country.code}>
@@ -1670,7 +1700,7 @@ function Team() {
                   required
                   InputProps={{
                     startAdornment: (
-                      <Box component="span" sx={{ mr: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                      <Box component="span" sx={{ mr: 1, color: isDarkMode ? '#ffffff' : '#000000' }}>
                         {phonePrefix}
                       </Box>
                     ),
@@ -1685,6 +1715,16 @@ function Team() {
                     onChange={(e) => setRole(e.target.value)}
                     label="Rola"
                     required
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+                          '& .MuiMenuItem-root': {
+                            color: isDarkMode ? '#ffffff' : '#000000'
+                          }
+                        }
+                      }
+                    }}
                   >
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="manager">Manažér</MenuItem>
