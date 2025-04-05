@@ -890,15 +890,7 @@ export default function BusinessCases() {
       <Box sx={{ 
         display: { xs: 'block', sm: 'none' },
         width: '100%', 
-        backgroundColor: colors.accent.main,
-        borderRadius: '16px',
-        marginBottom: '24px',
-        padding: '4px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease-in-out',
-        '&:hover': {
-          backgroundColor: colors.accent.light,
-        }
+        marginBottom: '24px'
       }}>
         <AddButton
           fullWidth
@@ -924,15 +916,28 @@ export default function BusinessCases() {
             setSelectedCountry(euCountries[0]);
             setOpen(true);
           }}
+          sx={{
+            backgroundColor: colors.accent.main,
+            color: '#ffffff',
+            padding: '8px 24px',
+            borderRadius: '12px',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            textTransform: 'none',
+            transition: 'all 0.2s ease-in-out',
+            boxShadow: '0 4px 12px rgba(255, 159, 67, 0.3)',
+            '&:hover': {
+              backgroundColor: colors.accent.light,
+              transform: 'translateY(-2px)',
+              boxShadow: '0 6px 16px rgba(255, 159, 67, 0.4)',
+            }
+          }}
         >
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
             gap: 1,
-            color: '#ffffff',
-            fontSize: '1rem',
-            fontWeight: 600,
             width: '100%'
           }}>
             <AddIcon sx={{ fontSize: '1.2rem' }} />

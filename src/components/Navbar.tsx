@@ -24,6 +24,7 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  Drawer,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
@@ -464,21 +465,29 @@ const MenuButton = styled(IconButton)({
   marginLeft: 'auto',
 });
 
-const MobileMenu = styled(Menu)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
-  '& .MuiPaper-root': {
-    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-    borderRadius: '16px',
-    border: 'none',
-    boxShadow: isDarkMode 
-      ? '0 8px 32px rgba(0, 0, 0, 0.5)' 
-      : '0 8px 32px rgba(0, 0, 0, 0.2)',
-    marginTop: '8px',
+const MobileDrawer = styled(Drawer)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
+  '& .MuiDrawer-paper': {
+    backgroundColor: isDarkMode ? '#1c1c2d' : '#ffffff',
     width: '280px',
-    maxHeight: '80vh',
-    overflow: 'auto',
-    backdropFilter: 'blur(20px)',
-    padding: '4px'
+    height: '100%',
+    padding: '4px',
+    boxShadow: 'none',
+    border: 'none',
+    backdropFilter: 'none',
+    '-webkit-backdrop-filter': 'none',
+    background: isDarkMode ? '#1c1c2d' : '#ffffff'
   },
+  '& .MuiBackdrop-root': {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'none',
+    '-webkit-backdrop-filter': 'none'
+  },
+  '& .MuiPaper-root': {
+    backgroundColor: isDarkMode ? '#1c1c2d' : '#ffffff',
+    backdropFilter: 'none',
+    '-webkit-backdrop-filter': 'none',
+    background: isDarkMode ? '#1c1c2d' : '#ffffff'
+  }
 }));
 
 const BottomActions = styled(Box)({
@@ -613,7 +622,7 @@ const StyledButton = styled(Button)<{ isDarkMode: boolean; variant: 'text' | 'co
 }));
 
 const Navbar = () => {
-  const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -621,12 +630,12 @@ const Navbar = () => {
   const { logout } = useAuth();
   const { isDarkMode, toggleTheme } = useThemeMode();
 
-  const handleMobileMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setMobileMenuAnchor(event.currentTarget);
+  const handleMobileMenuClick = () => {
+    setMobileMenuOpen(true);
   };
 
   const handleMobileMenuClose = () => {
-    setMobileMenuAnchor(null);
+    setMobileMenuOpen(false);
   };
 
   const handleNavigation = (path: string) => {
@@ -782,18 +791,29 @@ const Navbar = () => {
         </StyledToolbar>
       </StyledAppBar>
 
-      <MobileMenu
-        isDarkMode={isDarkMode}
-        anchorEl={mobileMenuAnchor}
-        open={Boolean(mobileMenuAnchor)}
+      <MobileDrawer
+        anchor="right"
+        open={mobileMenuOpen}
         onClose={handleMobileMenuClose}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
+        isDarkMode={isDarkMode}
+        sx={{
+          '& .MuiDrawer-paper': {
+            backgroundColor: isDarkMode ? '#1c1c2d' : '#ffffff',
+            backdropFilter: 'none',
+            '-webkit-backdrop-filter': 'none',
+            background: isDarkMode ? '#1c1c2d' : '#ffffff'
+          },
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'none',
+            '-webkit-backdrop-filter': 'none'
+          },
+          '& .MuiPaper-root': {
+            backgroundColor: isDarkMode ? '#1c1c2d' : '#ffffff',
+            backdropFilter: 'none',
+            '-webkit-backdrop-filter': 'none',
+            background: isDarkMode ? '#1c1c2d' : '#ffffff'
+          }
         }}
       >
         <Box sx={{ 
@@ -908,7 +928,7 @@ const Navbar = () => {
             />
           </ActionItem>
         </BottomActions>
-      </MobileMenu>
+      </MobileDrawer>
 
       <StyledDialog
         open={logoutDialogOpen}

@@ -226,62 +226,63 @@ body[data-theme="light"] .MuiDialog-paper {
 }
 
 /* Odstránenie priehľadnosti z rozbaľovacích menu */
-.MuiAutocomplete-popper,
-.MuiMenu-paper,
-.MuiPopper-root {
+body[data-theme="dark"] .MuiAutocomplete-popper,
+body[data-theme="dark"] .MuiMenu-paper,
+body[data-theme="dark"] .MuiPopper-root {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   background-color: #1c1c2d !important;
 }
 
-.MuiAutocomplete-popper .MuiPaper-root,
-.MuiMenu-paper .MuiPaper-root,
-.MuiPopper-root .MuiPaper-root {
+body[data-theme="dark"] .MuiAutocomplete-popper .MuiPaper-root,
+body[data-theme="dark"] .MuiMenu-paper .MuiPaper-root,
+body[data-theme="dark"] .MuiPopper-root .MuiPaper-root {
   background-color: #1c1c2d !important;
   background-image: none !important;
 }
 
-.MuiAutocomplete-listbox,
-.MuiMenu-list {
+body[data-theme="dark"] .MuiAutocomplete-listbox,
+body[data-theme="dark"] .MuiMenu-list {
   background-color: #1c1c2d !important;
 }
 
-.MuiAutocomplete-option {
+body[data-theme="dark"] .MuiAutocomplete-option {
   background-color: #1c1c2d !important;
 }
 
-.MuiAutocomplete-option[aria-selected="true"],
-.MuiAutocomplete-option.Mui-focused {
+body[data-theme="dark"] .MuiAutocomplete-option[aria-selected="true"],
+body[data-theme="dark"] .MuiAutocomplete-option.Mui-focused {
   background-color: #2a2a45 !important;
 }
 
 /* Light mode */
-@media (prefers-color-scheme: light) {
-  .MuiAutocomplete-popper,
-  .MuiMenu-paper,
-  .MuiPopper-root {
-    background-color: #ffffff !important;
-  }
+body[data-theme="light"] .MuiAutocomplete-popper,
+body[data-theme="light"] .MuiMenu-paper,
+body[data-theme="light"] .MuiPopper-root {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: #ffffff !important;
+}
 
-  .MuiAutocomplete-popper .MuiPaper-root,
-  .MuiMenu-paper .MuiPaper-root,
-  .MuiPopper-root .MuiPaper-root {
-    background-color: #ffffff !important;
-  }
+body[data-theme="light"] .MuiAutocomplete-popper .MuiPaper-root,
+body[data-theme="light"] .MuiMenu-paper .MuiPaper-root,
+body[data-theme="light"] .MuiPopper-root .MuiPaper-root {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
 
-  .MuiAutocomplete-listbox,
-  .MuiMenu-list {
-    background-color: #ffffff !important;
-  }
+body[data-theme="light"] .MuiAutocomplete-listbox,
+body[data-theme="light"] .MuiMenu-list {
+  background-color: #ffffff !important;
+}
 
-  .MuiAutocomplete-option {
-    background-color: #ffffff !important;
-  }
+body[data-theme="light"] .MuiAutocomplete-option {
+  background-color: #ffffff !important;
+}
 
-  .MuiAutocomplete-option[aria-selected="true"],
-  .MuiAutocomplete-option.Mui-focused {
-    background-color: #f5f5f5 !important;
-  }
+body[data-theme="light"] .MuiAutocomplete-option[aria-selected="true"],
+body[data-theme="light"] .MuiAutocomplete-option.Mui-focused {
+  background-color: #f5f5f5 !important;
 }
 
 /* DateTimePicker styles */
@@ -345,6 +346,22 @@ body[data-theme="light"] .MuiDialog-paper {
   color: #ff9f43 !important;
 }
 
+body[data-theme="dark"] .MuiTab-root {
+  color: #fff !important;
+}
+
+body[data-theme="light"] .MuiTab-root {
+  color: #000 !important;
+}
+
+body[data-theme="dark"] .MuiTab-root.Mui-selected {
+  color: #ff9f43 !important;
+}
+
+body[data-theme="light"] .MuiTab-root.Mui-selected {
+  color: #ff9f43 !important;
+}
+
 .MuiPickersDay-root {
   color: #fff !important;
 }
@@ -376,4 +393,24 @@ body[data-theme="light"] .MuiDialog-paper {
 
 .MuiClockPointer-root {
   background-color: #ff9f43 !important;
+}
+
+/* Odstránenie priehľadnosti z menu */
+.MuiDrawer-root .MuiDrawer-paper {
+  background-color: var(--dark-purple) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body[data-theme="dark"] .MuiDrawer-root .MuiDrawer-paper {
+  background-color: var(--dark-purple) !important;
+}
+
+body[data-theme="light"] .MuiDrawer-root .MuiDrawer-paper {
+  background-color: var(--light-bg) !important;
+}
+
+.MuiDrawer-root .MuiBackdrop-root {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 } 

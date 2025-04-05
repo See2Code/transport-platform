@@ -57,6 +57,32 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   boxShadow: theme.palette.mode === 'dark'
     ? '0 4px 20px rgba(0, 0, 0, 0.2)'
     : '0 4px 20px rgba(0, 0, 0, 0.1)',
+  '& .MuiTableCell-root, & .MuiTypography-root, & .MuiInputBase-root, & .MuiInputLabel-root, & .MuiTab-root, & .MuiSelect-select, & .MuiMenuItem-root, & .MuiFormLabel-root, & input, & .MuiAutocomplete-input': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  },
+  '& .MuiOutlinedInput-root': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+    '& input': {
+      color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+    }
+  },
+  '& .MuiAutocomplete-option': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  },
+  '@media (max-width: 600px)': {
+    padding: theme.spacing(2),
+    margin: 0,
+    borderRadius: 0,
+    border: 'none',
+    boxShadow: 'none',
+    width: '100vw',
+    position: 'relative',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    '&:hover': {
+      transform: 'translateX(-50%)',
+    }
+  }
 }));
 
 const StyledFieldset = styled(Box)(({ theme }) => ({
@@ -69,17 +95,24 @@ const StyledFieldset = styled(Box)(({ theme }) => ({
   border: `1px solid ${theme.palette.mode === 'dark'
     ? 'rgba(255, 255, 255, 0.1)'
     : 'rgba(0, 0, 0, 0.1)'}`,
+  '& .MuiTypography-root': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  },
   '@media (max-width: 600px)': {
     padding: theme.spacing(2),
-    width: '100%',
-    margin: 0,
     marginBottom: theme.spacing(2),
+    width: '100%',
+    borderRadius: 0,
+    border: 'none',
+    borderBottom: `1px solid ${theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.1)'
+      : 'rgba(0, 0, 0, 0.1)'}`,
   }
 }));
 
 const StyledLegend = styled(Typography)(({ theme }) => ({
   padding: theme.spacing(0, 1),
-  color: theme.palette.mode === 'dark' ? '#ff9f43' : '#ff9f43',
+  color: theme.palette.mode === 'dark' ? '#ff9f43' : '#000000',
   fontWeight: 600,
   fontSize: '1.1rem',
   marginBottom: theme.spacing(2),
@@ -88,7 +121,7 @@ const StyledLegend = styled(Typography)(({ theme }) => ({
 const PageWrapper = styled('div')({
   padding: '24px',
   '@media (max-width: 600px)': {
-    padding: '16px',
+    padding: 0,
     paddingBottom: '80px',
     overflowX: 'hidden',
     width: '100%',
@@ -126,7 +159,7 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
 
 const PageDescription = styled(Typography)(({ theme }) => ({
   fontSize: '0.875rem',
-  color: theme.palette.text.secondary,
+  color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : '#000000',
   marginTop: theme.spacing(1)
 }));
 
@@ -151,12 +184,22 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     '@media (max-width: 600px)': {
       fontSize: '0.9rem',
+    },
+    '& input': {
+      color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
     }
   },
   '& .MuiInputLabel-root': {
     '@media (max-width: 600px)': {
       fontSize: '0.9rem',
-    }
+    },
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)',
+  },
+  '& .MuiInputBase-input': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
   }
 }));
 
@@ -171,6 +214,9 @@ const autocompleteStyles = {
     '& .MuiPaper-root': {
       backgroundColor: (theme: Theme) => theme.palette.mode === 'dark' ? '#1c1c2d !important' : '#ffffff !important',
       backgroundImage: 'none !important',
+    },
+    '& .MuiAutocomplete-option': {
+      color: (theme: Theme) => theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
     }
   },
   '& .MuiAutocomplete-paper': {
@@ -186,6 +232,7 @@ const autocompleteStyles = {
       borderRadius: '6px',
       margin: '2px 0',
       backgroundColor: (theme: Theme) => theme.palette.mode === 'dark' ? '#1c1c2d !important' : '#ffffff !important',
+      color: (theme: Theme) => theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
       '&[aria-selected="true"]': {
         backgroundColor: (theme: Theme) => theme.palette.mode === 'dark' ? '#2a2a45 !important' : '#f5f5f5 !important',
       },
@@ -206,7 +253,7 @@ const StyledDateTimeField = styled(TextField)(({ theme }) => ({
       borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
     },
     '& input': {
-      color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+      color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
       '&::-webkit-calendar-picker-indicator': {
         filter: theme.palette.mode === 'dark' ? 'invert(1)' : 'none',
         cursor: 'pointer'
@@ -214,7 +261,10 @@ const StyledDateTimeField = styled(TextField)(({ theme }) => ({
     }
   },
   '& .MuiInputLabel-root': {
-    color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  },
+  '& .MuiSelect-select': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
   },
   '@media (max-width: 600px)': {
     '& .MuiOutlinedInput-root': {
@@ -258,17 +308,25 @@ const StyledDatePicker = styled(DatePicker)(({ theme }) => ({
     color: theme.palette.mode === 'dark' ? '#fff' : '#000',
     '&.Mui-selected': {
       backgroundColor: '#ff9f43',
+      color: '#fff',
     },
   },
   '& .MuiPickersMonth-monthButton': {
     color: theme.palette.mode === 'dark' ? '#fff' : '#000',
     '&.Mui-selected': {
       backgroundColor: '#ff9f43',
+      color: '#fff',
     },
   },
   '& .MuiPickersDay-dayOutsideMonth': {
     color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
   },
+  '& .MuiInputBase-input': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  },
+  '& .MuiInputLabel-root': {
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  }
 }));
 
 interface TabPanelProps {
@@ -590,6 +648,18 @@ const OrdersForm: React.FC = () => {
     setPlaceType('loading');
   };
 
+  const TabsContainer = styled(Box)(({ theme }) => ({
+    '& .MuiTab-root': {
+      color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : '#000000',
+      '&.Mui-selected': {
+        color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+      }
+    },
+    '& .MuiTabs-indicator': {
+      backgroundColor: '#ff9f43',
+    }
+  }));
+
   return (
     <PageWrapper>
       <PageHeader>
@@ -601,14 +671,25 @@ const OrdersForm: React.FC = () => {
         </PageDescription>
       </PageHeader>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleTabChange}>
+      <TabsContainer>
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange}
+          sx={{
+            '& .MuiTab-root': {
+              color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : '#000000',
+              '&.Mui-selected': {
+                color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+              }
+            }
+          }}
+        >
           <Tab label="Nová objednávka" />
           <Tab label="Všetky objednávky" />
           <Tab label="Zákazníci" />
           <Tab label="Miesta" />
         </Tabs>
-      </Box>
+      </TabsContainer>
 
       <TabPanel value={tabValue} index={0}>
         <StyledPaper>
@@ -828,8 +909,10 @@ const OrdersForm: React.FC = () => {
                           color: theme.palette.primary.main,
                           '@media (max-width: 600px)': {
                             width: '100%',
-                            py: 1,
-                            fontSize: '0.9rem'
+                            py: 0.5,
+                            fontSize: '0.9rem',
+                            height: '32px',
+                            minHeight: '32px'
                           }
                         }}
                       >
@@ -960,8 +1043,10 @@ const OrdersForm: React.FC = () => {
                           color: theme.palette.primary.main,
                           '@media (max-width: 600px)': {
                             width: '100%',
-                            py: 1,
-                            fontSize: '0.9rem'
+                            py: 0.5,
+                            fontSize: '0.9rem',
+                            height: '32px',
+                            minHeight: '32px'
                           }
                         }}
                       >

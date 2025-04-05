@@ -39,7 +39,7 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
         dark: colors.success.dark,
       },
       background: {
-        default: isDarkMode ? colors.background.dark : '#ffffff',
+        default: isDarkMode ? colors.background.dark : '#f5f5f5',
         paper: isDarkMode ? colors.primary.main : '#ffffff',
       },
       text: {
@@ -248,11 +248,15 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
           paper: {
             backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
             backgroundImage: 'none !important',
-            backdropFilter: 'none',
+            backdropFilter: 'none !important',
+            opacity: '1 !important',
+            background: isDarkMode ? '#1c1c2d !important' : '#ffffff !important'
           },
           list: {
             backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
             backgroundImage: 'none !important',
+            opacity: '1 !important',
+            background: isDarkMode ? '#1c1c2d !important' : '#ffffff !important'
           }
         }
       },
@@ -348,7 +352,24 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
             }
           }
         }
-      }
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          root: {
+            '& .MuiDrawer-paper': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              backgroundImage: 'none !important',
+              backdropFilter: 'none !important',
+              opacity: '1 !important',
+              background: isDarkMode ? '#1c1c2d !important' : '#ffffff !important'
+            },
+            '& .MuiBackdrop-root': {
+              backgroundColor: 'rgba(0, 0, 0, 0.5) !important',
+              backdropFilter: 'none !important'
+            }
+          }
+        }
+      },
     },
   });
 }; 
