@@ -468,7 +468,7 @@ const MobileMenu = styled(Menu)<{ isDarkMode?: boolean }>(({ isDarkMode }) => ({
   '& .MuiPaper-root': {
     backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.98)' : 'rgba(255, 255, 255, 0.98)',
     borderRadius: '16px',
-    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+    border: 'none',
     boxShadow: isDarkMode 
       ? '0 8px 32px rgba(0, 0, 0, 0.5)' 
       : '0 8px 32px rgba(0, 0, 0, 0.2)',

@@ -826,6 +826,11 @@ const OrdersForm: React.FC = () => {
                           borderRadius: '8px',
                           textTransform: 'none',
                           color: theme.palette.primary.main,
+                          '@media (max-width: 600px)': {
+                            width: '100%',
+                            py: 1,
+                            fontSize: '0.9rem'
+                          }
                         }}
                       >
                         Pridať miesto nakládky
@@ -953,6 +958,11 @@ const OrdersForm: React.FC = () => {
                           borderRadius: '8px',
                           textTransform: 'none',
                           color: theme.palette.primary.main,
+                          '@media (max-width: 600px)': {
+                            width: '100%',
+                            py: 1,
+                            fontSize: '0.9rem'
+                          }
                         }}
                       >
                         Pridať miesto vykládky
