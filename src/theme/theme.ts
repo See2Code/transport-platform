@@ -1,5 +1,6 @@
 import { createTheme, Theme } from '@mui/material/styles';
 import { colors } from './colors';
+import type {} from '@mui/x-date-pickers/themeAugmentation';
 
 export const createAppTheme = (isDarkMode: boolean): Theme => {
   return createTheme({
@@ -200,6 +201,154 @@ export const createAppTheme = (isDarkMode: boolean): Theme => {
           }
         }
       },
+      MuiPopper: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkMode ? '#1c1c2d' : '#ffffff',
+            backgroundImage: 'none !important',
+            backdropFilter: 'none',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+            borderRadius: 8,
+            '& .MuiPaper-root': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              backgroundImage: 'none !important',
+            }
+          }
+        }
+      },
+      MuiAutocomplete: {
+        styleOverrides: {
+          popper: {
+            backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+            backgroundImage: 'none !important',
+            backdropFilter: 'none !important',
+            '& .MuiPaper-root': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              backgroundImage: 'none !important',
+            },
+            '& .MuiAutocomplete-listbox': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              backgroundImage: 'none !important',
+              '& .MuiAutocomplete-option': {
+                backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+                '&[aria-selected="true"]': {
+                  backgroundColor: isDarkMode ? '#2a2a45 !important' : '#f5f5f5 !important',
+                },
+                '&.Mui-focused': {
+                  backgroundColor: isDarkMode ? '#2a2a45 !important' : '#f5f5f5 !important',
+                },
+              },
+            },
+          }
+        }
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+            backgroundImage: 'none !important',
+            backdropFilter: 'none',
+          },
+          list: {
+            backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+            backgroundImage: 'none !important',
+          }
+        }
+      },
+      MuiDateCalendar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkMode ? '#1c1c2d' : '#ffffff',
+            color: isDarkMode ? '#fff' : '#000',
+            '& .MuiPickersDay-root': {
+              color: isDarkMode ? '#fff' : '#000',
+              backgroundColor: isDarkMode ? 'rgba(35, 35, 66, 0.35)' : 'rgba(245, 245, 245, 0.95)',
+              '&:hover': {
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+              },
+              '&.Mui-selected': {
+                backgroundColor: '#ff9f43',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: '#ffbe76',
+                },
+              },
+            },
+            '& .MuiDayCalendar-weekDayLabel': {
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+            },
+            '& .MuiPickersDay-today': {
+              borderColor: '#ff9f43',
+            },
+          },
+        },
+      },
+      MuiPickersPopper: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+            backgroundImage: 'none !important',
+            '& .MuiPaper-root': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              backgroundImage: 'none !important',
+              color: isDarkMode ? '#fff' : '#000',
+            },
+            '& .MuiPickersLayout-root': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              color: isDarkMode ? '#fff' : '#000',
+            },
+            '& .MuiPickersToolbar-root': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              color: isDarkMode ? '#fff' : '#000',
+            },
+            '& .MuiClock-root': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              color: isDarkMode ? '#fff' : '#000',
+            },
+            '& .MuiClockNumber-root': {
+              color: isDarkMode ? '#fff' : '#000',
+            },
+            '& .MuiClockPointer-root': {
+              backgroundColor: '#ff9f43',
+            },
+            '& .MuiClockPointer-thumb': {
+              backgroundColor: '#ff9f43',
+              borderColor: '#ff9f43',
+            },
+          }
+        }
+      },
+      MuiPickersLayout: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+            color: isDarkMode ? '#fff' : '#000',
+            '& .MuiPickersLayout-actionBar': {
+              backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+              color: isDarkMode ? '#fff' : '#000',
+            }
+          }
+        }
+      },
+      MuiDateTimePickerTabs: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkMode ? '#1c1c2d !important' : '#ffffff !important',
+            color: isDarkMode ? '#fff' : '#000',
+          }
+        }
+      },
+      MuiClockPointer: {
+        styleOverrides: {
+          root: {
+            backgroundColor: '#ff9f43',
+            '& .MuiClock-pin': {
+              backgroundColor: '#ff9f43',
+            }
+          }
+        }
+      }
     },
   });
 }; 

@@ -96,7 +96,7 @@ const StyledFieldset = styled(Box)(({ theme }) => ({
 
 const StyledLegend = styled(Typography)(({ theme }) => ({
   padding: theme.spacing(0, 1),
-  color: theme.palette.primary.main,
+  color: theme.palette.mode === 'dark' ? '#ff9f43' : '#ff9f43',
   fontWeight: 600,
   fontSize: '1.1rem',
   marginBottom: theme.spacing(2),

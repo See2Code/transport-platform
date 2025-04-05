@@ -671,33 +671,31 @@ const Navbar = () => {
         <StyledToolbar>
           {isMobile ? (
             <>
-              <BrandContainer>
-                <Box 
-                  onClick={() => navigate('/dashboard')} 
-                  sx={{ 
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    transition: 'opacity 0.2s ease-in-out',
-                    '&:hover': {
-                      opacity: 0.8
-                    }
-                  }}
-                >
-                  <LogoImage src={isDarkMode ? "/AESA white.svg" : "/AESA black.svg"} alt="AESA Logo" isDarkMode={isDarkMode} />
-                </Box>
-                <MenuButton
-                  edge="end"
-                  sx={{
-                    color: isDarkMode ? '#ffffff' : '#000000',
-                  }}
-                  aria-label="menu"
-                  onClick={handleMobileMenuClick}
-                >
-                  <MenuIcon />
-                </MenuButton>
-              </BrandContainer>
+              <Box 
+                onClick={() => navigate('/dashboard')} 
+                sx={{ 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  transition: 'opacity 0.2s ease-in-out',
+                  '&:hover': {
+                    opacity: 0.8
+                  }
+                }}
+              >
+                <LogoImage src={isDarkMode ? "/AESA white.svg" : "/AESA black.svg"} alt="AESA Logo" isDarkMode={isDarkMode} />
+              </Box>
+              <MenuButton
+                edge="end"
+                sx={{
+                  color: isDarkMode ? '#ffffff' : '#000000',
+                }}
+                aria-label="menu"
+                onClick={handleMobileMenuClick}
+              >
+                <MenuIcon />
+              </MenuButton>
             </>
           ) : (
             <>

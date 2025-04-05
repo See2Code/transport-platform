@@ -1,21 +1,68 @@
+export interface Customer {
+  company: string;
+  vatId: string;
+  street: string;
+  city: string;
+  zip: string;
+  country: string;
+  contactName: string;
+  contactSurname: string;
+  email: string;
+  phone: string;
+}
+
+export interface LoadingPlace {
+  street: string;
+  city: string;
+  zip: string;
+  country: string;
+  dateTime: string;
+  contactPerson: string;
+}
+
+export interface UnloadingPlace {
+  street: string;
+  city: string;
+  zip: string;
+  country: string;
+  dateTime: string;
+  contactPerson: string;
+}
+
+export interface SavedPlace {
+  id: string;
+  name: string;
+  type: 'loading' | 'unloading';
+  street: string;
+  city: string;
+  zip: string;
+  country: string;
+  contactPerson: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  companyId: string;
+}
+
 export interface OrderFormData {
-  clientCompany: string;
-  clientReference: string;
+  // Údaje zákazníka
+  customerCompany: string;
+  customerVatId: string;
+  customerStreet: string;
+  customerCity: string;
+  customerZip: string;
+  customerCountry: string;
+  customerContactName: string;
+  customerContactSurname: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerPrice: string;
 
-  loadingPlace_street: string;
-  loadingPlace_city: string;
-  loadingPlace_zip: string;
-  loadingPlace_country: string;
-  loadingDateTime: string;
-  loadingContactPerson: string;
+  // Miesta nakládky a vykládky
+  loadingPlaces: LoadingPlace[];
+  unloadingPlaces: UnloadingPlace[];
 
-  unloadingPlace_street: string;
-  unloadingPlace_city: string;
-  unloadingPlace_zip: string;
-  unloadingPlace_country: string;
-  unloadingDateTime: string;
-  unloadingContactPerson: string;
-
+  // Údaje o tovare
   goodsDescription: string;
   weightKg: string;
   dimensionsL: string;
@@ -23,6 +70,7 @@ export interface OrderFormData {
   dimensionsH: string;
   quantity: string;
 
+  // Údaje o dopravcovi
   carrierCompany: string;
   carrierContact: string;
   carrierVehicleReg: string;
