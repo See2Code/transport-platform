@@ -6,13 +6,12 @@ import { useThemeMode } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { useTheme } from '@mui/material/styles';
 
 interface Vehicle {
     id: string;
@@ -25,6 +24,20 @@ interface Vehicle {
         timestamp: number;
     };
     lastActive: number;
+}
+
+interface StyledProps {
+    isDarkMode: boolean;
+    isActive?: boolean;
+}
+
+interface StyledListItemProps {
+    $isDarkMode: boolean;
+    $isActive?: boolean;
+}
+
+interface StyledTextFieldProps {
+    $isDarkMode: boolean;
 }
 
 const PageWrapper = styled('div')({
@@ -50,10 +63,10 @@ const PageHeader = styled(Box)({
   }
 });
 
-const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+const PageTitle = styled(Typography)(({ theme }) => ({
   fontSize: '1.75rem',
   fontWeight: 700,
-  color: isDarkMode ? '#ffffff' : '#000000',
+  color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
   position: 'relative',
   '&::after': {
     content: '""',
@@ -77,9 +90,9 @@ const MapContainer = styled(Box)({
   }
 });
 
-const SidePanel = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+const SidePanel = styled(Box)(({ theme }) => ({
   width: '300px',
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
   borderRadius: '12px',
   padding: '16px',
   display: 'flex',
@@ -117,20 +130,27 @@ const VehicleList = styled(List)({
   }
 });
 
-const VehicleListItem = styled(ListItem)<{ isDarkMode: boolean, isActive?: boolean }>(({ isDarkMode, isActive }) => ({
+const VehicleListItem = styled(ListItem)(({ theme }) => ({
   borderRadius: '8px',
   marginBottom: '8px',
-  backgroundColor: isActive 
-    ? isDarkMode ? 'rgba(255, 159, 67, 0.2)' : 'rgba(255, 159, 67, 0.1)'
-    : 'transparent',
+  backgroundColor: 'transparent',
+  '&.active': {
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 159, 67, 0.2)' 
+      : 'rgba(255, 159, 67, 0.1)'
+  },
   '&:hover': {
-    backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 159, 67, 0.05)'
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 159, 67, 0.15)' 
+      : 'rgba(255, 159, 67, 0.05)'
   }
 }));
 
-const SearchField = styled(TextField)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+const CustomTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.05)' 
+      : 'rgba(0, 0, 0, 0.05)',
     borderRadius: '8px',
     '&:hover .MuiOutlinedInput-notchedOutline': {
       borderColor: '#ff9f43'
@@ -140,13 +160,13 @@ const SearchField = styled(TextField)<{ isDarkMode: boolean }>(({ isDarkMode }) 
     }
   },
   '& .MuiOutlinedInput-input': {
-    color: isDarkMode ? '#ffffff' : '#000000'
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000'
   }
 }));
 
 const VehicleMap: React.FC = () => {
     const { vehicles, loading, error } = useVehicleTracking();
-    const { isDarkMode } = useThemeMode();
+    const theme = useTheme();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
     const [hiddenVehicles, setHiddenVehicles] = useState<string[]>([]);
@@ -168,7 +188,7 @@ const VehicleMap: React.FC = () => {
         return (
             <PageWrapper>
                 <PageHeader>
-                    <PageTitle isDarkMode={isDarkMode}>Poloha vozidiel</PageTitle>
+                    <PageTitle>Poloha vozidiel</PageTitle>
                 </PageHeader>
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
                     <CircularProgress />
@@ -181,7 +201,7 @@ const VehicleMap: React.FC = () => {
         return (
             <PageWrapper>
                 <PageHeader>
-                    <PageTitle isDarkMode={isDarkMode}>Poloha vozidiel</PageTitle>
+                    <PageTitle>Poloha vozidiel</PageTitle>
                 </PageHeader>
                 <Alert severity="error">
                     Chyba pri načítaní vozidiel: {error}
@@ -193,22 +213,21 @@ const VehicleMap: React.FC = () => {
     return (
         <PageWrapper>
             <PageHeader>
-                <PageTitle isDarkMode={isDarkMode}>Poloha vozidiel</PageTitle>
+                <PageTitle>Poloha vozidiel</PageTitle>
             </PageHeader>
 
             <MapContainer>
-                <SidePanel isDarkMode={isDarkMode}>
-                    <SearchField
+                <SidePanel>
+                    <CustomTextField
                         fullWidth
                         variant="outlined"
                         placeholder="Vyhľadať vozidlo..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        isDarkMode={isDarkMode}
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">
-                                    <SearchIcon sx={{ color: isDarkMode ? '#ffffff' : '#000000' }} />
+                                    <SearchIcon sx={{ color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000' }} />
                                 </InputAdornment>
                             ),
                         }}
@@ -222,45 +241,38 @@ const VehicleMap: React.FC = () => {
                         {filteredVehicles?.map((vehicle) => (
                             <VehicleListItem 
                                 key={vehicle.vehicleId}
-                                isDarkMode={isDarkMode}
-                                isActive={selectedVehicle === vehicle.vehicleId}
+                                className={selectedVehicle === vehicle.vehicleId ? 'active' : ''}
                                 onClick={() => setSelectedVehicle(vehicle.vehicleId)}
                             >
                                 <LocalShippingIcon sx={{ mr: 2, color: '#ff9f43' }} />
                                 <ListItemText
                                     primary={vehicle.driverName || 'Neznámy vodič'}
                                     secondary={vehicle.vehicleId}
-                                    sx={{
-                                        '& .MuiListItemText-primary': {
-                                            color: isDarkMode ? '#ffffff' : '#000000'
-                                        },
-                                        '& .MuiListItemText-secondary': {
-                                            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'
-                                        }
-                                    }}
                                 />
-                                <Tooltip title={hiddenVehicles.includes(vehicle.vehicleId) ? "Zobraziť na mape" : "Skryť z mapy"}>
-                                    <IconButton 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleVehicleVisibility(vehicle.vehicleId);
-                                        }}
-                                        sx={{ color: '#ff9f43' }}
-                                    >
-                                        {hiddenVehicles.includes(vehicle.vehicleId) ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                    </IconButton>
-                                </Tooltip>
+                                <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleVehicleVisibility(vehicle.vehicleId);
+                                    }}
+                                >
+                                    {hiddenVehicles.includes(vehicle.vehicleId) ? (
+                                        <VisibilityOffIcon />
+                                    ) : (
+                                        <VisibilityIcon />
+                                    )}
+                                </IconButton>
                             </VehicleListItem>
                         ))}
                     </VehicleList>
                 </SidePanel>
 
                 <MapBox>
-                    <VehicleTracker 
-                        vehicles={vehicles?.filter(v => !hiddenVehicles.includes(v.vehicleId)) || []}
+                    <VehicleTracker
+                        vehicles={filteredVehicles?.filter(v => !hiddenVehicles.includes(v.vehicleId)) || []}
                         selectedVehicle={selectedVehicle}
                         onVehicleSelect={setSelectedVehicle}
-                        isDarkMode={isDarkMode}
+                        isDarkMode={theme.palette.mode === 'dark'}
                     />
                 </MapBox>
             </MapContainer>

@@ -1695,6 +1695,7 @@ function Team() {
                   >
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="manager">Manažér</MenuItem>
+                    <MenuItem value="driver">Vodič</MenuItem>
                     <MenuItem value="user">Používateľ</MenuItem>
                   </Select>
                 </FormControl>
@@ -1894,6 +1895,7 @@ function Team() {
                   >
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="manager">Manažér</MenuItem>
+                    <MenuItem value="driver">Vodič</MenuItem>
                     <MenuItem value="user">Používateľ</MenuItem>
                   </Select>
                 </FormControl>
