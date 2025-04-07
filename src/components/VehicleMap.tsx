@@ -407,8 +407,15 @@ const VehicleMap: React.FC = () => {
 
     const handleMarkerClick = async (vehicle: VehicleLocation) => {
         console.log('Kliknuté vozidlo:', vehicle);
-        setSelectedVehicle(vehicle);
-        setShowInfoWindow(true);
+        if (selectedVehicle?.id === vehicle.id && showInfoWindow) {
+            // Ak klikneme na už vybraté vozidlo, zavrieme InfoWindow
+            setShowInfoWindow(false);
+            setSelectedVehicle(null);
+        } else {
+            // Ak klikneme na nové vozidlo alebo znovu na zavrené, otvoríme InfoWindow
+            setSelectedVehicle(vehicle);
+            setShowInfoWindow(true);
+        }
     };
 
     const handleListItemClick = (vehicle: VehicleLocation) => {
@@ -452,10 +459,10 @@ const VehicleMap: React.FC = () => {
         return `Pred ${hours} hod ${remainingMinutes} min`;
     };
 
-    // Vypočíta pozíciu pre InfoWindow, aby sa neprekrývalo s markerom
+    // Upravíme funkciu pre pozíciu InfoWindow
     const getInfoWindowPosition = (vehicle: VehicleLocation) => {
         return {
-            lat: vehicle.latitude + 0.0004, // Znížená hodnota z 0.0015 na 0.0004
+            lat: vehicle.latitude + 0.0008, // Zvýšená hodnota pre vyššiu pozíciu
             lng: vehicle.longitude
         };
     };
@@ -576,9 +583,9 @@ const VehicleMap: React.FC = () => {
                                     onClick={() => handleMarkerClick(vehicle)}
                                     icon={{
                                         url: '/vehicle-marker.svg',
-                                        scaledSize: new window.google.maps.Size(32, 32),
-                                        anchor: new window.google.maps.Point(16, 16),
-                                        labelOrigin: new window.google.maps.Point(16, -10)
+                                        scaledSize: new window.google.maps.Size(48, 48),
+                                        anchor: new window.google.maps.Point(24, 24),
+                                        labelOrigin: new window.google.maps.Point(24, -10)
                                     }}
                                     zIndex={selectedVehicle?.id === vehicle.id ? 2 : 1}
                                 />
