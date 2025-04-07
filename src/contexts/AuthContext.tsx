@@ -3,7 +3,7 @@ import { User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { CircularProgress, Box } from '@mui/material';
 import { doc, getDoc } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 
 export interface UserData {
   uid: string;
@@ -13,6 +13,7 @@ export interface UserData {
   phone: string;
   companyID: string;
   role: string;
+  photoURL?: string;
 }
 
 export interface User {
@@ -53,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('AuthProvider: Inicializácia onAuthStateChanged');
-    const unsubscribe = auth.onAuthStateChanged(async (user: FirebaseUser | null) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('AuthProvider: onAuthStateChanged callback - user:', user?.uid);
       
       if (user) {
@@ -62,21 +63,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Získanie údajov o užívateľovi z Firestore
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
-            const userData = userDoc.data() as UserData;
+            const userData = userDoc.data();
             console.log('AuthProvider: Údaje o užívateľovi:', {
               uid: userData.uid,
               email: userData.email,
               companyID: userData.companyID,
               role: userData.role
             });
-            setUserData(userData);
+            setUserData({
+              uid: userData.uid,
+              email: userData.email || '',
+              firstName: userData.firstName || '',
+              lastName: userData.lastName || '',
+              phone: userData.phone || '',
+              companyID: userData.companyID || '',
+              role: userData.role || '',
+              photoURL: user.photoURL || userData.photoURL || '',
+            });
             setCurrentUser({
               uid: user.uid,
-              email: user.email,
-              companyID: userData.companyID,
-              role: userData.role,
-              firstName: userData.firstName,
-              lastName: userData.lastName
+              email: user.email || '',
+              companyID: userData.companyID || '',
+              role: userData.role || '',
+              firstName: userData.firstName || '',
+              lastName: userData.lastName || '',
             });
           } else {
             console.error('AuthProvider: Dokument užívateľa neexistuje v Firestore');

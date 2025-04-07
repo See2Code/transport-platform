@@ -1,0 +1,20 @@
+[
+  {
+    "origin": [
+      "http://localhost:3000",
+      "https://core.aesa.sk"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": [
+      "Content-Type",
+      "Authorization",
+      "Content-Length",
+      "User-Agent",
+      "x-goog-meta-*",
+      "Content-Range",
+      "Content-Disposition",
+      "Access-Control-Allow-Origin"
+    ]
+  }
+]

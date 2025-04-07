@@ -1,71 +1,23 @@
 rules_version = '2';
 
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
-    // Základné pravidlá pre všetky súbory
-    match /{allPaths=**} {
-      allow read: if request.auth != null;
-      allow write: if false; // Defaultne zakážeme zápis
-    }
-
-    // Pravidlá pre profilové fotky
-    match /users/{userId}/profile-photo {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null 
-        && request.auth.uid == userId
-        && request.resource.size < 5 * 1024 * 1024 // Max 5MB
-        && request.resource.contentType.matches('image/.*'); // Len obrázky
-    }
-
-    // Pravidlá pre logá firiem
-    match /companies/{companyId}/logo {
+    match /users/{userId}/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null
-        && (
-          // Používateľ je admin
-          get(/databases/$(database.name)/documents/users/$(request.auth.uid)).data.role == 'admin'
-          ||
-          // Alebo používateľ patrí k danej firme
-          get(/databases/$(database.name)/documents/users/$(request.auth.uid)).data.companyID == companyId
-        )
-        && request.resource.size < 10 * 1024 * 1024 // Max 10MB
-        && request.resource.contentType.matches('image/.*'); // Len obrázky
+                   && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024  // max 5MB
+                   && request.resource.contentType.matches('image/.*');  // len obrázky
     }
-
-    // Pravidlá pre dokumenty prepráv
-    match /transports/{transportId}/{fileName} {
+    
+    match /companies/{companyId}/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null
-        && (
-          // Používateľ je admin
-          get(/databases/$(database.name)/documents/users/$(request.auth.uid)).data.role == 'admin'
-          ||
-          // Alebo používateľ vytvoril prepravu
-          get(/databases/$(database.name)/documents/transports/$(transportId)).data.createdBy == request.auth.uid
-        )
-        && request.resource.size < 20 * 1024 * 1024; // Max 20MB
-    }
-
-    // Pravidlá pre PDF faktúry
-    match /invoices/{invoiceId}/{fileName} {
-      allow read: if request.auth != null
-        && (
-          // Používateľ je admin
-          get(/databases/$(database.name)/documents/users/$(request.auth.uid)).data.role == 'admin'
-          ||
-          // Alebo používateľ patrí k firme, ktorá vlastní faktúru
-          get(/databases/$(database.name)/documents/invoices/$(invoiceId)).data.companyID == 
-          get(/databases/$(database.name)/documents/users/$(request.auth.uid)).data.companyID
-        );
-      allow write: if request.auth != null
-        && (
-          // Používateľ je admin
-          get(/databases/$(database.name)/documents/users/$(request.auth.uid)).data.role == 'admin'
-          ||
-          // Alebo používateľ vytvára faktúru pre svoju firmu
-          request.resource.contentType == 'application/pdf'
-          && request.resource.size < 10 * 1024 * 1024 // Max 10MB
-        );
+                   && request.resource.size < 5 * 1024 * 1024  // max 5MB
+                   && request.resource.contentType.matches('image/.*');  // len obrázky
     }
   }
-} 
+}
