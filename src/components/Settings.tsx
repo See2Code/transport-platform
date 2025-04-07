@@ -26,7 +26,7 @@ import { TextFieldProps } from '@mui/material/TextField';
 import { SelectProps } from '@mui/material/Select';
 import { useNavigate } from 'react-router-dom';
 import { auth, db, storage } from '../firebase';
-import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { 
   ArrowBack as ArrowBackIcon,
@@ -44,6 +44,7 @@ import { useThemeMode } from '../contexts/ThemeContext';
 import { SelectChangeEvent } from '@mui/material/Select';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import ImageCropper from './ImageCropper';
+import { UserData } from '../contexts/AuthContext';
 
 interface CompanyData {
   id: string;
@@ -68,21 +69,21 @@ interface CompanyData {
   logoURL?: string;
 }
 
-interface UserData {
-  uid: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  companyID: string;
-  role: string;
-  photoURL?: string;
-}
-
 interface SnackbarState {
   open: boolean;
   message: string;
   severity: 'success' | 'error' | 'info' | 'warning';
+}
+
+interface LocalUserData {
+    uid: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string; // vždy string, prázdny string pre undefined
+    companyID: string;
+    role: string;
+    photoURL?: string;
 }
 
 const euCountries = [
@@ -544,14 +545,14 @@ const ImageWrapper = styled(Box)({
 
 function Settings() {
   const navigate = useNavigate();
-  const { userData } = useAuth();
+  const { userData, setUserData } = useAuth();
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [localUserData, setLocalUserData] = useState<UserData | null>(null);
+  const [localUserData, setLocalUserData] = useState<LocalUserData | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(euCountries.find(c => c.code === 'SK') || euCountries[0]);
@@ -564,14 +565,26 @@ function Settings() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedLogo, setSelectedLogo] = useState<string | null>(null);
   const [isCompanyLogo, setIsCompanyLogo] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   const profileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
+  // Konverzia z UserData na LocalUserData
+  const convertToLocalData = (data: UserData): LocalUserData => ({
+    ...data,
+    phone: data.phone || ""
+  });
+
+  // Konverzia z LocalUserData späť na UserData
+  const convertToUserData = (data: LocalUserData): UserData => ({
+    ...data,
+    phone: data.phone || undefined
+  });
+
   useEffect(() => {
     if (userData) {
-      setLocalUserData(userData);
-      // Načítanie profilovej fotky z userData
+      setLocalUserData(convertToLocalData(userData));
       setProfileImage(userData.photoURL || '');
     }
   }, [userData]);
@@ -593,7 +606,7 @@ function Settings() {
           role: data.role || userData.role,
           photoURL: data.photoURL || userData.photoURL
         };
-        setLocalUserData(updatedUserData);
+        setLocalUserData(convertToLocalData(updatedUserData));
         if (data.photoURL) {
           setProfileImage(data.photoURL);
         }
@@ -649,8 +662,59 @@ function Settings() {
     }
   };
 
-  const handleUserDataChange = (field: keyof UserData, value: string) => {
-    setLocalUserData((prev: UserData | null) => prev ? { ...prev, [field]: value } : null);
+  const handleProfileChange = (field: keyof LocalUserData) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!localUserData) return;
+    setLocalUserData(prev => {
+        if (!prev) return null;
+        return {
+            ...prev,
+            [field]: event.target.value
+        };
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    if (!localUserData) return;
+
+    try {
+      setIsSaving(true);
+      const userRef = doc(db, 'users', localUserData.uid);
+      
+      // Vytvoríme objekt len s poliami, ktoré chceme aktualizovať
+      const updateData = {
+        firstName: localUserData.firstName,
+        lastName: localUserData.lastName,
+        phone: localUserData.phone || null,
+        updatedAt: serverTimestamp()
+      };
+
+      await updateDoc(userRef, updateData);
+      
+      // Aktualizujeme lokálny stav s kompletným userData objektom
+      const updatedUserData: UserData = {
+        ...userData!,
+        firstName: localUserData.firstName,
+        lastName: localUserData.lastName,
+        phone: localUserData.phone || undefined
+      };
+      setUserData(updatedUserData);
+      
+      setSnackbar({
+        open: true,
+        message: 'Profil bol úspešne aktualizovaný',
+        severity: 'success'
+      });
+      setIsEditingProfile(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setSnackbar({
+        open: true,
+        message: 'Chyba pri aktualizácii profilu',
+        severity: 'error'
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleUserUpdate = async (e: React.FormEvent) => {
@@ -736,22 +800,49 @@ function Settings() {
     try {
       setError('');
       setSuccess('');
-      await updateDoc(doc(db, 'users', localUserData.uid), {
+      const userRef = doc(db, 'users', localUserData.uid);
+      
+      // Vytvoríme objekt len s poliami, ktoré chceme aktualizovať
+      const updateData = {
         firstName: localUserData.firstName,
         lastName: localUserData.lastName,
-        phone: localUserData.phone,
-        updatedAt: new Date()
+        phone: localUserData.phone || null,
+        updatedAt: serverTimestamp()
+      };
+
+      await updateDoc(userRef, updateData);
+      
+      // Aktualizujeme lokálny stav s kompletným userData objektom
+      const updatedUserData: UserData = {
+        ...userData!,
+        firstName: localUserData.firstName,
+        lastName: localUserData.lastName,
+        phone: localUserData.phone || undefined
+      };
+      setUserData(updatedUserData);
+      
+      setSnackbar({
+        open: true,
+        message: 'Profil bol úspešne aktualizovaný',
+        severity: 'success'
       });
-      setSuccess('Profil bol úspešne aktualizovaný');
       setIsEditingProfile(false);
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      setError('Nastala chyba pri ukladaní profilu');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setSnackbar({
+        open: true,
+        message: 'Chyba pri aktualizácii profilu',
+        severity: 'error'
+      });
     }
   };
 
   const handleProfileCancel = () => {
-    setLocalUserData(userData || null);
+    if (userData) {
+      setLocalUserData(convertToLocalData(userData));
+    } else {
+      setLocalUserData(null);
+    }
     setIsEditingProfile(false);
   };
 
@@ -766,15 +857,6 @@ function Settings() {
 
   const handleCompanyDataChange = (field: keyof CompanyData, value: string) => {
     setCompanyData((prev: CompanyData | null) => prev ? { ...prev, [field]: value } : null);
-  };
-
-  const handleSaveProfile = async () => {
-    try {
-      // existujúci kód pre uloženie profilu
-      setIsEditingProfile(false);
-    } catch (error) {
-      console.error('Error saving profile:', error);
-    }
   };
 
   const handleSaveCompany = async () => {
@@ -1055,7 +1137,7 @@ function Settings() {
                     fullWidth
                     label="Meno"
                     value={localUserData?.firstName || ''}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUserDataChange('firstName', e.target.value)}
+                    onChange={handleProfileChange('firstName')}
                     disabled={!isEditingProfile}
                     isDarkMode={isDarkMode}
                   />
@@ -1065,7 +1147,7 @@ function Settings() {
                     fullWidth
                     label="Priezvisko"
                     value={localUserData?.lastName || ''}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUserDataChange('lastName', e.target.value)}
+                    onChange={handleProfileChange('lastName')}
                     disabled={!isEditingProfile}
                     isDarkMode={isDarkMode}
                   />
@@ -1084,7 +1166,7 @@ function Settings() {
                     fullWidth
                     label="Telefón"
                     value={localUserData?.phone || ''}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUserDataChange('phone', e.target.value)}
+                    onChange={handleProfileChange('phone')}
                     disabled={!isEditingProfile}
                     isDarkMode={isDarkMode}
                   />

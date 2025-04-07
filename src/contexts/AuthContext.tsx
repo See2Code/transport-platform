@@ -2,15 +2,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { CircularProgress, Box, Typography, Button } from '@mui/material';
-import { doc, getDoc } from 'firebase/firestore';
-import { signOut, onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot, collection, query, where, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
+import { signOut, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 
 export interface UserData {
   uid: string;
   email: string;
   firstName: string;
   lastName: string;
-  phone: string;
+  phone?: string;
   companyID: string;
   role: string;
   photoURL?: string;
@@ -33,6 +33,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => Promise<void>;
+  setUserData: React.Dispatch<React.SetStateAction<UserData | null>>;
 }
 
 const AuthContext = createContext<AuthContextType>({ 
@@ -43,97 +44,205 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   register: async () => {},
   logout: async () => {},
+  setUserData: () => null
 });
 
 export const useAuth = () => {
   return useContext(AuthContext);
 };
 
+interface UserSession {
+  userId: string;
+  deviceId: string;
+  lastActive: Timestamp;
+  createdAt: Timestamp;
+  deviceInfo: {
+    userAgent: string;
+    platform: string;
+    language: string;
+  };
+}
+
+interface SessionData extends UserSession {
+  id: string;
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentSession, setCurrentSession] = useState<string | null>(null);
+
+  const generateDeviceId = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
+  const manageSession = async (user: FirebaseUser) => {
+    if (!user) return;
+
+    const deviceId = localStorage.getItem('deviceId') || generateDeviceId();
+    localStorage.setItem('deviceId', deviceId);
+
+    const sessionRef = doc(db, 'sessions', `${user.uid}_${deviceId}`);
+    const session: UserSession = {
+      userId: user.uid,
+      deviceId,
+      lastActive: Timestamp.now(),
+      createdAt: Timestamp.now(),
+      deviceInfo: {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language
+      }
+    };
+
+    await setDoc(sessionRef, session);
+
+    setCurrentSession(`${user.uid}_${deviceId}`);
+
+    const sessionsQuery = query(
+      collection(db, 'sessions'),
+      where('userId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(sessionsQuery, async (snapshot) => {
+      const sessions = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as SessionData[];
+
+      const otherSessions = sessions.filter(s => s.id !== `${user.uid}_${deviceId}`);
+      
+      if (otherSessions.length > 0) {
+        const sortedSessions = otherSessions.sort((a, b) => 
+          (b.lastActive as Timestamp).toDate().getTime() - 
+          (a.lastActive as Timestamp).toDate().getTime()
+        );
+
+        if ((sortedSessions[0].lastActive as Timestamp).toDate() > (session.lastActive as Timestamp).toDate()) {
+          await signOut(auth);
+          alert('Vaše konto bolo prihlásené na inom zariadení.');
+          return;
+        }
+
+        for (const oldSession of sortedSessions) {
+          await deleteDoc(doc(db, 'sessions', oldSession.id));
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  };
+
+  const updateLastActive = async () => {
+    if (!currentSession) return;
+
+    const sessionRef = doc(db, 'sessions', currentSession);
+    await updateDoc(sessionRef, {
+      lastActive: serverTimestamp()
+    });
+  };
 
   useEffect(() => {
-    console.log('AuthProvider: Inicializácia onAuthStateChanged');
+    if (!currentSession) return;
+
+    const interval = setInterval(updateLastActive, 60000);
+    return () => clearInterval(interval);
+  }, [currentSession]);
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('AuthProvider: onAuthStateChanged callback - user:', user?.uid);
-      
+      setLoading(true);
       if (user) {
-        try {
-          console.log('AuthProvider: Získavam údaje o užívateľovi z Firestore');
-          // Získanie údajov o užívateľovi z Firestore
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
+        setCurrentUser({
+          uid: user.uid,
+          email: user.email,
+          companyID: '',
+          role: '',
+          firstName: '',
+          lastName: ''
+        });
+
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const firestoreData = userDoc.data();
+          const newUserData: UserData = {
+            uid: user.uid,
+            email: user.email || "",
+            firstName: firestoreData.firstName || "",
+            lastName: firestoreData.lastName || "",
+            phone: firestoreData.phone,
+            companyID: firestoreData.companyID || "",
+            role: firestoreData.role || "",
+            photoURL: firestoreData.photoURL
+          };
+          setUserData(newUserData);
           
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            console.log('AuthProvider: Údaje o užívateľovi:', {
-              uid: userData.uid,
-              email: userData.email,
-              companyID: userData.companyID,
-              role: userData.role
-            });
+          setCurrentUser(prev => ({
+            ...prev!,
+            companyID: firestoreData.companyID || "",
+            role: firestoreData.role || "",
+            firstName: firestoreData.firstName || "",
+            lastName: firestoreData.lastName || ""
+          }));
 
-            // Kontrola povinných polí
-            if (!userData.companyID) {
-              console.error('AuthProvider: Chýbajúce companyID v údajoch užívateľa');
-              setError('Chýbajúce údaje o firme');
-              setUserData(null);
-              setCurrentUser(null);
-              setLoading(false);
-              return;
-            }
-
-            setUserData({
-              uid: userData.uid,
-              email: userData.email || '',
-              firstName: userData.firstName || '',
-              lastName: userData.lastName || '',
-              phone: userData.phone || '',
-              companyID: userData.companyID || '',
-              role: userData.role || '',
-              photoURL: user.photoURL || userData.photoURL || '',
-            });
-            setCurrentUser({
-              uid: user.uid,
-              email: user.email || '',
-              companyID: userData.companyID || '',
-              role: userData.role || '',
-              firstName: userData.firstName || '',
-              lastName: userData.lastName || '',
-            });
-            setError(null);
-          } else {
-            console.error('AuthProvider: Dokument užívateľa neexistuje v Firestore');
-            setError('Užívateľský profil nebol nájdený');
-            setUserData(null);
-            setCurrentUser(null);
-          }
-        } catch (error) {
-          console.error('AuthProvider: Chyba pri získavaní údajov o užívateľovi:', error);
-          setError('Chyba pri načítaní údajov užívateľa');
-          setUserData(null);
-          setCurrentUser(null);
+          await manageSession(user);
         }
       } else {
-        console.log('AuthProvider: Užívateľ nie je prihlásený');
-        setUserData(null);
         setCurrentUser(null);
-        setError(null);
+        setUserData(null);
+        setCurrentSession(null);
       }
-      
       setLoading(false);
     });
 
     return () => {
-      console.log('AuthProvider: Cleanup onAuthStateChanged');
       unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Implementation of login function
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Prihlásenie cez Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Kontrola, či užívateľ existuje vo Firestore
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (!userDoc.exists()) {
+        throw new Error('Používateľ neexistuje v systéme');
+      }
+
+      const firestoreData = userDoc.data();
+      const newUserData: UserData = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email || "",
+        firstName: firestoreData.firstName || "",
+        lastName: firestoreData.lastName || "",
+        phone: firestoreData.phone,
+        companyID: firestoreData.companyID || "",
+        role: firestoreData.role || "",
+        photoURL: firestoreData.photoURL
+      };
+
+      setUserData(newUserData);
+      await manageSession(userCredential.user);
+      
+    } catch (error: any) {
+      console.error('Chyba pri prihlásení:', error);
+      setError(error.message || 'Nastala chyba pri prihlásení');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const register = async (email: string, password: string, firstName: string, lastName: string) => {
@@ -141,17 +250,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-      setCurrentUser(null);
-      setUserData(null);
-    } catch (error) {
-      console.error('Chyba pri odhlásení:', error);
-      throw error;
+    if (currentSession) {
+      try {
+        await deleteDoc(doc(db, 'sessions', currentSession));
+      } catch (error) {
+        console.error('Chyba pri mazaní session:', error);
+      }
     }
+    await signOut(auth);
+    setUserData(null);
+    setCurrentSession(null);
   };
 
-  const value = {
+  const value: AuthContextType = {
     currentUser,
     userData,
     loading,
@@ -159,6 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     register,
     logout,
+    setUserData
   };
 
   console.log('AuthProvider: Render - loading:', loading, 'currentUser:', currentUser?.uid, 'userData:', userData, 'error:', error);

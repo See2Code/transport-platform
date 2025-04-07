@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Libraries } from '@react-google-maps/api';
 import { collection, onSnapshot, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Box, Typography, Paper, Grid, List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider, Chip } from '@mui/material';
+import { Box, Typography, Paper, Grid, List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider, Chip, GlobalStyles } from '@mui/material';
 import { 
     DirectionsCar as CarIcon, 
     AccessTime as TimeIcon, 
@@ -236,6 +236,34 @@ const lightMapStyles = [
   }
 ];
 
+// Pridáme štýly pre InfoWindow
+const hideGoogleMapElements = {
+    '.gm-ui-hover-effect': {
+        display: 'none !important'
+    },
+    '.gm-style-iw.gm-style-iw-c': {
+        padding: '0 !important',
+        backgroundColor: 'transparent !important',
+        boxShadow: 'none !important',
+        border: 'none !important',
+        maxWidth: '300px !important'
+    },
+    '.gm-style-iw-d': {
+        overflow: 'hidden !important',
+        padding: '0 !important',
+        backgroundColor: 'transparent !important'
+    },
+    '.gm-style .gm-style-iw-t::after': {
+        display: 'none !important'
+    },
+    '.gm-style .gm-style-iw': {
+        background: 'transparent !important'
+    },
+    '.gm-style .gm-style-iw > button': {
+        display: 'none !important'
+    }
+};
+
 const VehicleMap: React.FC = () => {
     const [vehicles, setVehicles] = useState<VehicleLocation[]>([]);
     const [selectedVehicle, setSelectedVehicle] = useState<VehicleLocation | null>(null);
@@ -334,30 +362,25 @@ const VehicleMap: React.FC = () => {
                     currentLat: data.latitude,
                     currentLng: data.longitude
                 };
-
-                // Ak vozidlo už existuje, spustíme animáciu
-                const existingVehicle = vehicles.find(v => v.id === newVehicle.id);
-                if (existingVehicle && 
-                    (existingVehicle.latitude !== newVehicle.latitude || 
-                     existingVehicle.longitude !== newVehicle.longitude)) {
-                    
-                    if (animationFrameId) {
-                        cancelAnimationFrame(animationFrameId);
-                    }
-                    
-                    animateMarker(
-                        newVehicle,
-                        existingVehicle.currentLat || existingVehicle.latitude,
-                        existingVehicle.currentLng || existingVehicle.longitude,
-                        newVehicle.latitude,
-                        newVehicle.longitude,
-                        Date.now()
-                    );
-                }
                 
                 vehicleData.push(newVehicle);
             }
+            
             setVehicles(vehicleData);
+
+            // Ak máme vozidlá, nastavíme mapu na ich zobrazenie
+            if (vehicleData.length > 0 && map) {
+                const bounds = new window.google.maps.LatLngBounds();
+                vehicleData.forEach((vehicle) => {
+                    bounds.extend({ lat: vehicle.latitude, lng: vehicle.longitude });
+                });
+                map.fitBounds(bounds);
+                
+                // Ak máme len jedno vozidlo, nastavíme väčší zoom
+                if (vehicleData.length === 1) {
+                    map.setZoom(15);
+                }
+            }
         });
 
         return () => {
@@ -366,7 +389,7 @@ const VehicleMap: React.FC = () => {
                 cancelAnimationFrame(animationFrameId);
             }
         };
-    }, [userData?.companyID]);
+    }, [userData?.companyID, map]);
 
     useEffect(() => {
         if (map && selectedVehicle) {
@@ -432,7 +455,7 @@ const VehicleMap: React.FC = () => {
     // Vypočíta pozíciu pre InfoWindow, aby sa neprekrývalo s markerom
     const getInfoWindowPosition = (vehicle: VehicleLocation) => {
         return {
-            lat: vehicle.latitude + 0.0015, // Posunie InfoWindow vyššie
+            lat: vehicle.latitude + 0.0004, // Znížená hodnota z 0.0015 na 0.0004
             lng: vehicle.longitude
         };
     };
@@ -458,6 +481,7 @@ const VehicleMap: React.FC = () => {
 
     return (
         <Box sx={{ p: 2 }}>
+            <GlobalStyles styles={hideGoogleMapElements} />
             <Typography variant="h4" gutterBottom>
                 Mapa vozidiel
             </Typography>
@@ -565,16 +589,17 @@ const VehicleMap: React.FC = () => {
                                     position={getInfoWindowPosition(selectedVehicle)}
                                     onCloseClick={handleInfoWindowClose}
                                     options={{
-                                        pixelOffset: new window.google.maps.Size(0, -10)
+                                        pixelOffset: new window.google.maps.Size(0, -5), // Znížená hodnota z -10 na -5
+                                        maxWidth: 300
                                     }}
                                 >
                                     <Box sx={{
                                         p: 2.5,
                                         minWidth: '280px',
-                                        bgcolor: '#2A2D3E',
+                                        bgcolor: isDarkMode ? '#2A2D3E' : '#ffffff',
                                         borderRadius: 2,
                                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.16)',
-                                        color: '#fff'
+                                        color: isDarkMode ? '#fff' : '#000'
                                     }}>
                                         <Box sx={{ mb: 2 }}>
                                             <Box sx={{ 
@@ -588,7 +613,7 @@ const VehicleMap: React.FC = () => {
                                                     fontSize: 28
                                                 }} />
                                                 <Typography variant="h6" sx={{ 
-                                                    color: '#fff',
+                                                    color: isDarkMode ? '#fff' : '#000',
                                                     fontWeight: 600,
                                                     letterSpacing: '0.5px'
                                                 }}>
@@ -603,7 +628,7 @@ const VehicleMap: React.FC = () => {
                                             }}>
                                                 <TimeIcon sx={{ color: '#FF6B00' }} />
                                                 <Typography variant="body2" sx={{ 
-                                                    color: 'rgba(255, 255, 255, 0.7)',
+                                                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                                                     fontWeight: 500
                                                 }}>
                                                     {formatTimeDiff(selectedVehicle.lastUpdate)}
@@ -621,7 +646,7 @@ const VehicleMap: React.FC = () => {
                                         
                                         <Divider sx={{ 
                                             my: 2,
-                                            borderColor: 'rgba(255, 255, 255, 0.1)'
+                                            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                                         }} />
                                         
                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -637,14 +662,14 @@ const VehicleMap: React.FC = () => {
                                                 }} />
                                                 <Box>
                                                     <Typography sx={{ 
-                                                        color: '#fff',
+                                                        color: isDarkMode ? '#fff' : '#000',
                                                         fontWeight: 500,
                                                         mb: 0.5
                                                     }}>
                                                         {selectedVehicle.companyName || 'AESA Group'}
                                                     </Typography>
                                                     <Typography variant="caption" sx={{ 
-                                                        color: 'rgba(255, 255, 255, 0.5)',
+                                                        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
                                                         display: 'block'
                                                     }}>
                                                         ID: {selectedVehicle.companyID}
@@ -664,13 +689,13 @@ const VehicleMap: React.FC = () => {
                                                 }} />
                                                 <Box>
                                                     <Typography variant="body2" sx={{ 
-                                                        color: 'rgba(255, 255, 255, 0.7)',
+                                                        color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
                                                         mb: 0.5
                                                     }}>
                                                         GPS súradnice
                                                     </Typography>
                                                     <Typography sx={{ 
-                                                        color: '#fff',
+                                                        color: isDarkMode ? '#fff' : '#000',
                                                         fontFamily: 'monospace',
                                                         fontSize: '0.9rem',
                                                         bgcolor: 'rgba(255, 107, 0, 0.1)',
