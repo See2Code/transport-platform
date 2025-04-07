@@ -17,6 +17,7 @@ import PrivateRoute from './components/PrivateRoute';
 import RegisterUser from './components/RegisterUser';
 import OrdersForm from './components/Orders';
 import InvoicesPage from './components/Invoices';
+import VehicleMap from './components/VehicleMap';
 import { useThemeMode } from './contexts/ThemeContext';
 
 type AppContainerProps = {
@@ -184,6 +185,14 @@ const AppContent: React.FC = () => {
               <PageContent isDarkMode={isDarkMode}>
                 <Navbar />
                 <InvoicesPage />
+              </PageContent>
+            </PrivateRoute>
+          } />
+          <Route path="/vehicle-map" element={
+            <PrivateRoute>
+              <PageContent isDarkMode={isDarkMode}>
+                <Navbar />
+                <VehicleMap />
               </PageContent>
             </PrivateRoute>
           } />

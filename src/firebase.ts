@@ -5,8 +5,24 @@ import { getFunctions } from 'firebase/functions';
 import { getDatabase } from 'firebase/database';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 
+// Kontrola povinných premenných prostredia
+const requiredEnvVars = [
+  'REACT_APP_FIREBASE_API_KEY',
+  'REACT_APP_FIREBASE_AUTH_DOMAIN',
+  'REACT_APP_FIREBASE_PROJECT_ID',
+  'REACT_APP_FIREBASE_STORAGE_BUCKET',
+  'REACT_APP_FIREBASE_MESSAGING_SENDER_ID',
+  'REACT_APP_FIREBASE_APP_ID',
+  'REACT_APP_FIREBASE_DATABASE_URL'
+];
+
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingVars.length > 0) {
+  console.error('Chýbajúce povinné premenné prostredia:', missingVars);
+  throw new Error('Chýbajú povinné Firebase konfiguračné premenné');
+}
+
 const firebaseConfig = {
-  // TODO: Nahraďte tieto hodnoty skutočnými hodnotami z Firebase Console
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
@@ -27,7 +43,14 @@ console.log('Firebase konfigurácia:', {
 });
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app;
+try {
+  app = initializeApp(firebaseConfig);
+  console.log('Firebase úspešne inicializované');
+} catch (error) {
+  console.error('Chyba pri inicializácii Firebase:', error);
+  throw error;
+}
 
 // Get Firebase services
 const auth = getAuth(app);
@@ -38,8 +61,22 @@ const storage = getStorage(app);
 
 // Nastavenie regiónu pre Firestore
 if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_FIREBASE_EMULATOR === 'true') {
-  connectFirestoreEmulator(db, 'localhost', 8080);
+  try {
+    connectFirestoreEmulator(db, 'localhost', 8080);
+    console.log('Firestore emulátor pripojený');
+  } catch (error) {
+    console.error('Chyba pri pripájaní Firestore emulátora:', error);
+  }
 }
+
+// Povolenie offline perzistencie
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.warn('Offline perzistencia nie je podporovaná v tomto prehliadači');
+  } else if (err.code === 'unimplemented') {
+    console.warn('Prehliadač nepodporuje offline perzistenciu');
+  }
+});
 
 // Storage Rules
 const storageRules = `

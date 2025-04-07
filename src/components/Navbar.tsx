@@ -666,6 +666,7 @@ const Navbar = () => {
   const menuItems: MenuItem[] = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Sledované prepravy', icon: <LocalShippingIcon />, path: '/tracked-transports' },
+    { text: 'Mapa vozidiel', icon: <LocationOnIcon />, path: '/vehicle-map' },
     { text: 'Objednávky', icon: <ReceiptIcon />, path: '/orders' },
     { text: 'Business prípady', icon: <BusinessIcon />, path: '/business-cases' },
     { text: 'Faktúry', icon: <EuroIcon />, path: '/invoices' },

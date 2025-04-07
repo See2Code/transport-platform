@@ -67,8 +67,9 @@ declare module 'jspdf' {
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
-  margin: theme.spacing(2, 0),
+  margin: 0,
   width: '100%',
+  maxWidth: '100%',
   background: theme.palette.mode === 'dark' 
     ? 'rgba(28, 28, 45, 0.35)' 
     : 'rgba(255, 255, 255, 0.95)',
@@ -85,6 +86,8 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 const StyledFieldset = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
   marginBottom: theme.spacing(3),
+  width: '100%',
+  maxWidth: '100%',
   borderRadius: 8,
   background: theme.palette.mode === 'dark'
     ? 'rgba(35, 35, 66, 0.35)'
@@ -104,6 +107,12 @@ const StyledLegend = styled(Typography)(({ theme }) => ({
 
 const PageWrapper = styled('div')({
   padding: '24px',
+  width: '100%',
+  maxWidth: '100%',
+  '& > *': {
+    width: '100%',
+    maxWidth: '100%'
+  },
   '@media (max-width: 600px)': {
     padding: '16px',
     paddingBottom: '80px',

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { CircularProgress, Box } from '@mui/material';
+import { CircularProgress, Box, Typography, Button } from '@mui/material';
 import { doc, getDoc } from 'firebase/firestore';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 
@@ -29,6 +29,7 @@ interface AuthContextType {
   currentUser: User | null;
   userData: UserData | null;
   loading: boolean;
+  error: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -38,6 +39,7 @@ const AuthContext = createContext<AuthContextType>({
   currentUser: null, 
   userData: null,
   loading: true,
+  error: null,
   login: async () => {},
   register: async () => {},
   logout: async () => {},
@@ -51,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('AuthProvider: Inicializácia onAuthStateChanged');
@@ -62,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('AuthProvider: Získavam údaje o užívateľovi z Firestore');
           // Získanie údajov o užívateľovi z Firestore
           const userDoc = await getDoc(doc(db, 'users', user.uid));
+          
           if (userDoc.exists()) {
             const userData = userDoc.data();
             console.log('AuthProvider: Údaje o užívateľovi:', {
@@ -70,6 +74,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               companyID: userData.companyID,
               role: userData.role
             });
+
+            // Kontrola povinných polí
+            if (!userData.companyID) {
+              console.error('AuthProvider: Chýbajúce companyID v údajoch užívateľa');
+              setError('Chýbajúce údaje o firme');
+              setUserData(null);
+              setCurrentUser(null);
+              setLoading(false);
+              return;
+            }
+
             setUserData({
               uid: userData.uid,
               email: userData.email || '',
@@ -88,13 +103,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               firstName: userData.firstName || '',
               lastName: userData.lastName || '',
             });
+            setError(null);
           } else {
             console.error('AuthProvider: Dokument užívateľa neexistuje v Firestore');
+            setError('Užívateľský profil nebol nájdený');
             setUserData(null);
             setCurrentUser(null);
           }
         } catch (error) {
           console.error('AuthProvider: Chyba pri získavaní údajov o užívateľovi:', error);
+          setError('Chyba pri načítaní údajov užívateľa');
           setUserData(null);
           setCurrentUser(null);
         }
@@ -102,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('AuthProvider: Užívateľ nie je prihlásený');
         setUserData(null);
         setCurrentUser(null);
+        setError(null);
       }
       
       setLoading(false);
@@ -136,18 +155,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentUser,
     userData,
     loading,
+    error,
     login,
     register,
     logout,
   };
 
-  console.log('AuthProvider: Render - loading:', loading, 'currentUser:', currentUser?.uid, 'userData:', userData);
+  console.log('AuthProvider: Render - loading:', loading, 'currentUser:', currentUser?.uid, 'userData:', userData, 'error:', error);
 
   return (
     <AuthContext.Provider value={value}>
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
           <CircularProgress sx={{ color: '#ff9f43' }} />
+        </Box>
+      ) : error ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column' }}>
+          <Typography color="error" variant="h6" gutterBottom>
+            {error}
+          </Typography>
+          <Button variant="contained" color="primary" onClick={() => window.location.reload()}>
+            Skúsiť znova
+          </Button>
         </Box>
       ) : (
         children
