@@ -110,28 +110,47 @@ const PageTitle = styled(Typography)<{ isDarkMode: boolean }>(({ isDarkMode }) =
 }));
 
 const StatsCard = styled(Card)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#e8e9eb',
-  borderRadius: '12px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)'}`,
-  boxShadow: isDarkMode 
-    ? '0 8px 32px 0 rgba(0, 0, 0, 0.25)'
-    : '0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.15)',
-  transition: 'all 0.3s ease',
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#f8f9fa',
+  borderRadius: '16px !important',
+  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#c0c0c0'} !important`,
+  boxShadow: `${isDarkMode 
+    ? '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+    : '0 4px 20px rgba(0, 0, 0, 0.1)'} !important`,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   overflow: 'hidden',
-  '&:hover': {
-    transform: 'translateY(-5px)',
-    boxShadow: isDarkMode 
-      ? '0 12px 32px rgba(255, 159, 67, 0.3)'
-      : '0 6px 12px rgba(255, 159, 67, 0.15), 0 12px 24px rgba(0, 0, 0, 0.2)',
-    border: `1px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(255, 159, 67, 0.5)'}`,
+  position: 'relative',
+  '&.MuiPaper-root': {
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#f8f9fa !important',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#c0c0c0'} !important`,
+  },
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '4px',
+    backgroundColor: '#ff9f43'
   },
   '& .MuiTypography-h4': {
-    color: isDarkMode ? '#ffffff' : '#000000',
-    fontWeight: 600
+    color: isDarkMode ? '#ffffff' : '#2d3436',
+    fontWeight: 600,
+    fontSize: '2rem'
   },
   '& .MuiTypography-body1': {
-    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(45, 52, 54, 0.7)',
     fontWeight: 500
+  },
+  '& .MuiSvgIcon-root': {
+    filter: `drop-shadow(0 2px 4px ${isDarkMode ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.2)'})`
+  },
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: `${isDarkMode 
+      ? '0 12px 40px rgba(0, 0, 0, 0.5)'
+      : '0 8px 30px rgba(0, 0, 0, 0.15)'} !important`,
+    border: `1px solid #ff9f43 !important`,
+    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.98)' : '#ffffff'
   }
 }));
 
@@ -150,21 +169,21 @@ const StatsCardContent = styled(CardContent)({
 });
 
 const ChartContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#e8e9eb',
-  borderRadius: '12px',
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  borderRadius: '16px',
   padding: '24px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)'}`,
+  border: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#e0e0e0'}`,
   boxShadow: isDarkMode 
-    ? '0 8px 32px rgba(0, 0, 0, 0.25)'
-    : '0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.15)',
+    ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+    : '0 4px 12px rgba(0, 0, 0, 0.05)',
   overflow: 'hidden',
   transition: 'all 0.3s ease',
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: isDarkMode 
-      ? '0 12px 32px rgba(255, 159, 67, 0.3)'
-      : '0 6px 12px rgba(255, 159, 67, 0.15), 0 12px 24px rgba(0, 0, 0, 0.2)',
-    border: `1px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : 'rgba(255, 159, 67, 0.5)'}`,
+      ? '0 12px 40px rgba(0, 0, 0, 0.5)'
+      : '0 8px 24px rgba(0, 0, 0, 0.1)',
+    border: `2px solid ${isDarkMode ? 'rgba(255, 159, 67, 0.3)' : '#ff9f43'}`,
   },
   '& .recharts-text': {
     fill: isDarkMode ? '#ffffff' : '#000000',
@@ -175,35 +194,38 @@ const ChartContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => 
 }));
 
 const DataTableContainer = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
-  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#e8e9eb',
-  borderRadius: '12px',
-  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)'}`,
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  borderRadius: '16px',
+  border: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#e0e0e0'}`,
+  backdropFilter: 'blur(10px)',
   boxShadow: isDarkMode 
-    ? '0 8px 32px rgba(0, 0, 0, 0.25)'
-    : '0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.15)',
+    ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+    : '0 4px 12px rgba(0, 0, 0, 0.05)',
   overflow: 'hidden',
   '& .MuiTableCell-root': {
-    color: isDarkMode ? '#ffffff' : '#000000',
-    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)',
+    color: isDarkMode ? '#ffffff' : '#1a1a1a',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#e0e0e0',
+    padding: '16px',
+    fontSize: '0.875rem',
   },
   '& .MuiTableCell-head': {
-    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-    backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#d8d9db',
+    color: isDarkMode ? '#ffffff' : '#1a1a1a',
+    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#f5f5f5',
     fontWeight: 600,
-    borderBottom: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.35)'}`,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    fontSize: '0.75rem',
+    borderBottom: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#e0e0e0'}`,
   },
   '& .MuiTableRow-root': {
-    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.23)'}`,
+    transition: 'background-color 0.2s ease',
+    borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0'}`,
+    '&:hover': {
+      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#fafafa',
+    },
     '&:nth-of-type(odd)': {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#f0f1f2',
+      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : '#f8f8f8',
     }
-  },
-  '& .MuiTableRow-root:hover': {
-    backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#d8d9db',
-  },
-  '& .MuiTableContainer-root': {
-    borderRadius: '12px',
-    overflow: 'hidden',
   }
 }));
 
@@ -383,6 +405,42 @@ const StatsContainer = styled(Box)({
   marginBottom: '32px',
   width: '100%',
 });
+
+const StatusBar = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  backgroundColor: isDarkMode ? 'rgba(28, 28, 45, 0.95)' : '#ffffff',
+  borderRadius: '16px',
+  border: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#e0e0e0'}`,
+  padding: '24px',
+  marginBottom: '24px',
+  boxShadow: isDarkMode 
+    ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+    : '0 4px 12px rgba(0, 0, 0, 0.05)',
+  '& .status-legend': {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '16px',
+    marginTop: '16px',
+    '& .status-item': {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '8px 12px',
+      borderRadius: '8px',
+      border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : '#e0e0e0'}`,
+      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : '#f8f8f8',
+      '& .status-color': {
+        width: '12px',
+        height: '12px',
+        borderRadius: '4px',
+        border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
+      },
+      '& .status-text': {
+        color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+        fontSize: '0.875rem',
+      }
+    }
+  }
+}));
 
 export default function Dashboard() {
   const { userData } = useAuth();
@@ -972,18 +1030,6 @@ export default function Dashboard() {
           </StatsCard>
         </Grid>
       </Grid>
-
-      <Box mt={4}>
-        <ChartContainer isDarkMode={isDarkMode}>
-          {/* ... existing chart content ... */}
-        </ChartContainer>
-      </Box>
-
-      <Box mt={4}>
-        <DataTableContainer isDarkMode={isDarkMode}>
-          {/* ... existing table content ... */}
-        </DataTableContainer>
-      </Box>
     </PageWrapper>
   );
 } 

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Typography, CircularProgress, Alert } from '@mui/material';
 import VehicleTracker from './VehicleTracker';
 import { useVehicleTracking } from '../hooks/useVehicleTracking';
 
 const TrackedDeliveries: React.FC = () => {
     const { vehicles, loading, error } = useVehicleTracking();
+    const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+    const [showInfoWindow, setShowInfoWindow] = useState<string | null>(null);
 
     if (loading) {
         return (
@@ -46,7 +48,17 @@ const TrackedDeliveries: React.FC = () => {
                 Aktívne vozidlá: {vehicles.length}
             </Typography>
             <Box mt={2}>
-                <VehicleTracker vehicles={vehicles} />
+                <VehicleTracker 
+                    vehicles={vehicles}
+                    selectedVehicle={selectedVehicle}
+                    hiddenVehicles={[]}
+                    onMarkerClick={(vehicleId) => {
+                        setSelectedVehicle(vehicleId);
+                        setShowInfoWindow(vehicleId);
+                    }}
+                    showInfoWindow={showInfoWindow}
+                    onInfoWindowClose={() => setShowInfoWindow(null)}
+                />
             </Box>
         </Box>
     );

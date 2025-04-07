@@ -9,7 +9,6 @@ import Team from './components/Team';
 import Contacts from './components/Contacts';
 import Settings from './components/Settings';
 import TrackedTransports from './components/TrackedTransports';
-import VehicleMap from './components/VehicleMap';
 import BusinessCases from './components/BusinessCases';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -161,14 +160,6 @@ const AppContent: React.FC = () => {
               <PageContent isDarkMode={isDarkMode}>
                 <Navbar />
                 <TrackedTransports />
-              </PageContent>
-            </PrivateRoute>
-          } />
-          <Route path="/vehicle-map" element={
-            <PrivateRoute>
-              <PageContent isDarkMode={isDarkMode}>
-                <Navbar />
-                <VehicleMap />
               </PageContent>
             </PrivateRoute>
           } />

@@ -53,6 +53,8 @@ interface CompanyData {
   ico: string;
   icDph: string;
   dic: string;
+  iban: string;
+  bank: string;
   owner: {
     uid: string;
     email: string;
@@ -825,6 +827,26 @@ function Settings() {
                     label="Mesto"
                     value={companyData?.city || ''}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('city', e.target.value)}
+                    disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
+                    fullWidth
+                    label="IBAN"
+                    value={companyData?.iban || ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('iban', e.target.value)}
+                    disabled={!isEditingCompany}
+                    isDarkMode={isDarkMode}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
+                    fullWidth
+                    label="Banka"
+                    value={companyData?.bank || ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCompanyDataChange('bank', e.target.value)}
                     disabled={!isEditingCompany}
                     isDarkMode={isDarkMode}
                   />

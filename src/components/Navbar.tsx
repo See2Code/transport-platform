@@ -40,11 +40,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { useNavigate } from 'react-router-dom';
+import EuroIcon from '@mui/icons-material/Euro';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { Link } from 'react-router-dom';
 import { MenuProps } from '@mui/material/Menu';
 import BusinessIcon from '@mui/icons-material/Business';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -627,6 +627,7 @@ const Navbar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
   const { isDarkMode, toggleTheme } = useThemeMode();
 
@@ -663,15 +664,14 @@ const Navbar = () => {
   };
 
   const menuItems: MenuItem[] = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', description: 'Prehľad aktivít' },
-    { text: 'Tím', icon: <GroupIcon />, path: '/team', description: 'Správa tímu' },
-    { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts', description: 'Správa kontaktov' },
-    { text: 'Sledovanie prepráv', icon: <VisibilityIcon />, path: '/tracked-transports', description: 'Sledovanie prepráv' },
-    { text: 'Mapa vozidiel', icon: <LocationOnIcon />, path: '/vehicle-map', description: 'Poloha vozidiel' },
-    { text: 'Obchodné prípady', icon: <BusinessIcon />, path: '/business-cases', description: 'Správa obchodných prípadov' },
-    { text: 'Objednávky', icon: <LocalShippingIcon />, path: '/orders', description: 'Správa objednávok' },
-    { text: 'Faktúry', icon: <ReceiptIcon />, path: '/invoices', description: 'Správa faktúr' },
-    { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings', description: 'Nastavenia systému' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Sledované prepravy', icon: <LocalShippingIcon />, path: '/tracked-transports' },
+    { text: 'Objednávky', icon: <ReceiptIcon />, path: '/orders' },
+    { text: 'Business prípady', icon: <BusinessIcon />, path: '/business-cases' },
+    { text: 'Faktúry', icon: <EuroIcon />, path: '/invoices' },
+    { text: 'Kontakty', icon: <ContactsIcon />, path: '/contacts' },
+    { text: 'Tím', icon: <GroupIcon />, path: '/team' },
+    { text: 'Nastavenia', icon: <SettingsIcon />, path: '/settings' },
   ];
 
   return (

@@ -2,21 +2,86 @@
   "rules": {
     ".read": "auth != null",
     ".write": "auth != null",
-    "test": {
-      ".read": true,
-      ".write": true
-    },
-    "drivers": {
+    "vehicles": {
       ".read": "auth != null",
       ".write": "auth != null",
-      "$driverId": {
-        ".validate": "newData.hasChild('location') && newData.hasChild('lastActive')",
-        "location": {
-          ".validate": "newData.hasChildren(['latitude', 'longitude', 'accuracy', 'timestamp', 'driverName'])"
+      "$vehicleId": {
+        ".validate": "newData.hasChildren(['info', 'location', 'status', 'history', 'geofenceEvents'])",
+        "info": {
+          ".validate": "newData.hasChildren(['plateNumber', 'type', 'driverId', 'companyId'])"
         },
-        "lastActive": {
-          ".validate": "newData.isNumber()"
+        "location": {
+          ".validate": "newData.hasChildren(['latitude', 'longitude', 'accuracy', 'speed', 'heading', 'timestamp', 'batteryLevel', 'isBatterySavingMode'])",
+          "latitude": {
+            ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+          },
+          "longitude": {
+            ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+          },
+          "accuracy": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "speed": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "heading": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 360"
+          },
+          "timestamp": {
+            ".validate": "newData.isNumber()"
+          },
+          "batteryLevel": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+          },
+          "isBatterySavingMode": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "status": {
+          ".validate": "newData.hasChildren(['isActive', 'lastUpdate', 'batteryLevel', 'batterySavingMode'])",
+          "isActive": {
+            ".validate": "newData.isBoolean()"
+          },
+          "lastUpdate": {
+            ".validate": "newData.isNumber()"
+          },
+          "batteryLevel": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+          },
+          "batterySavingMode": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "history": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$timestamp": {
+            ".validate": "newData.hasChildren(['latitude', 'longitude', 'speed', 'heading', 'batteryLevel', 'isBatterySavingMode'])"
+          }
+        },
+        "geofenceEvents": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$eventId": {
+            ".validate": "newData.hasChildren(['regionId', 'type', 'timestamp'])",
+            "regionId": {
+              ".validate": "newData.isString()"
+            },
+            "type": {
+              ".validate": "newData.isString() && (newData.val() == 'entry' || newData.val() == 'exit')"
+            },
+            "timestamp": {
+              ".validate": "newData.isNumber()"
+            }
+          }
         }
+      }
+    },
+    "companies": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$companyId": {
+        ".validate": "newData.hasChildren(['name', 'address', 'contact'])"
       }
     }
   }

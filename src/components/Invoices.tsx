@@ -317,10 +317,12 @@ const InvoicesPage: FC = () => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
+  const [companyDetails, setCompanyDetails] = useState(YOUR_COMPANY_DETAILS);
 
   useEffect(() => {
     fetchInvoices();
     fetchCompanySettings();
+    fetchCompanyDetails();
   }, [currentUser]);
 
   const fetchInvoices = async () => {
@@ -370,6 +372,33 @@ const InvoicesPage: FC = () => {
       }
     } catch (error) {
       console.error('Chyba pri načítaní nastavení firmy:', error);
+    }
+  };
+
+  const fetchCompanyDetails = async () => {
+    if (!currentUser?.companyID) return;
+
+    try {
+      const companyRef = doc(db, 'companies', currentUser.companyID);
+      const companyDoc = await getDoc(companyRef);
+
+      if (companyDoc.exists()) {
+        const data = companyDoc.data();
+        setCompanyDetails({
+          name: data.companyName || '',
+          address: data.street || '',
+          city: data.city || '',
+          zip: data.zipCode || '',
+          country: data.country || 'Slovensko',
+          ico: data.ico || '',
+          dic: data.dic || '',
+          ic_dph: data.icDph || '',
+          iban: data.iban || '',
+          bank: data.bank || '',
+        });
+      }
+    } catch (error) {
+      console.error('Chyba pri načítaní údajov o firme:', error);
     }
   };
 
@@ -436,16 +465,26 @@ const InvoicesPage: FC = () => {
   };
 
   const generatePDF = async (invoice: Invoice): Promise<Blob> => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      putOnlyUsedFonts: true,
+      floatPrecision: 16
+    });
+
+    // Nastavenie fontu s podporou diakritiky
+    doc.addFont('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.ttf', 'Roboto', 'normal');
+    doc.setFont('Roboto');
     
-    // Pridanie loga ak existuje
+    // Logo a číslo faktúry v hlavičke
     if (companySettings.logoPreview) {
       try {
         const logoImg = new Image();
         logoImg.src = companySettings.logoPreview;
         await new Promise((resolve, reject) => {
           logoImg.onload = () => {
-            doc.addImage(logoImg, 'PNG', 20, 10, 40, 40);
+            doc.addImage(logoImg, 'PNG', 15, 15, 20, 20);
             resolve(null);
           };
           logoImg.onerror = reject;
@@ -454,96 +493,128 @@ const InvoicesPage: FC = () => {
         console.error('Chyba pri načítaní loga:', error);
       }
     }
+
+    // Číslo faktúry v pravom hornom rohu
+    doc.setFontSize(16);
+    doc.text(`FAKTÚRA ${invoice.invoiceNumber}`, 195, 25, { align: 'right' });
     
-    // Hlavička faktúry
-    doc.setFontSize(20);
-    doc.text('FAKTÚRA', 105, 20, { align: 'center' });
+    // Dodávateľ a odberateľ
     doc.setFontSize(12);
-    doc.text(`Číslo: ${invoice.invoiceNumber}`, 20, 30);
+    doc.text('DODÁVATEĽ', 15, 50);
+    doc.text('ODBERATEĽ', 110, 50);
     
-    // Dodávateľ
-    doc.text('Dodávateľ:', 20, 40);
+    // Údaje dodávateľa
+    doc.setFontSize(10);
     doc.text([
-      invoice.supplier.name,
-      invoice.supplier.address,
-      `${invoice.supplier.zip} ${invoice.supplier.city}`,
-      invoice.supplier.country,
-      `IČO: ${invoice.supplier.ico}`,
-      `DIČ: ${invoice.supplier.dic}`,
-      `IČ DPH: ${invoice.supplier.ic_dph}`,
-    ], 20, 45);
-    
-    // Odberateľ
-    doc.text('Odberateľ:', 20, 80);
+      companyDetails.name,
+      companyDetails.address,
+      `${companyDetails.zip} ${companyDetails.city}`,
+      companyDetails.country,
+      '',
+      `IČO: ${companyDetails.ico}`,
+      `DIČ: ${companyDetails.dic}`,
+      `IČ DPH: ${companyDetails.ic_dph}`,
+    ], 15, 60);
+
+    // Údaje odberateľa
     doc.text([
       invoice.customer.name,
       invoice.customer.address,
       `${invoice.customer.zip} ${invoice.customer.city}`,
       invoice.customer.country,
+      '',
       `IČO: ${invoice.customer.ico}`,
       `DIČ: ${invoice.customer.dic}`,
       `IČ DPH: ${invoice.customer.ic_dph}`,
-    ], 20, 85);
-    
+    ], 110, 60);
+
     // Dátumy
+    doc.setFontSize(10);
     doc.text([
       `Dátum vystavenia: ${invoice.issueDate}`,
-      `Dátum splatnosti: ${invoice.dueDate}`,
       `Dátum dodania: ${invoice.taxableSupplyDate}`,
-    ], 20, 120);
-    
-    // Položky faktúry
-    const tableData = invoice.items.map(item => [
-      item.description,
-      item.quantity.toString(),
-      `${item.unitPrice.toFixed(2)} €`,
-      `${item.total.toFixed(2)} €`,
-    ]);
-    
-    (doc as any).autoTable({
-      startY: 130,
-      head: [['Popis', 'Množstvo', 'Jedn. cena', 'Spolu']],
-      body: tableData,
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185] },
-      styles: { fontSize: 10 },
-      columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 30 },
-      },
-      margin: { left: 20, right: 20 },
-    });
-    
-    // Sumár
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
-    doc.text([
-      `Základ DPH: ${invoice.subtotal.toFixed(2)} €`,
-      `DPH (${invoice.vatRate}%): ${invoice.vatAmount.toFixed(2)} €`,
-      `Celkom k úhrade: ${invoice.totalAmount.toFixed(2)} €`,
-    ], 150, finalY, { align: 'right' });
-    
-    // Platobné údaje
-    doc.text([
-      'Platobné údaje:',
-      `IBAN: ${invoice.supplier.iban}`,
-      `Variabilný symbol: ${invoice.variableSymbol}`,
-    ], 20, finalY + 30);
-    
-    if (invoice.notes) {
-      doc.text('Poznámka:', 20, finalY + 50);
-      doc.text(invoice.notes, 20, finalY + 55);
-    }
+      `Splatnosť: ${invoice.dueDate}`,
+    ], 15, 110);
 
-    // Pridanie pečiatky a podpisu
+    // Platobné údaje v rámčeku
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(110, 100, 85, 35);
+    doc.text([
+      'Spôsob úhrady: Bankový prevod',
+      `Suma: ${invoice.totalAmount.toFixed(2)} EUR`,
+      `Variabilný symbol: ${invoice.invoiceNumber}`,
+      `IBAN: ${companyDetails.iban}`,
+      `SWIFT: ${companyDetails.bank}`,
+    ], 115, 110);
+
+    // Text pred tabuľkou
+    doc.setFontSize(10);
+    doc.text(`Fakturujeme Vám na základe objednávky zo dňa ${invoice.issueDate}`, 15, 145);
+
+    // Položky faktúry
+    doc.setFontSize(10);
+    (doc as any).autoTable({
+      startY: 155,
+      head: [['Č.', 'NÁZOV', 'MNOŽSTVO', 'CENA BEZ DPH', 'DPH %', 'SPOLU S DPH']],
+      body: invoice.items.map((item, index) => [
+        (index + 1).toString(),
+        item.description,
+        item.quantity.toString(),
+        `${item.unitPrice.toFixed(2)}`,
+        `${invoice.vatRate}`,
+        `${item.total.toFixed(2)}`,
+      ]),
+      theme: 'grid',
+      headStyles: {
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3
+      },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 20, halign: 'center' },
+        3: { cellWidth: 25, halign: 'right' },
+        4: { cellWidth: 15, halign: 'center' },
+        5: { cellWidth: 25, halign: 'right' }
+      },
+      margin: { left: 15, right: 15 }
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Sumár DPH
+    doc.setFontSize(9);
+    doc.text('SADZBA DPH', 15, finalY + 10);
+    doc.text('ZÁKLAD', 60, finalY + 10);
+    doc.text('DPH', 90, finalY + 10);
+    doc.text('SPOLU', 120, finalY + 10);
+
+    doc.text(`${invoice.vatRate} %`, 15, finalY + 15);
+    doc.text(`${invoice.subtotal.toFixed(2)}`, 60, finalY + 15);
+    doc.text(`${invoice.vatAmount.toFixed(2)}`, 90, finalY + 15);
+    doc.text(`${invoice.totalAmount.toFixed(2)}`, 120, finalY + 15);
+
+    doc.text('Súčet', 15, finalY + 20);
+    doc.text(`${invoice.subtotal.toFixed(2)}`, 60, finalY + 20);
+    doc.text(`${invoice.vatAmount.toFixed(2)}`, 90, finalY + 20);
+    doc.text(`${invoice.totalAmount.toFixed(2)} EUR`, 120, finalY + 20);
+
+    // Pečiatka a podpis
     if (companySettings.signatureAndStampPreview) {
       try {
         const signatureImg = new Image();
         signatureImg.src = companySettings.signatureAndStampPreview;
         await new Promise((resolve, reject) => {
           signatureImg.onload = () => {
-            doc.addImage(signatureImg, 'PNG', 20, finalY + 80, 170, 40);
+            doc.addImage(signatureImg, 'PNG', 15, finalY + 35, 50, 25);
+            doc.text('Pečiatka a podpis', 15, finalY + 70);
             resolve(null);
           };
           signatureImg.onerror = reject;
@@ -552,6 +623,14 @@ const InvoicesPage: FC = () => {
         console.error('Chyba pri načítaní pečiatky a podpisu:', error);
       }
     }
+
+    // Päta faktúry
+    doc.setFontSize(8);
+    doc.setTextColor(128, 128, 128);
+    const registrationText = 'Spoločnosť je zapísaná v registri Mestský súd Bratislava III, registrácia č. Sro/179108/B';
+    doc.text(registrationText, 15, 280);
+    doc.text('www.kros.sk', 15, 285);
+    doc.text('Strana 1/1', 195, 285, { align: 'right' });
     
     return doc.output('blob');
   };
@@ -575,7 +654,18 @@ const InvoicesPage: FC = () => {
         issueDate: newInvoiceDates.issueDate,
         dueDate: newInvoiceDates.dueDate,
         taxableSupplyDate: newInvoiceDates.taxableSupplyDate,
-        supplier: YOUR_COMPANY_DETAILS,
+        supplier: {
+          name: companyDetails.name,
+          address: companyDetails.address,
+          city: companyDetails.city,
+          zip: companyDetails.zip,
+          country: companyDetails.country,
+          ico: companyDetails.ico,
+          dic: companyDetails.dic,
+          ic_dph: companyDetails.ic_dph,
+          iban: companyDetails.iban,
+          bank: companyDetails.bank,
+        },
         customer: newInvoiceCustomer,
         items: newInvoiceItems.map(item => ({ ...item })),
         subtotal: subtotal,

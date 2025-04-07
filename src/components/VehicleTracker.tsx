@@ -1,45 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
-import { styled } from '@mui/material';
-import { Box, CircularProgress, Alert } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Polyline } from '@react-google-maps/api';
+import { useTheme } from '@mui/material/styles';
+import { Box, Typography, GlobalStyles } from '@mui/material';
+import { Vehicle } from '../types/vehicle';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 
-const libraries: ("places" | "drawing" | "geometry" | "visualization")[] = ["places"];
+const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 
-// Vytvorenie vlastných ikon pre markery
-const createIcon = (color: string, isSelected: boolean) => ({
-    path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759   c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z M34.05,14.188v11.665l-2.729,0.351v-4.806L34.05,14.188z    M32.618,10.773c-1.016,3.9-2.219,8.51-2.219,8.51H16.631l-2.222-8.51C14.41,10.773,23.293,7.755,32.618,10.773z M15.741,21.713   v4.492l-2.73-0.349V14.502L15.741,21.713z M13.011,37.938V27.579l2.73,0.343v8.196L13.011,37.938z M14.568,40.882l2.218-3.336   h13.771l2.219,3.336H14.568z M31.321,35.805v-7.872l2.729-0.355v10.048L31.321,35.805z",
-    fillColor: color,
-    fillOpacity: 1,
-    strokeWeight: 1,
-    strokeColor: '#ffffff',
-    scale: isSelected ? 0.7 : 0.5,
-    anchor: new google.maps.Point(25, 25),
-    rotation: 0
-});
-
-const containerStyle = {
-    width: '100%',
-    height: '100%'
-};
-
-const defaultCenter = {
-    lat: 48.669026,
-    lng: 19.699024
-};
-
-const MapWrapper = styled('div')({
-    height: '100%',
-    width: '100%',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-});
-
-const darkMapStyles = [
+const darkMapStyle: google.maps.MapTypeStyle[] = [
     {
         featureType: 'all',
         elementType: 'geometry',
@@ -119,10 +87,25 @@ const darkMapStyles = [
         stylers: [
             { visibility: 'off' }
         ]
+    },
+    {
+        featureType: 'administrative.locality',
+        elementType: 'labels.text.fill',
+        stylers: [
+            { color: '#ffffff' }
+        ]
+    },
+    {
+        featureType: 'administrative.locality',
+        elementType: 'labels.text.stroke',
+        stylers: [
+            { color: '#1a1a2e' },
+            { weight: 2 }
+        ]
     }
 ];
 
-const lightMapStyles = [
+const lightMapStyle: google.maps.MapTypeStyle[] = [
     {
         featureType: 'all',
         elementType: 'geometry',
@@ -167,229 +150,526 @@ const lightMapStyles = [
         stylers: [
             { color: '#e0e0e0' }
         ]
+    },
+    {
+        featureType: 'road',
+        elementType: 'geometry.stroke',
+        stylers: [
+            { color: '#d0d0d0' }
+        ]
+    },
+    {
+        featureType: 'road',
+        elementType: 'labels.text.fill',
+        stylers: [
+            { color: '#000000' }
+        ]
+    },
+    {
+        featureType: 'road.highway',
+        elementType: 'geometry',
+        stylers: [
+            { color: '#cccccc' }
+        ]
+    },
+    {
+        featureType: 'poi',
+        elementType: 'geometry',
+        stylers: [
+            { visibility: 'off' }
+        ]
+    },
+    {
+        featureType: 'transit',
+        elementType: 'geometry',
+        stylers: [
+            { visibility: 'off' }
+        ]
+    },
+    {
+        featureType: 'administrative.locality',
+        elementType: 'labels.text.fill',
+        stylers: [
+            { color: '#000000' }
+        ]
+    },
+    {
+        featureType: 'administrative.locality',
+        elementType: 'labels.text.stroke',
+        stylers: [
+            { color: '#ffffff' },
+            { weight: 2 }
+        ]
     }
 ];
-
-interface Vehicle {
-    id: string;
-    vehicleId: string;
-    driverName: string;
-    location: {
-        latitude: number;
-        longitude: number;
-        accuracy: number;
-        timestamp: number;
-    };
-    lastActive: number;
-    type?: string;
-    licensePlate?: string;
-    dimensions?: {
-        length: number;
-        width: number;
-        height: number;
-    };
-    maxLoad?: number;
-}
 
 interface VehicleTrackerProps {
     vehicles: Vehicle[];
     selectedVehicle?: string | null;
-    onVehicleSelect?: (vehicleId: string) => void;
-    center?: [number, number];
-    zoom?: number;
-    isDarkMode?: boolean;
+    hiddenVehicles?: string[];
+    onMarkerClick?: (vehicleId: string) => void;
+    showInfoWindow?: string | null;
+    onInfoWindowClose?: () => void;
+    locationHistory?: { latitude: number; longitude: number; timestamp: number }[];
 }
 
-const VehicleTracker: React.FC<VehicleTrackerProps> = ({
-    vehicles,
-    selectedVehicle,
-    onVehicleSelect,
-    center = [48.669026, 19.699024],
-    zoom = 7,
-    isDarkMode = false
-}) => {
-    const [selectedMarker, setSelectedMarker] = useState<Vehicle | null>(null);
-    const [map, setMap] = useState<google.maps.Map | null>(null);
-    const [vehicleLocations, setVehicleLocations] = useState<Vehicle[]>([]);
-    const mapRef = useRef<google.maps.Map | null>(null);
-    const { currentUser } = useAuth();
+export interface VehicleTrackerRef {
+    panToVehicle: (vehicle: Vehicle, offset?: { x: number; y: number }) => void;
+}
 
-    const { isLoaded, loadError } = useJsApiLoader({
+const hideGoogleMapCloseButton = {
+    '.gm-ui-hover-effect': {
+        display: 'none !important'
+    },
+    '.gm-style-iw.gm-style-iw-c': {
+        padding: '0 !important',
+        backgroundColor: 'transparent !important',
+        boxShadow: 'none !important',
+        border: 'none !important',
+        maxWidth: '300px !important'
+    },
+    '.gm-style-iw-d': {
+        overflow: 'hidden !important',
+        padding: '0 !important',
+        backgroundColor: 'transparent !important'
+    },
+    '.gm-style .gm-style-iw-t::after': {
+        display: 'none !important'
+    },
+    '.gm-style .gm-style-iw': {
+        background: 'transparent !important'
+    },
+    '.gm-style .gm-style-iw > button': {
+        display: 'none !important'
+    }
+};
+
+const VehicleTracker = forwardRef<VehicleTrackerRef, VehicleTrackerProps>((props, ref) => {
+    const { isLoaded } = useJsApiLoader({
+        id: 'script-loader',
         googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
-        libraries,
+        libraries
     });
 
+    const { 
+        vehicles, 
+        selectedVehicle, 
+        hiddenVehicles = [], 
+        onMarkerClick = () => {}, 
+        showInfoWindow, 
+        onInfoWindowClose = () => {},
+        locationHistory = []
+    } = props;
+    
+    const mapRef = useRef<google.maps.Map | null>(null);
+    const markersRef = useRef<{ [key: string]: google.maps.Marker }>({});
+    const theme = useTheme();
+
+    // Efekt pre inicializáciu mapy
     useEffect(() => {
-        if (!currentUser) return;
+        if (!isLoaded || !mapRef.current) return;
+        console.log('🗺️ Inicializujem mapu');
 
-        console.log('🗺️ VehicleTracker: Začínam sledovať polohy vozidiel');
+        // Nastavíme počiatočné zobrazenie mapy na Slovensko
+        const slovakiaBounds = {
+            north: 49.603,
+            south: 47.731,
+            west: 16.84,
+            east: 22.57
+        };
         
-        // Vytvoríme query pre sledovanie polôh vozidiel
-        const locationsQuery = query(
-            collection(db, 'vehicle-locations')
-        );
+        mapRef.current.fitBounds(slovakiaBounds);
+    }, [isLoaded]);
 
-        // Začneme sledovať zmeny
-        const unsubscribe = onSnapshot(locationsQuery, (snapshot) => {
-            const locations = snapshot.docs.map(doc => {
-                const data = doc.data() as Vehicle;
-                return {
-                    ...data,
-                    id: doc.id
-                };
+    // Efekt pre správu markerov
+    useEffect(() => {
+        if (!mapRef.current || !isLoaded) return;
+
+        const updateMarkers = () => {
+            console.log('🔄 Aktualizujem markery, počet vozidiel:', vehicles.length);
+
+            // Filtrujeme aktívne vozidlá
+            const activeVehicles = vehicles.filter(vehicle => 
+                vehicle.location && 
+                !hiddenVehicles.includes(vehicle.id) &&
+                vehicle.lastActive > Date.now() - 5 * 60 * 1000 // aktívne za posledných 5 minút
+            );
+
+            // Odstránime neaktívne markery
+            Object.entries(markersRef.current).forEach(([id, marker]) => {
+                if (!activeVehicles.find(v => v.id === id)) {
+                    marker.setMap(null);
+                    delete markersRef.current[id];
+                }
             });
-            
-            console.log('🗺️ VehicleTracker: Aktualizácia polôh vozidiel:', locations.length);
-            setVehicleLocations(locations);
 
-            // Ak máme mapu a vozidlá, upravíme zobrazenie
-            if (mapRef.current && locations.length > 0) {
-                const bounds = new google.maps.LatLngBounds();
-                locations.forEach(vehicle => {
-                    bounds.extend({
-                        lat: vehicle.location.latitude,
-                        lng: vehicle.location.longitude
+            // Aktualizujeme alebo pridávame markery
+            activeVehicles.forEach(vehicle => {
+                const position = {
+                    lat: vehicle.location.latitude,
+                    lng: vehicle.location.longitude
+                };
+
+                if (markersRef.current[vehicle.id]) {
+                    // Plynulá animácia pohybu markeru
+                    const marker = markersRef.current[vehicle.id];
+                    const currentPosition = marker.getPosition();
+                    if (currentPosition) {
+                        const latDiff = position.lat - currentPosition.lat();
+                        const lngDiff = position.lng - currentPosition.lng();
+                        let step = 0;
+                        const numSteps = 20;
+
+                        const animate = () => {
+                            step++;
+                            if (step <= numSteps) {
+                                const newLat = currentPosition.lat() + (latDiff * step / numSteps);
+                                const newLng = currentPosition.lng() + (lngDiff * step / numSteps);
+                                marker.setPosition({ lat: newLat, lng: newLng });
+                                requestAnimationFrame(animate);
+                            }
+                        };
+
+                        requestAnimationFrame(animate);
+                    } else {
+                        marker.setPosition(position);
+                    }
+
+                    // Aktualizujeme rotáciu markeru podľa heading
+                    if (vehicle.location.heading !== undefined) {
+                        const icon = marker.getIcon() as google.maps.Symbol;
+                        marker.setIcon({
+                            ...icon,
+                            rotation: vehicle.location.heading
+                        });
+                    }
+                } else {
+                    // Vytvoríme nový marker
+                    const marker = new google.maps.Marker({
+                        position,
+                        map: mapRef.current,
+                        icon: createVehicleIcon(),
+                        title: `${vehicle.driverName} (${vehicle.licensePlate || vehicle.vehicleId})`,
+                        animation: google.maps.Animation.DROP
                     });
+
+                    marker.addListener('click', () => onMarkerClick(vehicle.id));
+                    markersRef.current[vehicle.id] = marker;
+                }
+            });
+
+            // Ak máme len jedno vozidlo, vycentrujeme ho
+            if (activeVehicles.length === 1) {
+                const vehicle = activeVehicles[0];
+                mapRef.current?.panTo({
+                    lat: vehicle.location.latitude,
+                    lng: vehicle.location.longitude
                 });
-                mapRef.current.fitBounds(bounds);
             }
-        }, (error) => {
-            console.error('🗺️ VehicleTracker: Chyba pri sledovaní polôh:', error);
-        });
+        };
+
+        // Aktualizujeme markery
+        updateMarkers();
+
+        // Nastavíme interval pre pravidelné kontroly aktivity
+        const interval = setInterval(() => {
+            updateMarkers();
+        }, 10000); // každých 10 sekúnd
 
         return () => {
-            console.log('🗺️ VehicleTracker: Ukončujem sledovanie polôh');
-            unsubscribe();
+            clearInterval(interval);
         };
-    }, [currentUser]);
+    }, [vehicles, hiddenVehicles, isLoaded]);
 
-    const onLoad = React.useCallback((map: google.maps.Map) => {
-        console.log('🗺️ VehicleTracker: Mapa načítaná úspešne');
-        mapRef.current = map;
-        setMap(map);
+    const createVehicleIcon = () => ({
+        url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23FF9F43' stroke='white' stroke-width='2'/%3E%3C/svg%3E",
+        scaledSize: new google.maps.Size(24, 24),
+        anchor: new google.maps.Point(12, 12)
+    });
 
-        if (vehicles.length > 0) {
-            const bounds = new google.maps.LatLngBounds();
-            vehicles.forEach(vehicle => {
-                bounds.extend({ 
-                    lat: vehicle.location.latitude, 
-                    lng: vehicle.location.longitude 
-                });
-            });
-            map.fitBounds(bounds);
+    useImperativeHandle(ref, () => ({
+        panToVehicle: (vehicle: Vehicle, offset?: { x: number; y: number }) => {
+            if (mapRef.current && vehicle.location) {
+                // Najprv nastavíme zoom
+                mapRef.current.setZoom(15);
+
+                // Počkáme na dokončenie zoom animácie
+                setTimeout(() => {
+                    if (!mapRef.current) return;
+
+                    // Získame aktuálne rozmery mapy
+                    const mapDiv = mapRef.current.getDiv();
+                    const mapWidth = mapDiv.offsetWidth;
+                    
+                    // Vypočítame offset v pixeloch (polovica šírky bočného panela)
+                    const offsetPixels = offset?.x || 0;
+                    
+                    // Prevedieme offset z pixelov na koordináty
+                    const projection = mapRef.current.getProjection();
+                    if (projection) {
+                        const latLng = new google.maps.LatLng(
+                            vehicle.location.latitude,
+                            vehicle.location.longitude
+                        );
+                        
+                        // Získame pixel koordináty bodu
+                        const scale = Math.pow(2, mapRef.current.getZoom() || 0);
+                        const worldPoint = projection.fromLatLngToPoint(latLng);
+                        if (worldPoint) {
+                            // Posunieme bod o offset
+                            const offsetPoint = new google.maps.Point(
+                                worldPoint.x + (offsetPixels / mapWidth) * (360 / scale),
+                                worldPoint.y
+                            );
+                            
+                            // Prevedieme späť na koordináty
+                            const offsetLatLng = projection.fromPointToLatLng(offsetPoint);
+                            if (offsetLatLng) {
+                                mapRef.current.panTo(offsetLatLng);
+                            }
+                        }
+                    }
+                }, 100); // Počkáme 100ms na dokončenie zoom animácie
+            }
         }
-    }, [vehicles]);
+    }));
 
-    const onUnmount = React.useCallback(() => {
-        console.log('🗺️ VehicleTracker: Mapa odmontovaná');
-        mapRef.current = null;
-        setMap(null);
-    }, []);
-
-    if (loadError) {
-        console.error('🗺️ VehicleTracker: Chyba pri načítaní mapy:', loadError);
-        return (
-            <MapWrapper>
-                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                    <Alert severity="error">
-                        Chyba pri načítaní Google Maps: {loadError.message}
-                    </Alert>
-                </Box>
-            </MapWrapper>
-        );
-    }
-
-    if (!isLoaded) {
-        return (
-            <MapWrapper>
-                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                    <CircularProgress />
-                </Box>
-            </MapWrapper>
-        );
-    }
+    if (!isLoaded) return null;
 
     return (
-        <MapWrapper>
+        <>
+            <GlobalStyles styles={hideGoogleMapCloseButton} />
             <GoogleMap
-                mapContainerStyle={containerStyle}
-                center={defaultCenter}
-                zoom={zoom}
-                onLoad={onLoad}
-                onUnmount={onUnmount}
+                mapContainerStyle={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    borderRadius: '12px'
+                }}
+                center={{ lat: 48.669026, lng: 19.699024 }}
+                zoom={8}
                 options={{
-                    styles: isDarkMode ? darkMapStyles : lightMapStyles,
+                    styles: theme.palette.mode === 'dark' ? darkMapStyle : lightMapStyle,
+                    disableDefaultUI: false,
                     zoomControl: true,
                     mapTypeControl: true,
+                    scaleControl: true,
                     streetViewControl: true,
-                    fullscreenControl: true,
+                    rotateControl: true,
+                    fullscreenControl: true
+                }}
+                onLoad={map => {
+                    console.log('🗺️ Mapa načítaná');
+                    mapRef.current = map;
                 }}
             >
-                {vehicleLocations.map((vehicle) => (
-                    <Marker
-                        key={vehicle.id}
-                        position={{
-                            lat: vehicle.location.latitude,
-                            lng: vehicle.location.longitude
-                        }}
-                        icon={createIcon(selectedVehicle === vehicle.vehicleId ? '#ff9f43' : '#4285F4', selectedVehicle === vehicle.vehicleId)}
-                        onClick={() => {
-                            onVehicleSelect?.(vehicle.vehicleId);
-                            setSelectedMarker(vehicle);
+                {/* Zobrazenie histórie trasy */}
+                {locationHistory.length > 0 && (
+                    <Polyline
+                        path={locationHistory.map(point => ({
+                            lat: point.latitude,
+                            lng: point.longitude
+                        }))}
+                        options={{
+                            strokeColor: '#F4A142',
+                            strokeOpacity: 0.8,
+                            strokeWeight: 3,
+                            geodesic: true
                         }}
                     />
-                ))}
+                )}
 
-                {selectedMarker && (
+                {showInfoWindow && vehicles.find(v => v.id === showInfoWindow)?.location && (
                     <InfoWindow
                         position={{
-                            lat: selectedMarker.location.latitude,
-                            lng: selectedMarker.location.longitude
+                            lat: vehicles.find(v => v.id === showInfoWindow)!.location.latitude,
+                            lng: vehicles.find(v => v.id === showInfoWindow)!.location.longitude
                         }}
-                        onCloseClick={() => setSelectedMarker(null)}
+                        onCloseClick={onInfoWindowClose}
+                        options={{
+                            pixelOffset: new google.maps.Size(0, -35),
+                            maxWidth: 350
+                        }}
                     >
-                        <div style={{ padding: '12px', maxWidth: '300px' }}>
-                            <h3 style={{ margin: '0 0 8px 0', color: '#333' }}>{selectedMarker.driverName}</h3>
-                            <div style={{ 
-                                backgroundColor: '#f5f5f5', 
-                                padding: '8px', 
-                                borderRadius: '4px',
-                                marginBottom: '8px'
+                        <Box sx={{ 
+                            backgroundColor: theme.palette.mode === 'dark' ? '#1c1c2d' : '#ffffff',
+                            borderRadius: '16px',
+                            p: 2.5,
+                            minWidth: '300px',
+                            border: 'none',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+                        }}>
+                            <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                mb: 2,
+                                pb: 2,
+                                borderBottom: theme.palette.mode === 'dark' 
+                                    ? '1px solid rgba(255, 255, 255, 0.1)' 
+                                    : '1px solid rgba(0, 0, 0, 0.1)'
                             }}>
-                                <p style={{ margin: '0 0 4px 0', color: '#666' }}>
-                                    <strong>ŠPZ:</strong> {selectedMarker.licensePlate || selectedMarker.vehicleId}
-                                </p>
-                                {selectedMarker.type && (
-                                    <p style={{ margin: '0 0 4px 0', color: '#666' }}>
-                                        <strong>Typ:</strong> {selectedMarker.type}
-                                    </p>
-                                )}
-                                {selectedMarker.dimensions && (
-                                    <p style={{ margin: '0 0 4px 0', color: '#666' }}>
-                                        <strong>Rozmery:</strong> {selectedMarker.dimensions.length}x{selectedMarker.dimensions.width}x{selectedMarker.dimensions.height} m
-                                    </p>
-                                )}
-                                {selectedMarker.maxLoad && (
-                                    <p style={{ margin: '0 0 4px 0', color: '#666' }}>
-                                        <strong>Nosnosť:</strong> {selectedMarker.maxLoad} kg
-                                    </p>
-                                )}
-                            </div>
-                            <div style={{ 
-                                fontSize: '12px', 
-                                color: '#999',
-                                borderTop: '1px solid #eee',
-                                paddingTop: '8px'
+                                <Box sx={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: '12px',
+                                    backgroundColor: theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 159, 67, 0.15)' 
+                                        : 'rgba(255, 159, 67, 0.1)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    mr: 2
+                                }}>
+                                    <LocalShippingIcon sx={{ 
+                                        color: '#ff9f43', 
+                                        fontSize: 28,
+                                        transform: 'rotate(-5deg)'
+                                    }} />
+                                </Box>
+                                <Box>
+                                    <Typography variant="h6" sx={{ 
+                                        fontWeight: 600,
+                                        color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+                                        mb: 0.5
+                                    }}>
+                                        {vehicles.find(v => v.id === showInfoWindow)?.driverName}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{
+                                        color: theme.palette.mode === 'dark' 
+                                            ? 'rgba(255, 255, 255, 0.7)' 
+                                            : 'rgba(0, 0, 0, 0.7)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 0.5
+                                    }}>
+                                        ŠPZ: {vehicles.find(v => v.id === showInfoWindow)?.licensePlate}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            <Box sx={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: '1fr 1fr', 
+                                gap: 2, 
+                                mb: 2,
+                                pb: 2,
+                                borderBottom: theme.palette.mode === 'dark' 
+                                    ? '1px solid rgba(255, 255, 255, 0.1)' 
+                                    : '1px solid rgba(0, 0, 0, 0.1)'
                             }}>
-                                Posledná aktualizácia:<br/>
-                                {new Date(selectedMarker.lastActive).toLocaleString('sk-SK')}
-                            </div>
-                        </div>
+                                <Box sx={{
+                                    p: 1.5,
+                                    borderRadius: '12px',
+                                    backgroundColor: theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 255, 255, 0.03)' 
+                                        : 'rgba(0, 0, 0, 0.03)',
+                                    border: `1px solid ${theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 255, 255, 0.05)' 
+                                        : 'rgba(0, 0, 0, 0.05)'}`
+                                }}>
+                                    <Typography variant="caption" sx={{
+                                        color: theme.palette.mode === 'dark' 
+                                            ? 'rgba(255, 255, 255, 0.5)' 
+                                            : 'rgba(0, 0, 0, 0.5)',
+                                        display: 'block',
+                                        mb: 0.5
+                                    }}>
+                                        Rýchlosť
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                        {(() => {
+                                            const vehicle = vehicles.find(v => v.id === showInfoWindow);
+                                            if (vehicle?.location?.speed) {
+                                                return `${Math.round(vehicle.location.speed * 3.6)} km/h`;
+                                            }
+                                            return 'N/A';
+                                        })()}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{
+                                    p: 1.5,
+                                    borderRadius: '12px',
+                                    backgroundColor: theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 255, 255, 0.03)' 
+                                        : 'rgba(0, 0, 0, 0.03)',
+                                    border: `1px solid ${theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 255, 255, 0.05)' 
+                                        : 'rgba(0, 0, 0, 0.05)'}`
+                                }}>
+                                    <Typography variant="caption" sx={{
+                                        color: theme.palette.mode === 'dark' 
+                                            ? 'rgba(255, 255, 255, 0.5)' 
+                                            : 'rgba(0, 0, 0, 0.5)',
+                                        display: 'block',
+                                        mb: 0.5
+                                    }}>
+                                        Presnosť GPS
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                        {(() => {
+                                            const vehicle = vehicles.find(v => v.id === showInfoWindow);
+                                            if (vehicle?.location?.accuracy) {
+                                                return `±${Math.round(vehicle.location.accuracy)} m`;
+                                            }
+                                            return 'N/A';
+                                        })()}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            <Box sx={{
+                                p: 1.5,
+                                borderRadius: '12px',
+                                backgroundColor: theme.palette.mode === 'dark' 
+                                    ? 'rgba(255, 255, 255, 0.03)' 
+                                    : 'rgba(0, 0, 0, 0.03)',
+                                border: `1px solid ${theme.palette.mode === 'dark' 
+                                    ? 'rgba(255, 255, 255, 0.05)' 
+                                    : 'rgba(0, 0, 0, 0.05)'}`
+                            }}>
+                                <Typography variant="caption" sx={{
+                                    color: theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 255, 255, 0.5)' 
+                                        : 'rgba(0, 0, 0, 0.5)',
+                                    display: 'block',
+                                    mb: 0.5
+                                }}>
+                                    Súradnice
+                                </Typography>
+                                <Typography variant="body2" sx={{ 
+                                    fontFamily: 'monospace',
+                                    mb: 0.5,
+                                    color: theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 255, 255, 0.9)' 
+                                        : 'rgba(0, 0, 0, 0.9)'
+                                }}>
+                                    {vehicles.find(v => v.id === showInfoWindow)?.location.latitude.toFixed(6)}°N
+                                </Typography>
+                                <Typography variant="body2" sx={{ 
+                                    fontFamily: 'monospace',
+                                    color: theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 255, 255, 0.9)' 
+                                        : 'rgba(0, 0, 0, 0.9)'
+                                }}>
+                                    {vehicles.find(v => v.id === showInfoWindow)?.location.longitude.toFixed(6)}°E
+                                </Typography>
+                            </Box>
+
+                            <Typography variant="caption" sx={{ 
+                                display: 'block', 
+                                textAlign: 'center', 
+                                mt: 2,
+                                color: theme.palette.mode === 'dark' 
+                                    ? 'rgba(255, 255, 255, 0.5)' 
+                                    : 'rgba(0, 0, 0, 0.5)'
+                            }}>
+                                Aktualizované: {new Date(vehicles.find(v => v.id === showInfoWindow)!.location.timestamp).toLocaleString('sk-SK')}
+                            </Typography>
+                        </Box>
                     </InfoWindow>
                 )}
             </GoogleMap>
-        </MapWrapper>
+        </>
     );
-};
+});
 
-export default VehicleTracker; 
+export default React.memo(VehicleTracker); 

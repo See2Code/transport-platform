@@ -52,24 +52,18 @@ body[data-theme="light"] {
 .MuiPaper-root {
   transition: transform var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal) !important;
   border-radius: 24px !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
 }
 
 body[data-theme="dark"] .MuiPaper-root {
-  background-color: transparent !important;
   color: var(--text-primary-dark) !important;
 }
 
 body[data-theme="light"] .MuiPaper-root {
-  background-color: transparent !important;
   color: var(--text-primary-light) !important;
 }
 
 .MuiPaper-root:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
 }
 
 /* Tlačidlá */
