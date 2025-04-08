@@ -36,19 +36,14 @@ interface AuthContextType {
   setUserData: React.Dispatch<React.SetStateAction<UserData | null>>;
 }
 
-const AuthContext = createContext<AuthContextType>({ 
-  currentUser: null, 
-  userData: null,
-  loading: true,
-  error: null,
-  login: async () => {},
-  register: async () => {},
-  logout: async () => {},
-  setUserData: () => null
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
 interface UserSession {
@@ -321,4 +316,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       )}
     </AuthContext.Provider>
   );
-}; 
+};
