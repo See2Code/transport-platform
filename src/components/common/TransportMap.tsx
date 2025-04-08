@@ -7,6 +7,7 @@ interface TransportMapProps {
   origin: string;
   destination: string;
   isThumbnail?: boolean;
+  onDirectionsChange?: (directions: google.maps.DirectionsResult | null, distance?: string) => void;
 }
 
 const libraries: Libraries = ['places'];
@@ -219,7 +220,7 @@ const lightMapStyles = [
   }
 ];
 
-export default function TransportMap({ origin, destination, isThumbnail = false }: TransportMapProps) {
+export default function TransportMap({ origin, destination, isThumbnail = false, onDirectionsChange }: TransportMapProps) {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -242,6 +243,17 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
       if (status === 'OK' && result) {
         setDirections(result);
         setError(null);
+        
+        // Vypočítame vzdialenosť
+        let distance = "";
+        if (result.routes[0]?.legs[0]?.distance?.text) {
+          distance = result.routes[0].legs[0].distance.text;
+        }
+        
+        // Voláme callback s výsledkom a vzdialenosťou
+        if (onDirectionsChange) {
+          onDirectionsChange(result, distance);
+        }
         
         // Prispôsobenie mapy na zobrazenie celej trasy
         if (map && result.routes[0]?.bounds) {
@@ -273,9 +285,13 @@ export default function TransportMap({ origin, destination, isThumbnail = false 
         }
       } else {
         setError('Nepodarilo sa nájsť trasu');
+        // Voláme callback s null
+        if (onDirectionsChange) {
+          onDirectionsChange(null);
+        }
       }
     },
-    [map]
+    [map, onDirectionsChange]
   );
 
   const onLoad = useCallback((map: google.maps.Map) => {
