@@ -343,55 +343,67 @@ const VehicleMap: React.FC = () => {
             where('companyID', '==', userData.companyID)
         );
         
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
-            const vehicleData: VehicleLocation[] = [];
-            
-            console.log('🔍 Počet nájdených dokumentov:', snapshot.docs.length);
-            
-            for (const docSnapshot of snapshot.docs) {
-                const data = docSnapshot.data();
-                console.log('📄 Raw data z Firestore:', data);
-                console.log('🆔 Document ID:', docSnapshot.id);
-                console.log('🚗 ŠPZ z dát:', data.licensePlate);
+        const unsubscribe = onSnapshot(
+            q,
+            { includeMetadataChanges: false },
+            async (snapshot) => {
+                const vehicleData: VehicleLocation[] = [];
                 
-                const companyDoc = await getDoc(doc(db, 'companies', data.companyID));
-                const companyName = companyDoc.exists() ? companyDoc.data().name : data.companyID;
+                console.log('🔍 Počet nájdených dokumentov:', snapshot.docs.length);
                 
-                const newVehicle = {
-                    id: docSnapshot.id,
-                    latitude: data.latitude,
-                    longitude: data.longitude,
-                    driverName: data.driverName || 'Neznámy vodič',
-                    companyID: data.companyID,
-                    companyName: companyName,
-                    lastUpdate: data.lastUpdate.toDate(),
-                    status: data.status,
-                    currentLat: data.latitude,
-                    currentLng: data.longitude,
-                    licensePlate: data.licensePlate || 'Neznáme ŠPZ'
-                };
-                
-                console.log('🚙 Vytvorený objekt vozidla:', newVehicle);
-                vehicleData.push(newVehicle);
-            }
-            
-            console.log('📊 Všetky spracované vozidlá:', vehicleData);
-            setVehicles(vehicleData);
+                for (const docSnapshot of snapshot.docs) {
+                    const data = docSnapshot.data();
+                    
+                    // Kontrola či sú dáta aktuálne (nie staršie ako 5 minút)
+                    const lastUpdate = data.lastUpdate.toDate();
+                    if (Date.now() - lastUpdate.getTime() > 5 * 60 * 1000) {
+                        console.log(`⏰ Preskakujem neaktuálne vozidlo ${data.licensePlate}`);
+                        continue;
+                    }
 
-            // Ak máme vozidlá, nastavíme mapu na ich zobrazenie
-            if (vehicleData.length > 0 && map) {
-                const bounds = new window.google.maps.LatLngBounds();
-                vehicleData.forEach((vehicle) => {
-                    bounds.extend({ lat: vehicle.latitude, lng: vehicle.longitude });
-                });
-                map.fitBounds(bounds);
+                    // Kontrola či má vozidlo platnú polohu
+                    if (!data.latitude || !data.longitude) {
+                        console.log(`📍 Preskakujem vozidlo ${data.licensePlate} bez polohy`);
+                        continue;
+                    }
+
+                    const companyDoc = await getDoc(doc(db, 'companies', data.companyID));
+                    const companyName = companyDoc.exists() ? companyDoc.data().name : data.companyID;
+                    
+                    const newVehicle = {
+                        id: docSnapshot.id,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                        driverName: data.driverName || 'Neznámy vodič',
+                        companyID: data.companyID,
+                        companyName: companyName,
+                        lastUpdate: lastUpdate,
+                        status: data.status,
+                        currentLat: data.latitude,
+                        currentLng: data.longitude,
+                        licensePlate: data.licensePlate || 'Neznáme ŠPZ'
+                    };
+                    
+                    vehicleData.push(newVehicle);
+                }
                 
-                // Ak máme len jedno vozidlo, nastavíme väčší zoom
-                if (vehicleData.length === 1) {
-                    map.setZoom(15);
+                setVehicles(vehicleData);
+
+                // Ak máme vozidlá, nastavíme mapu na ich zobrazenie
+                if (vehicleData.length > 0 && map) {
+                    const bounds = new window.google.maps.LatLngBounds();
+                    vehicleData.forEach((vehicle) => {
+                        bounds.extend({ lat: vehicle.latitude, lng: vehicle.longitude });
+                    });
+                    map.fitBounds(bounds);
+                    
+                    // Ak máme len jedno vozidlo, nastavíme väčší zoom
+                    if (vehicleData.length === 1) {
+                        map.setZoom(15);
+                    }
                 }
             }
-        });
+        );
 
         return () => {
             unsubscribe();
