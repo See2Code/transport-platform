@@ -592,10 +592,9 @@ const VehicleMap: React.FC = () => {
                                     }}
                                     onClick={() => handleMarkerClick(vehicle)}
                                     icon={{
-                                        url: '/vehicle-marker.svg',
+                                        url: isDarkMode ? '/vehicle-marker-dark.svg' : '/vehicle-marker.svg',
                                         scaledSize: new window.google.maps.Size(48, 48),
-                                        anchor: new window.google.maps.Point(24, 24),
-                                        labelOrigin: new window.google.maps.Point(24, -10)
+                                        anchor: new window.google.maps.Point(24, 24)
                                     }}
                                     zIndex={selectedVehicle?.id === vehicle.id ? 2 : 1}
                                 />
