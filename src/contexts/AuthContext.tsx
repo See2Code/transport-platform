@@ -142,10 +142,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateLastActive = async () => {
     if (!currentSession) return;
 
-    const sessionRef = doc(db, 'sessions', currentSession);
-    await updateDoc(sessionRef, {
-      lastActive: serverTimestamp()
-    });
+    try {
+      const sessionRef = doc(db, 'sessions', currentSession);
+      const sessionDoc = await getDoc(sessionRef);
+      
+      if (sessionDoc.exists()) {
+        await updateDoc(sessionRef, {
+          lastActive: serverTimestamp()
+        });
+      } else {
+        // Ak dokument neexistuje, vytvoríme nový
+        const deviceId = localStorage.getItem('deviceId');
+        if (!deviceId) return;
+
+        const newSession: UserSession = {
+          userId: currentUser?.uid || '',
+          deviceId,
+          lastActive: Timestamp.now(),
+          createdAt: Timestamp.now(),
+          deviceInfo: {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language
+          }
+        };
+
+        await setDoc(sessionRef, newSession);
+      }
+    } catch (error) {
+      console.error('Chyba pri aktualizácii lastActive:', error);
+    }
   };
 
   useEffect(() => {

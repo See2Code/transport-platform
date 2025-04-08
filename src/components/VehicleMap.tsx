@@ -25,6 +25,7 @@ interface VehicleLocation {
     address?: string;
     currentLat?: number;
     currentLng?: number;
+    licensePlate: string;
 }
 
 const mapContainerStyle = {
@@ -347,8 +348,24 @@ const VehicleMap: React.FC = () => {
             
             for (const docSnapshot of snapshot.docs) {
                 const data = docSnapshot.data();
+                console.log('Vehicle location data:', data); // Debug log
+                
                 const companyDoc = await getDoc(doc(db, 'companies', data.companyID));
                 const companyName = companyDoc.exists() ? companyDoc.data().name : data.companyID;
+                
+                let licensePlate = 'Neznáme ŠPZ';
+                if (data.currentVehicleId) {
+                    try {
+                        const vehicleRef = doc(db, 'companies', data.companyID, 'vehicles', data.currentVehicleId);
+                        const vehicleDoc = await getDoc(vehicleRef);
+                        if (vehicleDoc.exists()) {
+                            licensePlate = vehicleDoc.data().licensePlate;
+                            console.log('Found vehicle:', vehicleDoc.data()); // Debug log
+                        }
+                    } catch (error) {
+                        console.error('Error fetching vehicle:', error);
+                    }
+                }
                 
                 const newVehicle = {
                     id: docSnapshot.id,
@@ -360,12 +377,14 @@ const VehicleMap: React.FC = () => {
                     lastUpdate: data.lastUpdate.toDate(),
                     status: data.status,
                     currentLat: data.latitude,
-                    currentLng: data.longitude
+                    currentLng: data.longitude,
+                    licensePlate: licensePlate
                 };
                 
                 vehicleData.push(newVehicle);
             }
             
+            console.log('Processed vehicle data:', vehicleData); // Debug log
             setVehicles(vehicleData);
 
             // Ak máme vozidlá, nastavíme mapu na ich zobrazenie
@@ -662,6 +681,33 @@ const VehicleMap: React.FC = () => {
                                                 alignItems: 'flex-start', 
                                                 gap: 1.5
                                             }}>
+                                                <CarIcon sx={{ 
+                                                    color: '#FF6B00',
+                                                    fontSize: 22,
+                                                    mt: 0.3
+                                                }} />
+                                                <Box>
+                                                    <Typography sx={{ 
+                                                        color: isDarkMode ? '#fff' : '#000',
+                                                        fontWeight: 500,
+                                                        mb: 0.5
+                                                    }}>
+                                                        {selectedVehicle.licensePlate}
+                                                    </Typography>
+                                                    <Typography variant="caption" sx={{ 
+                                                        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                                                        display: 'block'
+                                                    }}>
+                                                        Aktuálne vozidlo
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                            
+                                            <Box sx={{ 
+                                                display: 'flex', 
+                                                alignItems: 'flex-start', 
+                                                gap: 1.5
+                                            }}>
                                                 <CompanyIcon sx={{ 
                                                     color: '#FF6B00',
                                                     fontSize: 22,
@@ -680,37 +726,6 @@ const VehicleMap: React.FC = () => {
                                                         display: 'block'
                                                     }}>
                                                         ID: {selectedVehicle.companyID}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                            
-                                            <Box sx={{ 
-                                                display: 'flex', 
-                                                alignItems: 'flex-start', 
-                                                gap: 1.5
-                                            }}>
-                                                <LocationIcon sx={{ 
-                                                    color: '#FF6B00',
-                                                    fontSize: 22,
-                                                    mt: 0.3
-                                                }} />
-                                                <Box>
-                                                    <Typography variant="body2" sx={{ 
-                                                        color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-                                                        mb: 0.5
-                                                    }}>
-                                                        GPS súradnice
-                                                    </Typography>
-                                                    <Typography sx={{ 
-                                                        color: isDarkMode ? '#fff' : '#000',
-                                                        fontFamily: 'monospace',
-                                                        fontSize: '0.9rem',
-                                                        bgcolor: 'rgba(255, 107, 0, 0.1)',
-                                                        p: 1,
-                                                        borderRadius: 1,
-                                                        border: '1px solid rgba(255, 107, 0, 0.2)'
-                                                    }}>
-                                                        {selectedVehicle.latitude.toFixed(6)}, {selectedVehicle.longitude.toFixed(6)}
                                                     </Typography>
                                                 </Box>
                                             </Box>
