@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Paper,
@@ -47,6 +47,8 @@ import TransportMap from './common/TransportMap';
 import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from '@mui/icons-material/Close';
 import { useThemeMode } from '../contexts/ThemeContext';
+import DirectionsIcon from '@mui/icons-material/Directions';
+import { DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -81,6 +83,7 @@ interface Transport {
     lastName: string;
   };
   isDelayed: boolean;
+  distance?: number;
 }
 
 interface TransportFormData {
@@ -663,6 +666,22 @@ const ActionButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+const RouteDistance = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '8px 16px',
+  backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 159, 67, 0.1)',
+  color: colors.accent.main,
+  borderRadius: '12px',
+  fontWeight: 600,
+  marginBottom: '16px',
+  width: 'fit-content',
+  '& .MuiSvgIcon-root': {
+    color: colors.accent.main
+  }
+}));
+
 function TrackedTransports() {
   const { userData } = useAuth();
   const [transports, setTransports] = useState<Transport[]>([]);
@@ -686,6 +705,7 @@ function TrackedTransports() {
   const [mapTransport, setMapTransport] = useState<Transport | null>(null);
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
   const { isDarkMode } = useThemeMode();
+  const [routeDistances, setRouteDistances] = useState<{[id: string]: number}>({});
 
   const handleOpenDialog = (transport?: Transport) => {
     if (transport) {
@@ -987,6 +1007,7 @@ function TrackedTransports() {
             lastName: data.createdBy?.lastName || ''
           },
           isDelayed: data.isDelayed || false,
+          distance: data.distance,
         };
       }) as Transport[];
 
@@ -1045,6 +1066,44 @@ function TrackedTransports() {
     setMapDialogOpen(true);
   };
 
+  const DirectionsCallback = ({ origin, destination, transportId }: { origin: string, destination: string, transportId: string }) => {
+    const [loaded, setLoaded] = useState(false);
+    
+    const directionsCallback = useCallback(
+      (result: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
+        if (status === 'OK' && result && !loaded) {
+          // Extrahujeme dĺžku trasy z výsledku
+          const route = result.routes[0];
+          if (route && route.legs[0]) {
+            const distanceValue = route.legs[0].distance?.value; // Hodnota v metroch
+            if (distanceValue) {
+              const distanceInKm = Math.round(distanceValue / 100) / 10; // Konverzia na km s 1 desatinným miestom
+              setRouteDistances(prev => ({
+                ...prev,
+                [transportId]: distanceInKm
+              }));
+            }
+          }
+          setLoaded(true);
+        }
+      },
+      [transportId, loaded]
+    );
+
+    if (loaded) return null;
+
+    return (
+      <DirectionsService
+        options={{
+          origin,
+          destination,
+          travelMode: google.maps.TravelMode.DRIVING
+        }}
+        callback={directionsCallback}
+      />
+    );
+  };
+
   const renderMobileTransport = (transport: Transport) => (
     <MobileTransportCard isDarkMode={isDarkMode}>
       <MobileTransportHeader isDarkMode={isDarkMode}>
@@ -1061,6 +1120,14 @@ function TrackedTransports() {
       </MobileTransportHeader>
       
       <MobileTransportInfo isDarkMode={isDarkMode}>
+        {/* Zobrazenie vzdialenosti na mobile */}
+        {routeDistances[transport.id] && (
+          <RouteDistance isDarkMode={isDarkMode}>
+            <DirectionsIcon />
+            Celková vzdialenosť: {routeDistances[transport.id]} km
+          </RouteDistance>
+        )}
+        
         <Box>
           <MobileTransportLocation isDarkMode={isDarkMode}>
             <LocationOnIcon />
@@ -1142,6 +1209,15 @@ function TrackedTransports() {
           <DeleteIcon fontSize="small" />
         </IconButton>
       </MobileTransportActions>
+      
+      {/* Neviditeľný komponent pre výpočet vzdialenosti */}
+      {!routeDistances[transport.id] && (
+        <DirectionsCallback
+          origin={transport.loadingAddress}
+          destination={transport.unloadingAddress}
+          transportId={transport.id}
+        />
+      )}
     </MobileTransportCard>
   );
 
@@ -1282,21 +1358,45 @@ function TrackedTransports() {
             <Box sx={{ 
               width: '50%',
               height: '100%',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-              '&:hover': {
-                border: `1px solid ${colors.accent.main}`,
-                transform: 'scale(1.02)',
-                transition: 'all 0.2s ease-in-out'
-              }
-            }} onClick={() => handleShowMap(transport)}>
-              <TransportMap
-                origin={transport.loadingAddress}
-                destination={transport.unloadingAddress}
-                isThumbnail={true}
-              />
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2
+            }}>
+              {/* Zobrazenie vzdialenosti nad mapou */}
+              {routeDistances[transport.id] && (
+                <RouteDistance isDarkMode={isDarkMode}>
+                  <DirectionsIcon />
+                  Celková vzdialenosť: {routeDistances[transport.id]} km
+                </RouteDistance>
+              )}
+              
+              <Box sx={{ 
+                borderRadius: '12px',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                flex: 1,
+                '&:hover': {
+                  border: `1px solid ${colors.accent.main}`,
+                  transform: 'scale(1.02)',
+                  transition: 'all 0.2s ease-in-out'
+                }
+              }} onClick={() => handleShowMap(transport)}>
+                <TransportMap
+                  origin={transport.loadingAddress}
+                  destination={transport.unloadingAddress}
+                  isThumbnail={true}
+                />
+                
+                {/* Neviditeľný komponent pre výpočet vzdialenosti */}
+                {!routeDistances[transport.id] && (
+                  <DirectionsCallback
+                    origin={transport.loadingAddress}
+                    destination={transport.unloadingAddress}
+                    transportId={transport.id}
+                  />
+                )}
+              </Box>
             </Box>
           </Box>
 
@@ -1424,164 +1524,6 @@ function TrackedTransports() {
         )}
       </PageWrapper>
 
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: {
-            background: 'none',
-            boxShadow: 'none',
-            margin: {
-              xs: '8px',
-              sm: '16px'
-            }
-          }
-        }}
-        BackdropProps={{
-          sx: {
-            backdropFilter: 'blur(10px)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)'
-          }
-        }}
-      >
-        <StyledDialogContent isDarkMode={isDarkMode}>
-          <DialogTitle>
-            {editingTransport ? 'Upraviť prepravu' : 'Pridať novú prepravu'}
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ pt: 2 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Číslo objednávky"
-                    value={formData.orderNumber}
-                    onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                    required
-                  />
-                </Grid>
-
-                {/* Nakládka sekcia */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                    Nakládka
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Adresa nakládky"
-                    value={formData.loadingAddress}
-                    onChange={(e) => setFormData({ ...formData, loadingAddress: e.target.value })}
-                    required
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={8}>
-                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                    <DateTimePicker
-                      label="Dátum a čas nakládky"
-                      value={formData.loadingDateTime}
-                      onChange={(newValue) => setFormData({ ...formData, loadingDateTime: newValue })}
-                      sx={{ width: '100%' }}
-                    />
-                  </LocalizationProvider>
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Pripomienka (minúty)"
-                    value={formData.loadingReminder || ''}
-                    onChange={(e) => {
-                      const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
-                      setFormData({ ...formData, loadingReminder: value });
-                    }}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">min</InputAdornment>,
-                    }}
-                  />
-                </Grid>
-
-                {/* Vykládka sekcia */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                    Vykládka
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Adresa vykládky"
-                    value={formData.unloadingAddress}
-                    onChange={(e) => setFormData({ ...formData, unloadingAddress: e.target.value })}
-                    required
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={8}>
-                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={sk}>
-                    <DateTimePicker
-                      label="Dátum a čas vykládky"
-                      value={formData.unloadingDateTime}
-                      onChange={(newValue) => setFormData({ ...formData, unloadingDateTime: newValue })}
-                      sx={{ width: '100%' }}
-                    />
-                  </LocalizationProvider>
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Pripomienka (minúty)"
-                    value={formData.unloadingReminder || ''}
-                    onChange={(e) => {
-                      const value = e.target.value === '' ? 60 : Math.max(1, parseInt(e.target.value) || 1);
-                      setFormData({ ...formData, unloadingReminder: value });
-                    }}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">min</InputAdornment>,
-                    }}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={handleCloseDialog}
-              sx={{
-                color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-                '&:hover': {
-                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                },
-              }}
-            >
-              Zrušiť
-            </Button>
-            <Button
-              onClick={handleSaveTransport}
-              variant="contained"
-              sx={{
-                backgroundColor: colors.accent.main,
-                color: '#ffffff',
-                '&:hover': {
-                  backgroundColor: colors.accent.light,
-                },
-              }}
-            >
-              {editingTransport ? 'Uložiť zmeny' : 'Pridať prepravu'}
-            </Button>
-          </DialogActions>
-        </StyledDialogContent>
-      </Dialog>
-
       <MapDialog
         open={mapDialogOpen}
         onClose={() => {
@@ -1618,6 +1560,24 @@ function TrackedTransports() {
           {mapTransport && (
             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {/* Zobrazenie vzdialenosti ak existuje */}
+                {routeDistances[mapTransport.id] && (
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    backgroundColor: isDarkMode ? 'rgba(255, 159, 67, 0.15)' : 'rgba(255, 159, 67, 0.1)',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    color: colors.accent.main,
+                    fontWeight: 600,
+                    fontSize: '1.1rem'
+                  }}>
+                    <DirectionsIcon />
+                    Celková vzdialenosť: {routeDistances[mapTransport.id]} km
+                  </Box>
+                )}
+                
                 <Box sx={{ 
                   display: 'flex', 
                   flexDirection: 'column', 
@@ -1700,12 +1660,22 @@ function TrackedTransports() {
                 flex: 1, 
                 minHeight: '500px',
                 borderRadius: '12px',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                position: 'relative'
               }}>
                 <TransportMap
                   origin={mapTransport.loadingAddress}
                   destination={mapTransport.unloadingAddress}
                 />
+                
+                {/* Neviditeľný komponent pre výpočet vzdialenosti */}
+                {!routeDistances[mapTransport.id] && (
+                  <DirectionsCallback
+                    origin={mapTransport.loadingAddress}
+                    destination={mapTransport.unloadingAddress}
+                    transportId={mapTransport.id}
+                  />
+                )}
               </Box>
             </Box>
           )}
@@ -1722,7 +1692,7 @@ function TrackedTransports() {
           </Button>
         </DialogActions>
       </MapDialog>
-
+      
       <Dialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
