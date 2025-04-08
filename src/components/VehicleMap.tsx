@@ -346,45 +346,36 @@ const VehicleMap: React.FC = () => {
         const unsubscribe = onSnapshot(q, async (snapshot) => {
             const vehicleData: VehicleLocation[] = [];
             
+            console.log('🔍 Počet nájdených dokumentov:', snapshot.docs.length);
+            
             for (const docSnapshot of snapshot.docs) {
                 const data = docSnapshot.data();
-                console.log('Vehicle location data:', data); // Debug log
+                console.log('📄 Raw data z Firestore:', data);
+                console.log('🆔 Document ID:', docSnapshot.id);
+                console.log('🚗 ŠPZ z dát:', data.licensePlate);
                 
                 const companyDoc = await getDoc(doc(db, 'companies', data.companyID));
                 const companyName = companyDoc.exists() ? companyDoc.data().name : data.companyID;
-                
-                let licensePlate = 'Neznáme ŠPZ';
-                if (data.currentVehicleId) {
-                    try {
-                        const vehicleRef = doc(db, 'companies', data.companyID, 'vehicles', data.currentVehicleId);
-                        const vehicleDoc = await getDoc(vehicleRef);
-                        if (vehicleDoc.exists()) {
-                            licensePlate = vehicleDoc.data().licensePlate;
-                            console.log('Found vehicle:', vehicleDoc.data()); // Debug log
-                        }
-                    } catch (error) {
-                        console.error('Error fetching vehicle:', error);
-                    }
-                }
                 
                 const newVehicle = {
                     id: docSnapshot.id,
                     latitude: data.latitude,
                     longitude: data.longitude,
-                    driverName: data.driverName,
+                    driverName: data.driverName || 'Neznámy vodič',
                     companyID: data.companyID,
                     companyName: companyName,
                     lastUpdate: data.lastUpdate.toDate(),
                     status: data.status,
                     currentLat: data.latitude,
                     currentLng: data.longitude,
-                    licensePlate: licensePlate
+                    licensePlate: data.licensePlate || 'Neznáme ŠPZ'
                 };
                 
+                console.log('🚙 Vytvorený objekt vozidla:', newVehicle);
                 vehicleData.push(newVehicle);
             }
             
-            console.log('Processed vehicle data:', vehicleData); // Debug log
+            console.log('📊 Všetky spracované vozidlá:', vehicleData);
             setVehicles(vehicleData);
 
             // Ak máme vozidlá, nastavíme mapu na ich zobrazenie
@@ -692,7 +683,7 @@ const VehicleMap: React.FC = () => {
                                                         fontWeight: 500,
                                                         mb: 0.5
                                                     }}>
-                                                        {selectedVehicle.licensePlate}
+                                                        {selectedVehicle.licensePlate || 'Neznáme ŠPZ'}
                                                     </Typography>
                                                     <Typography variant="caption" sx={{ 
                                                         color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
