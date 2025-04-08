@@ -1,25 +1,20 @@
 export interface Vehicle {
     id: string;
     vehicleId: string;
+    licensePlate: string;
     driverName: string;
     location: {
+        lat: number;
+        lng: number;
         latitude: number;
         longitude: number;
         accuracy: number;
-        timestamp: number;
         heading?: number;
         speed?: number;
+        timestamp: number;
     };
+    lastUpdate: string;
     lastActive: number;
     isOnline: boolean;
-    type?: string;
-    licensePlate?: string;
-    dimensions?: {
-        length: number;
-        width: number;
-        height: number;
-    };
-    maxLoad?: number;
-    companyId?: string;
-    isActive?: boolean;
+    status: string;
 } 

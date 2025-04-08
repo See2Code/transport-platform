@@ -106,8 +106,8 @@ const VehicleMap: React.FC = () => {
             <Marker
               key={vehicle.id}
               position={{
-                lat: vehicle.location.latitude,
-                lng: vehicle.location.longitude
+                lat: vehicle.location.lat,
+                lng: vehicle.location.lng
               }}
               onClick={() => setSelectedVehicle(vehicle.id)}
               icon={{
@@ -119,9 +119,9 @@ const VehicleMap: React.FC = () => {
                 <InfoWindow onCloseClick={() => setSelectedVehicle(null)}>
                   <Box>
                     <Typography variant="subtitle1">{vehicle.driverName}</Typography>
-                    <Typography variant="body2">Vozidlo: {vehicle.vehicleId}</Typography>
+                    <Typography variant="body2">Vozidlo: {vehicle.licensePlate}</Typography>
                     <Typography variant="body2">
-                      Posledná aktualizácia: {new Date(vehicle.lastActive).toLocaleString('sk-SK')}
+                      Posledná aktualizácia: {new Date(vehicle.lastUpdate).toLocaleString('sk-SK')}
                     </Typography>
                     <Typography variant="body2">
                       Presnosť: {vehicle.location.accuracy.toFixed(0)}m
@@ -150,7 +150,7 @@ const VehicleMap: React.FC = () => {
                 <Box>
                   <Typography variant="subtitle1">{vehicle.driverName}</Typography>
                   <Typography variant="body2" color="textSecondary">
-                    {vehicle.vehicleId}
+                    {vehicle.licensePlate}
                   </Typography>
                   <Typography variant="body2" color={vehicle.isOnline ? 'success.main' : 'error.main'}>
                     {vehicle.isOnline ? 'Online' : 'Offline'}

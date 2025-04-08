@@ -1,18 +1,22 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { database } from '../firebase';
 import { Vehicle } from '../types/vehicle';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 
-const LOCATION_UPDATE_INTERVAL = 30000; // 30 sekúnd
-const LOCATION_ACCURACY_THRESHOLD = 50; // 50 metrov
-const MINIMUM_DISTANCE_CHANGE = 10; // 10 metrov
+const LOCATION_UPDATE_INTERVAL = 60000; // Zvýšené na 60 sekúnd
+const LOCATION_ACCURACY_THRESHOLD = 100; // Zvýšené na 100 metrov
+const MINIMUM_DISTANCE_CHANGE = 50; // Zvýšené na 50 metrov
+const MAX_UPDATE_FREQUENCY = 5 * 60 * 1000; // Maximálne 5 minút medzi aktualizáciami
+const DEBOUNCE_DELAY = 2000; // 2 sekundy
 
 export const useVehicleTracking = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const previousLocations = useRef<{ [key: string]: { lat: number; lng: number } }>({});
+    const lastUpdateTime = useRef<{ [key: string]: number }>({});
+    const lastData = useRef<any>(null);
 
     // Funkcia na výpočet vzdialenosti medzi dvoma bodmi (Haversine formula)
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -30,12 +34,13 @@ export const useVehicleTracking = () => {
         return R * c;
     };
 
-    // Debounced funkcia pre aktualizáciu vozidiel
-    const debouncedUpdateVehicles = useRef(
-        debounce((newVehicles: Vehicle[]) => {
+    const debouncedUpdateVehicles = useMemo(
+        () => debounce((newVehicles: Vehicle[]) => {
             setVehicles(newVehicles);
-        }, 1000)
-    ).current;
+            setLoading(false);
+        }, DEBOUNCE_DELAY),
+        []
+    );
 
     useEffect(() => {
         console.log('🚗 useVehicleTracking: Začínam sledovať vozidlá v reálnom čase');
@@ -45,7 +50,6 @@ export const useVehicleTracking = () => {
         const unsubscribe = onValue(vehiclesRef, 
             (snapshot) => {
                 try {
-                    console.log('🚗 useVehicleTracking: Nové dáta z Realtime DB');
                     const data = snapshot.val();
                     
                     if (!data) {
@@ -54,15 +58,25 @@ export const useVehicleTracking = () => {
                         return;
                     }
 
+                    // Kontrola či sa dáta skutočne zmenili
+                    if (JSON.stringify(data) === JSON.stringify(lastData.current)) {
+                        return;
+                    }
+                    lastData.current = data;
+
                     const vehiclesList = Object.entries(data)
                         .map(([id, data]: [string, any]) => {
-                            // Kontrola presnosti GPS
-                            if (data.location.accuracy > LOCATION_ACCURACY_THRESHOLD) {
-                                console.log(`⚠️ Nízka presnosť GPS pre vozidlo ${id}: ${data.location.accuracy}m`);
+                            const now = Date.now();
+                            const lastUpdate = lastUpdateTime.current[id] || 0;
+                            
+                            if (now - lastUpdate < MAX_UPDATE_FREQUENCY) {
                                 return null;
                             }
 
-                            // Kontrola významnej zmeny polohy
+                            if (data.location.accuracy > LOCATION_ACCURACY_THRESHOLD) {
+                                return null;
+                            }
+
                             const prevLocation = previousLocations.current[id];
                             if (prevLocation) {
                                 const distance = calculateDistance(
@@ -73,12 +87,11 @@ export const useVehicleTracking = () => {
                                 );
 
                                 if (distance < MINIMUM_DISTANCE_CHANGE) {
-                                    console.log(`ℹ️ Zanedbateľná zmena polohy pre vozidlo ${id}: ${distance.toFixed(2)}m`);
                                     return null;
                                 }
                             }
 
-                            // Aktualizácia predchádzajúcej polohy
+                            lastUpdateTime.current[id] = now;
                             previousLocations.current[id] = {
                                 lat: data.location.latitude,
                                 lng: data.location.longitude
@@ -86,50 +99,37 @@ export const useVehicleTracking = () => {
 
                             return {
                                 id,
-                                vehicleId: data.vehicleId,
-                                driverName: data.driverName,
+                                vehicleId: id,
+                                licensePlate: data.licensePlate || 'Neznáme',
+                                driverName: data.driverName || 'Neznámy vodič',
                                 location: {
+                                    lat: data.location.latitude,
+                                    lng: data.location.longitude,
                                     latitude: data.location.latitude,
                                     longitude: data.location.longitude,
                                     accuracy: data.location.accuracy,
-                                    timestamp: data.location.timestamp,
                                     heading: data.location.heading,
-                                    speed: data.location.speed
+                                    speed: data.location.speed,
+                                    timestamp: data.location.timestamp || Date.now()
                                 },
-                                lastActive: data.lastActive,
-                                isOnline: data.isOnline,
-                                type: data.type,
-                                licensePlate: data.licensePlate,
-                                dimensions: data.dimensions,
-                                maxLoad: data.maxLoad
+                                lastUpdate: data.lastUpdate || new Date().toISOString(),
+                                lastActive: Date.now(),
+                                isOnline: true,
+                                status: data.status || 'unknown'
                             } as Vehicle;
                         })
-                        .filter((vehicle): vehicle is Vehicle => 
-                            vehicle !== null && 
-                            vehicle.lastActive > Date.now() - 5 * 60 * 1000
-                        );
+                        .filter((vehicle): vehicle is Vehicle => vehicle !== null);
 
-                    // Filtrujeme len najnovšie záznamy pre každého vodiča
-                    const latestVehicles = vehiclesList.reduce((acc, vehicle) => {
-                        const existingVehicle = acc.find(v => v.driverName === vehicle.driverName);
-                        if (!existingVehicle || existingVehicle.location.timestamp < vehicle.location.timestamp) {
-                            return [...acc.filter(v => v.driverName !== vehicle.driverName), vehicle];
-                        }
-                        return acc;
-                    }, [] as Vehicle[]);
-
-                    console.log('🚗 useVehicleTracking: Počet aktívnych vozidiel:', latestVehicles.length);
-                    debouncedUpdateVehicles(latestVehicles);
-                    setLoading(false);
+                    debouncedUpdateVehicles(vehiclesList);
                 } catch (error) {
-                    console.error('❌ useVehicleTracking: Chyba pri spracovaní dát:', error);
-                    setError('Chyba pri spracovaní dát: ' + (error instanceof Error ? error.message : 'Neznáma chyba'));
+                    console.error('❌ Chyba pri spracovaní dát:', error);
+                    setError('Chyba pri načítaní dát o vozidlách');
                     setLoading(false);
                 }
             },
             (error) => {
-                console.error('❌ useVehicleTracking: Chyba pri sledovaní zmien:', error);
-                setError('Chyba pri sledovaní zmien: ' + error.message);
+                console.error('❌ Chyba pri sledovaní vozidiel:', error);
+                setError('Chyba pri sledovaní vozidiel');
                 setLoading(false);
             }
         );
