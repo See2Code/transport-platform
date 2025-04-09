@@ -42,7 +42,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import PersonIcon from '@mui/icons-material/Person';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import InfoIcon from '@mui/icons-material/Info';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp, query, orderBy, DocumentReference, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, where, Timestamp, getDoc, orderBy, updateDoc, increment, limit, startAfter, QueryDocumentSnapshot, DocumentReference, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import PhoneInput from 'react-phone-input-2';
@@ -395,6 +395,8 @@ const StyledDialogContent = styled(Box)<{ isDarkMode: boolean }>(({ isDarkMode }
   }
 }));
 
+const phaseColors = ['#ff9f43', '#ff6b6b', '#1a1a2e', '#4caf50'];
+
 export default function BusinessCases() {
   const [cases, setCases] = useState<BusinessCase[]>([]);
   const [open, setOpen] = useState(false);
@@ -427,6 +429,8 @@ export default function BusinessCases() {
   const [loading, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'thisWeek' | 'thisMonth' | 'thisYear' | null>('all');
   const [expandedCaseId, setExpandedCaseId] = useState<string | null>(null);
+  const [phaseDialogOpen, setPhaseDialogOpen] = useState(false);
+  const [phases, setPhases] = useState<{ id: string; name: string; createdAt: Date }[]>([]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -864,6 +868,67 @@ export default function BusinessCases() {
     </MobileBusinessCard>
   );
 
+  const fetchPhases = async () => {
+    try {
+      const phasesCollection = collection(db, 'phases');
+      const snapshot = await getDocs(phasesCollection);
+      const phasesData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          createdAt: data.createdAt ? 
+            (data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt)) : 
+            new Date()
+        };
+      });
+      setPhases(phasesData);
+    } catch (error) {
+      console.error('Error fetching phases:', error);
+    }
+  };
+
+  const handleAddPhase = async (phase: string) => {
+    const timestamp = Timestamp.now();
+    const newPhase = { 
+      name: phase, 
+      createdAt: timestamp 
+    };
+    try {
+      const docRef = await addDoc(collection(db, 'phases'), newPhase);
+      setPhases([...phases, { 
+        id: docRef.id, 
+        name: phase, 
+        createdAt: timestamp.toDate() 
+      }]);
+      setSnackbar({
+        open: true,
+        message: `Fáza obchodu '${phase}' bola pridaná`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error adding phase:', error);
+    }
+    setPhaseDialogOpen(false);
+  };
+
+  const handleDeletePhase = async (index: number) => {
+    const phaseToDelete = phases[index];
+    try {
+      if (phaseToDelete.id) {
+        await deleteDoc(doc(db, 'phases', phaseToDelete.id));
+      }
+      const newPhases = phases.filter((_, i) => i !== index);
+      setPhases(newPhases);
+    } catch (error) {
+      console.error('Error deleting phase:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPhases();
+  }, []);
+
   return (
     <PageWrapper>
       <PageHeader>
@@ -1149,9 +1214,12 @@ export default function BusinessCases() {
                             <Typography variant="body2"><strong>Status:</strong> {caseStatuses[businessCase.status].label}</Typography>
                             <Typography variant="body2"><strong>Firma:</strong> {businessCase.companyName}</Typography>
                             <Typography variant="body2"><strong>IČ DPH:</strong> {businessCase.vatNumber}</Typography>
-                            <Typography variant="body2"><strong>Kontaktná osoba:</strong> {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}</Typography>
+                            {businessCase.internalNote && (
+                              <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Interná poznámka:</strong> {businessCase.internalNote}</Typography>
+                            )}
                           </Box>
                           <Box>
+                            <Typography variant="body2"><strong>Kontaktná osoba:</strong> {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}</Typography>
                             <Typography variant="body2"><strong>Telefón:</strong> {businessCase.contactPerson.phone}</Typography>
                             <Typography variant="body2"><strong>Email:</strong> {businessCase.contactPerson.email}</Typography>
                             {businessCase.reminderDateTime && (
@@ -1162,9 +1230,6 @@ export default function BusinessCases() {
                                 hour: '2-digit',
                                 minute: '2-digit'
                               }).replace(',', '')}</Typography>
-                            )}
-                            {businessCase.internalNote && (
-                              <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Interná poznámka:</strong> {businessCase.internalNote}</Typography>
                             )}
                             {businessCase.reminderNote && (
                               <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Poznámka k pripomienke:</strong> {businessCase.reminderNote}</Typography>
@@ -1200,6 +1265,65 @@ export default function BusinessCases() {
                                 <DeleteIcon />
                               </IconButton>
                             </Tooltip>
+                          </Box>
+                        </Box>
+                        <Box sx={{ marginTop: 2 }}>
+                          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Fázy obchodu
+                            <IconButton onClick={() => setPhaseDialogOpen(true)} sx={{ color: colors.accent.main }}>
+                              <AddIcon />
+                            </IconButton>
+                          </Typography>
+                          <Box sx={{ marginTop: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            {phases.map((phase, index) => (
+                              <Chip
+                                key={index}
+                                label={
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                    <Typography sx={{ fontSize: '0.8rem', whiteSpace: 'normal', overflow: 'visible', paddingRight: '5px' }}>
+                                      {`${phase.name} - ${
+                                        phase.createdAt instanceof Date ? 
+                                        phase.createdAt.toLocaleString('sk-SK', {
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        }) : 
+                                        'Neznámy dátum'
+                                      }`}
+                                    </Typography>
+                                    <IconButton 
+                                      size="small" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        handleDeletePhase(index);
+                                      }}
+                                      sx={{ ml: 1, p: 0.5 }}
+                                    >
+                                      <DeleteIcon sx={{ color: '#ffffff', fontSize: '0.9rem' }} />
+                                    </IconButton>
+                                  </Box>
+                                }
+                                sx={{
+                                  backgroundColor: index === 2 ? '#4caf50' : phaseColors[index % phaseColors.length],
+                                  color: '#ffffff',
+                                  borderRadius: '16px',
+                                  '& .MuiChip-label': {
+                                    padding: '6px 8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    width: '100%'
+                                  },
+                                  height: 'auto',
+                                  minHeight: '36px',
+                                  fontSize: '0.85rem',
+                                  minWidth: '280px',
+                                  maxWidth: '280px'
+                                }}
+                              />
+                            ))}
                           </Box>
                         </Box>
                       </Box>
@@ -1624,6 +1748,63 @@ export default function BusinessCases() {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={phaseDialogOpen}
+        onClose={() => setPhaseDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            background: 'none',
+            boxShadow: 'none',
+            margin: {
+              xs: '8px',
+              sm: '16px'
+            }
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }
+        }}
+      >
+        <StyledDialogContent isDarkMode={isDarkMode}>
+          <DialogTitle>Pridať fázu obchodu</DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 2 }}>
+              <Typography variant="body2">Vyberte alebo pridajte vlastný krok:</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 2 }}>
+                <Chip label="Stretnutie" sx={{ marginRight: 1 }} onClick={() => handleAddPhase('Stretnutie')} />
+                <Chip label="Hovor" sx={{ marginRight: 1 }} onClick={() => handleAddPhase('Hovor')} />
+                <Chip label="Mail" sx={{ marginRight: 1 }} onClick={() => handleAddPhase('Mail')} />
+                <Chip label="Videohovor" sx={{ marginRight: 1 }} onClick={() => handleAddPhase('Videohovor')} />
+                <TextField
+                  placeholder="Pridať vlastný krok"
+                  variant="outlined"
+                  size="small"
+                  sx={{ marginTop: 1, width: '100%' }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      const inputValue = (e.target as HTMLInputElement).value;
+                      handleAddPhase(inputValue);
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setPhaseDialogOpen(false)} sx={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)' }}>
+              Zrušiť
+            </Button>
+            <Button variant="contained" sx={{ backgroundColor: colors.accent.main, color: '#ffffff' }}>
+              Pridať
+            </Button>
+          </DialogActions>
+        </StyledDialogContent>
+      </Dialog>
     </PageWrapper>
   );
 } 
