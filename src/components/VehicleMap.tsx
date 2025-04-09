@@ -26,6 +26,8 @@ interface VehicleLocation {
     currentLat?: number;
     currentLng?: number;
     licensePlate: string;
+    isOffline?: boolean;
+    lastOnline?: Date;
 }
 
 const mapContainerStyle = {
@@ -40,6 +42,10 @@ const defaultCenter = {
 };
 
 const libraries: Libraries = ['places'];
+
+// Časový limit pre aktuálnosť polohy (v milisekundách)
+const LOCATION_MAX_AGE = 15 * 60 * 1000; // 15 minút
+const STALE_LOCATION_TIME = 5 * 60 * 1000; // 5 minút
 
 const darkMapStyles = [
   {
@@ -270,6 +276,7 @@ const hideGoogleMapElements = {
 
 const VehicleMap: React.FC = () => {
     const [vehicles, setVehicles] = useState<VehicleLocation[]>([]);
+    const [staleVehicles, setStaleVehicles] = useState<VehicleLocation[]>([]);
     const [selectedVehicle, setSelectedVehicle] = useState<VehicleLocation | null>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [showInfoWindow, setShowInfoWindow] = useState(false);
@@ -288,7 +295,7 @@ const VehicleMap: React.FC = () => {
     useEffect(() => {
         const timer = setInterval(() => {
             setTimeUpdate(prev => prev + 1);
-        }, 60000); // Aktualizácia každú minútu
+        }, 15000); // Aktualizácia každých 15 sekúnd pre lepšie sledovanie
 
         return () => clearInterval(timer);
     }, []);
@@ -340,9 +347,9 @@ const VehicleMap: React.FC = () => {
     useEffect(() => {
         if (!userData?.companyID) return;
 
+        // Dotaz pre všetky vozidlá spoločnosti, vrátane offline
         const q = query(
             collection(db, 'vehicleLocations'), 
-            where('status', '==', 'active'),
             where('companyID', '==', userData.companyID)
         );
         
@@ -350,20 +357,14 @@ const VehicleMap: React.FC = () => {
             q,
             { includeMetadataChanges: false },
             async (snapshot) => {
-                const vehicleData: VehicleLocation[] = [];
+                const activeVehicles: VehicleLocation[] = [];
+                const staleVehiclesData: VehicleLocation[] = [];
                 
                 console.log('🔍 Počet nájdených dokumentov:', snapshot.docs.length);
                 
                 for (const docSnapshot of snapshot.docs) {
                     const data = docSnapshot.data();
                     
-                    // Kontrola či sú dáta aktuálne (nie staršie ako 5 minút)
-                    const lastUpdate = data.lastUpdate.toDate();
-                    if (Date.now() - lastUpdate.getTime() > 5 * 60 * 1000) {
-                        console.log(`⏰ Preskakujem neaktuálne vozidlo ${data.licensePlate}`);
-                        continue;
-                    }
-
                     // Kontrola či má vozidlo platnú polohu
                     if (!data.latitude || !data.longitude) {
                         console.log(`📍 Preskakujem vozidlo ${data.licensePlate} bez polohy`);
@@ -373,7 +374,11 @@ const VehicleMap: React.FC = () => {
                     const companyDoc = await getDoc(doc(db, 'companies', data.companyID));
                     const companyName = companyDoc.exists() ? companyDoc.data().name : data.companyID;
                     
-                    const newVehicle = {
+                    // Vytvorenie objektu vozidla
+                    const lastUpdate = data.lastUpdate ? data.lastUpdate.toDate() : new Date();
+                    const lastOnline = data.lastOnline ? data.lastOnline.toDate() : lastUpdate;
+                    
+                    const vehicleData = {
                         id: docSnapshot.id,
                         latitude: data.latitude,
                         longitude: data.longitude,
@@ -381,27 +386,44 @@ const VehicleMap: React.FC = () => {
                         companyID: data.companyID,
                         companyName: companyName,
                         lastUpdate: lastUpdate,
-                        status: data.status,
+                        lastOnline: lastOnline,
+                        status: data.status || 'unknown',
                         currentLat: data.latitude,
                         currentLng: data.longitude,
-                        licensePlate: data.licensePlate || 'Neznáme ŠPZ'
+                        licensePlate: data.licensePlate || 'Neznáme ŠPZ',
+                        isOffline: data.isOffline === true
                     };
                     
-                    vehicleData.push(newVehicle);
+                    // Kontrola aktuálnosti
+                    const now = Date.now();
+                    const updateAge = now - lastUpdate.getTime();
+                    
+                    // Ak je vozidlo explicitne označené ako offline alebo je veľmi staré
+                    if (vehicleData.isOffline || updateAge > LOCATION_MAX_AGE) {
+                        console.log(`⏰ Offline/zastaralé vozidlo ${data.licensePlate} - aktualizácia pred ${Math.floor(updateAge / 60000)} minútami`);
+                        // Pridáme do zoznamu neaktívnych vozidiel
+                        staleVehiclesData.push(vehicleData);
+                    } 
+                    // Aktívne vozidlá, ktoré nie sú príliš staré
+                    else if (updateAge <= LOCATION_MAX_AGE) {
+                        console.log(`✅ Aktívne vozidlo ${data.licensePlate} - aktualizácia pred ${Math.floor(updateAge / 60000)} minútami`);
+                        activeVehicles.push(vehicleData);
+                    }
                 }
                 
-                setVehicles(vehicleData);
+                setVehicles(activeVehicles);
+                setStaleVehicles(staleVehiclesData);
 
                 // Ak máme vozidlá, nastavíme mapu na ich zobrazenie
-                if (vehicleData.length > 0 && map) {
+                if (activeVehicles.length > 0 && map) {
                     const bounds = new window.google.maps.LatLngBounds();
-                    vehicleData.forEach((vehicle) => {
+                    activeVehicles.forEach((vehicle) => {
                         bounds.extend({ lat: vehicle.latitude, lng: vehicle.longitude });
                     });
                     map.fitBounds(bounds);
                     
                     // Ak máme len jedno vozidlo, nastavíme väčší zoom
-                    if (vehicleData.length === 1) {
+                    if (activeVehicles.length === 1) {
                         map.setZoom(15);
                     }
                 }
@@ -456,12 +478,28 @@ const VehicleMap: React.FC = () => {
         return <Box>Načítavam mapu...</Box>;
     }
 
-    const getStatusColor = (lastUpdate: Date) => {
+    const getStatusColor = (vehicle: VehicleLocation) => {
         const now = new Date();
-        const diffMinutes = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60));
+        
+        // Ak je vozidlo označené ako offline
+        if (vehicle.isOffline) return 'error';
+        
+        const diffMinutes = Math.floor((now.getTime() - vehicle.lastUpdate.getTime()) / (1000 * 60));
         if (diffMinutes < 5) return 'success';
         if (diffMinutes < 15) return 'warning';
         return 'error';
+    };
+
+    const getStatusText = (vehicle: VehicleLocation) => {
+        // Ak je vozidlo explicitne označené ako offline
+        if (vehicle.isOffline) return "Offline";
+        
+        const now = new Date();
+        const diffMinutes = Math.floor((now.getTime() - vehicle.lastUpdate.getTime()) / (1000 * 60));
+        
+        if (diffMinutes < 5) return "Online";
+        if (diffMinutes < 15) return "Neaktívny";
+        return "Offline";
     };
 
     const formatTimeDiff = (lastUpdate: Date) => {
@@ -561,8 +599,8 @@ const VehicleMap: React.FC = () => {
                                                         </Typography>
                                                         <Chip
                                                             size="small"
-                                                            color={getStatusColor(vehicle.lastUpdate)}
-                                                            label="Online"
+                                                            color={getStatusColor(vehicle)}
+                                                            label={getStatusText(vehicle)}
                                                             sx={{ ml: 1 }}
                                                         />
                                                     </Box>
@@ -572,6 +610,56 @@ const VehicleMap: React.FC = () => {
                                         <Divider />
                                     </React.Fragment>
                                 ))
+                            )}
+                            
+                            {/* Sekcia pre neaktívne vozidlá */}
+                            {staleVehicles.length > 0 && (
+                                <>
+                                    <ListItem>
+                                        <ListItemText 
+                                            primary={
+                                                <Typography variant="h6">
+                                                    Neaktívni vodiči ({staleVehicles.length})
+                                                </Typography>
+                                            }
+                                        />
+                                    </ListItem>
+                                    <Divider />
+                                    {staleVehicles.map((vehicle) => (
+                                        <React.Fragment key={vehicle.id}>
+                                            <ListItem 
+                                                button 
+                                                onClick={() => handleListItemClick(vehicle)}
+                                                selected={selectedVehicle?.id === vehicle.id}
+                                                sx={{ opacity: 0.6 }}
+                                            >
+                                                <ListItemAvatar>
+                                                    <Avatar sx={{ opacity: 0.7 }}>
+                                                        <CarIcon />
+                                                    </Avatar>
+                                                </ListItemAvatar>
+                                                <ListItemText
+                                                    primary={vehicle.driverName}
+                                                    secondary={
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <TimeIcon fontSize="small" />
+                                                            <Typography variant="body2" component="span">
+                                                                {formatTimeDiff(vehicle.lastUpdate)}
+                                                            </Typography>
+                                                            <Chip
+                                                                size="small"
+                                                                color={getStatusColor(vehicle)}
+                                                                label="Offline"
+                                                                sx={{ ml: 1 }}
+                                                            />
+                                                        </Box>
+                                                    }
+                                                />
+                                            </ListItem>
+                                            <Divider />
+                                        </React.Fragment>
+                                    ))}
+                                </>
                             )}
                         </List>
                     </Paper>
@@ -598,6 +686,7 @@ const VehicleMap: React.FC = () => {
                                 backgroundColor: isDarkMode ? '#1a1a2e' : '#ffffff'
                             }}
                         >
+                            {/* Aktívne vozidlá */}
                             {vehicles.map((vehicle) => (
                                 <Marker
                                     key={vehicle.id}
@@ -614,6 +703,27 @@ const VehicleMap: React.FC = () => {
                                         strokeWeight: 0
                                     }}
                                     zIndex={selectedVehicle?.id === vehicle.id ? 2 : 1}
+                                />
+                            ))}
+
+                            {/* Neaktívne vozidlá so šedou ikonou */}
+                            {staleVehicles.map((vehicle) => (
+                                <Marker
+                                    key={vehicle.id}
+                                    position={{
+                                        lat: vehicle.latitude,
+                                        lng: vehicle.longitude
+                                    }}
+                                    onClick={() => handleMarkerClick(vehicle)}
+                                    icon={{
+                                        path: window.google.maps.SymbolPath.CIRCLE,
+                                        scale: 7,
+                                        fillColor: '#888888',  // Šedá farba pre neaktívne vozidlá
+                                        fillOpacity: 0.7,
+                                        strokeWeight: 0
+                                    }}
+                                    zIndex={selectedVehicle?.id === vehicle.id ? 2 : 0}
+                                    opacity={0.7}
                                 />
                             ))}
 
@@ -666,14 +776,12 @@ const VehicleMap: React.FC = () => {
                                                 }}>
                                                     {formatTimeDiff(selectedVehicle.lastUpdate)}
                                                 </Typography>
-                                                <Box sx={{ 
-                                                    width: 8, 
-                                                    height: 8, 
-                                                    borderRadius: '50%',
-                                                    bgcolor: getStatusColor(selectedVehicle.lastUpdate) === 'success' ? '#4CAF50' : 
-                                                            getStatusColor(selectedVehicle.lastUpdate) === 'warning' ? '#FFC107' : '#F44336',
-                                                    ml: 'auto'
-                                                }} />
+                                                <Chip
+                                                    size="small"
+                                                    color={getStatusColor(selectedVehicle)}
+                                                    label={getStatusText(selectedVehicle)}
+                                                    sx={{ ml: 'auto', height: '20px', fontSize: '0.7rem' }}
+                                                />
                                             </Box>
                                         </Box>
                                         
