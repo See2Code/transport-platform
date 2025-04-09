@@ -425,6 +425,8 @@ export default function BusinessCases() {
   const [selectedCountry, setSelectedCountry] = useState(euCountries[0]);
   const { isDarkMode } = useThemeMode();
   const [loading, setLoading] = useState(false);
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'thisWeek' | 'thisMonth' | 'thisYear' | null>('all');
+  const [expandedCaseId, setExpandedCaseId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!currentUser) {
@@ -687,12 +689,35 @@ export default function BusinessCases() {
     }
   };
 
-  const filteredCases = cases.filter((businessCase: BusinessCase) =>
-    Object.values(businessCase)
-      .join(' ')
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  const handleDateFilterChange = (filter: 'all' | 'today' | 'thisWeek' | 'thisMonth' | 'thisYear' | null) => {
+    setDateFilter(filter);
+  };
+
+  const filteredCases = cases.filter((businessCase: BusinessCase) => {
+    const createdAt = businessCase.createdAt instanceof Timestamp ? businessCase.createdAt.toDate() : new Date(businessCase.createdAt);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - today.getDay());
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisYearStart = new Date(now.getFullYear(), 0, 1);
+
+    if (dateFilter === 'today') {
+      return createdAt >= today;
+    } else if (dateFilter === 'thisWeek') {
+      return createdAt >= thisWeekStart;
+    } else if (dateFilter === 'thisMonth') {
+      return createdAt >= thisMonthStart;
+    } else if (dateFilter === 'thisYear') {
+      return createdAt >= thisYearStart;
+    }
+
+    return true;
+  });
+
+  const handleRowClick = (id: string) => {
+    setExpandedCaseId(expandedCaseId === id ? null : id);
+  };
 
   const renderMobileCase = (businessCase: BusinessCase) => (
     <MobileBusinessCard isDarkMode={isDarkMode}>
@@ -954,6 +979,24 @@ export default function BusinessCases() {
         />
       </SearchWrapper>
 
+      <Box sx={{ display: 'flex', gap: 2, marginBottom: 2 }}>
+        <Button variant={dateFilter === 'all' ? 'contained' : 'outlined'} onClick={() => handleDateFilterChange('all')}>
+          Všetky
+        </Button>
+        <Button variant={dateFilter === 'today' ? 'contained' : 'outlined'} onClick={() => handleDateFilterChange('today')}>
+          Dnes
+        </Button>
+        <Button variant={dateFilter === 'thisWeek' ? 'contained' : 'outlined'} onClick={() => handleDateFilterChange('thisWeek')}>
+          Tento týždeň
+        </Button>
+        <Button variant={dateFilter === 'thisMonth' ? 'contained' : 'outlined'} onClick={() => handleDateFilterChange('thisMonth')}>
+          Tento mesiac
+        </Button>
+        <Button variant={dateFilter === 'thisYear' ? 'contained' : 'outlined'} onClick={() => handleDateFilterChange('thisYear')}>
+          Tento rok
+        </Button>
+      </Box>
+
       {/* Mobilné zobrazenie */}
       <Box sx={{ 
         display: { 
@@ -1010,162 +1053,160 @@ export default function BusinessCases() {
               <TableCell>Dátum vytvorenia</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Firma</TableCell>
-              <TableCell>IČ DPH</TableCell>
               <TableCell>Kontaktná osoba</TableCell>
               <TableCell>Telefón</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Vytvoril</TableCell>
-              <TableCell>Pripomienka</TableCell>
-              <TableCell align="right">Akcie</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredCases.map((businessCase) => (
-              <StyledTableRow isDarkMode={isDarkMode} key={businessCase.id}>
-                <TableCell>
-                  {businessCase.createdAt instanceof Timestamp ? 
-                    businessCase.createdAt.toDate().toLocaleString('sk-SK', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    }).replace(',', '') : 
-                    new Date(businessCase.createdAt).toLocaleString('sk-SK', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    }).replace(',', '')}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={caseStatuses[businessCase.status].label}
-                    color={caseStatuses[businessCase.status].color}
-                    size="small"
-                    sx={{
-                      fontSize: {
-                        xs: '0.7rem',
-                        sm: '0.8rem'
-                      },
-                      height: {
-                        xs: '24px',
-                        sm: '32px'
-                      }
-                    }}
-                  />
-                </TableCell>
-                <TableCell>{businessCase.companyName}</TableCell>
-                <TableCell>{businessCase.vatNumber}</TableCell>
-                <TableCell>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 1,
-                    '& .MuiSvgIcon-root': {
-                      fontSize: {
-                        xs: '1rem',
-                        sm: '1.25rem'
-                      }
-                    }
-                  }}>
-                    <PersonIcon />
-                    {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 1,
-                    '& img': {
-                      width: {
-                        xs: '16px',
-                        sm: '20px'
-                      }
-                    }
-                  }}>
-                    <img
-                      loading="lazy"
-                      src={`https://flagcdn.com/${businessCase.countryCode?.toLowerCase()}.svg`}
-                      alt=""
-                    />
-                    {businessCase.contactPerson.phone}
-                  </Box>
-                </TableCell>
-                <TableCell>{businessCase.contactPerson.email}</TableCell>
-                <TableCell>
-                  {businessCase.createdBy?.firstName} {businessCase.createdBy?.lastName}
-                </TableCell>
-                <TableCell>
-                  {businessCase.reminderDateTime && (
-                    typeof businessCase.reminderDateTime === 'object' && 'toLocaleString' in businessCase.reminderDateTime ?
-                    businessCase.reminderDateTime.toLocaleString('sk-SK', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    }).replace(',', '') : ''
-                  )}
-                </TableCell>
-                <TableCell align="right">
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    {businessCase.internalNote && (
-                      <Tooltip 
-                        title={
-                          <Box sx={{ p: 1 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                              Interná poznámka:
-                            </Typography>
-                            <Typography variant="body2">
-                              {businessCase.internalNote}
-                            </Typography>
-                          </Box>
+              <React.Fragment key={businessCase.id}>
+                <StyledTableRow isDarkMode={isDarkMode} onClick={() => handleRowClick(businessCase.id!)}>
+                  <TableCell>
+                    {businessCase.createdAt instanceof Timestamp ? 
+                      businessCase.createdAt.toDate().toLocaleString('sk-SK', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).replace(',', '') : 
+                      new Date(businessCase.createdAt).toLocaleString('sk-SK', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).replace(',', '')}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={caseStatuses[businessCase.status].label}
+                      color={caseStatuses[businessCase.status].color}
+                      size="small"
+                      sx={{
+                        fontSize: {
+                          xs: '0.7rem',
+                          sm: '0.8rem'
+                        },
+                        height: {
+                          xs: '24px',
+                          sm: '32px'
                         }
-                      >
-                        <IconButton 
-                          sx={{ 
-                            color: colors.accent.main,
-                            '&:hover': {
-                              backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                            }
-                          }}
-                        >
-                          <InfoIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                    <Tooltip title="Upraviť">
-                      <IconButton 
-                        onClick={() => handleEdit(businessCase)}
-                        sx={{ 
-                          color: colors.accent.main,
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 159, 67, 0.1)'
-                          }
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Vymazať">
-                      <IconButton 
-                        onClick={() => handleDelete(businessCase.id!)}
-                        sx={{ 
-                          color: colors.secondary.main,
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 107, 107, 0.1)'
-                          }
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </TableCell>
-              </StyledTableRow>
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>{businessCase.companyName}</TableCell>
+                  <TableCell>{businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}</TableCell>
+                  <TableCell>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      '& img': {
+                        width: {
+                          xs: '16px',
+                          sm: '20px'
+                        }
+                      }
+                    }}>
+                      <img
+                        loading="lazy"
+                        src={`https://flagcdn.com/${businessCase.countryCode?.toLowerCase()}.svg`}
+                        alt=""
+                      />
+                      {businessCase.contactPerson.phone}
+                    </Box>
+                  </TableCell>
+                  <TableCell>{businessCase.contactPerson.email}</TableCell>
+                  <TableCell>
+                    {businessCase.createdBy?.firstName} {businessCase.createdBy?.lastName}
+                  </TableCell>
+                </StyledTableRow>
+                {expandedCaseId === businessCase.id && (
+                  <StyledTableRow isDarkMode={isDarkMode}>
+                    <TableCell colSpan={7}>
+                      <Box sx={{ padding: 2 }}>
+                        <Typography variant="h6" sx={{ marginBottom: 1 }}>Detail obchodného prípadu</Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                          <Box>
+                            <Typography variant="body2"><strong>Dátum vytvorenia:</strong> {businessCase.createdAt instanceof Timestamp ? 
+                              businessCase.createdAt.toDate().toLocaleString('sk-SK', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              }).replace(',', '') : 
+                              new Date(businessCase.createdAt).toLocaleString('sk-SK', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              }).replace(',', '')}</Typography>
+                            <Typography variant="body2"><strong>Status:</strong> {caseStatuses[businessCase.status].label}</Typography>
+                            <Typography variant="body2"><strong>Firma:</strong> {businessCase.companyName}</Typography>
+                            <Typography variant="body2"><strong>IČ DPH:</strong> {businessCase.vatNumber}</Typography>
+                            <Typography variant="body2"><strong>Kontaktná osoba:</strong> {businessCase.contactPerson.firstName} {businessCase.contactPerson.lastName}</Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant="body2"><strong>Telefón:</strong> {businessCase.contactPerson.phone}</Typography>
+                            <Typography variant="body2"><strong>Email:</strong> {businessCase.contactPerson.email}</Typography>
+                            {businessCase.reminderDateTime && (
+                              <Typography variant="body2"><strong>Pripomienka:</strong> {convertToDate(businessCase.reminderDateTime)?.toLocaleString('sk-SK', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              }).replace(',', '')}</Typography>
+                            )}
+                            {businessCase.internalNote && (
+                              <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Interná poznámka:</strong> {businessCase.internalNote}</Typography>
+                            )}
+                            {businessCase.reminderNote && (
+                              <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Poznámka k pripomienke:</strong> {businessCase.reminderNote}</Typography>
+                            )}
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+                          <Typography variant="body2" sx={{ textAlign: 'left', marginLeft: 0 }}><strong>Vytvoril:</strong> {businessCase.createdBy?.firstName} {businessCase.createdBy?.lastName}</Typography>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Tooltip title="Upraviť">
+                              <IconButton 
+                                onClick={() => handleEdit(businessCase)}
+                                sx={{ 
+                                  color: colors.accent.main,
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(255, 159, 67, 0.1)'
+                                  }
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Vymazať">
+                              <IconButton 
+                                onClick={() => handleDelete(businessCase.id!)}
+                                sx={{ 
+                                  color: colors.secondary.main,
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                                  }
+                                }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                  </StyledTableRow>
+                )}
+              </React.Fragment>
             ))}
           </TableBody>
         </Table>

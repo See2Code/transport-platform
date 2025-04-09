@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Libraries } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Libraries, Circle } from '@react-google-maps/api';
 import { collection, onSnapshot, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Box, Typography, Paper, Grid, List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider, Chip, GlobalStyles } from '@mui/material';
@@ -261,6 +261,9 @@ const hideGoogleMapElements = {
         background: 'transparent !important'
     },
     '.gm-style .gm-style-iw > button': {
+        display: 'none !important'
+    },
+    '.gm-style-iw-tc': {
         display: 'none !important'
     }
 };
@@ -604,9 +607,11 @@ const VehicleMap: React.FC = () => {
                                     }}
                                     onClick={() => handleMarkerClick(vehicle)}
                                     icon={{
-                                        url: isDarkMode ? '/vehicle-marker-dark.svg' : '/vehicle-marker.svg',
-                                        scaledSize: new window.google.maps.Size(48, 48),
-                                        anchor: new window.google.maps.Point(24, 24)
+                                        path: window.google.maps.SymbolPath.CIRCLE,
+                                        scale: 8,
+                                        fillColor: '#FF6B00',
+                                        fillOpacity: 1,
+                                        strokeWeight: 0
                                     }}
                                     zIndex={selectedVehicle?.id === vehicle.id ? 2 : 1}
                                 />
